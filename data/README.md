@@ -9,6 +9,7 @@ Model outputs, transcripts and media are not included here (the recordings and l
 | `scores.csv` | Final scores, one row per run: 54 tasks × 7 builds = 378 rows |
 | `scores_detailed.json` | The same scores plus the written reason for every axis and every deduction, grouped by task |
 | `runs.csv` | Per-run statistics: wall time, turns, tool calls, generated tokens, generation speed, and whether the run was continued, crashed or hit the time cap |
+| `reliability.csv` | One row per build, summed over the 54 scored tasks: median turns and tool calls, tool-call success rate (failed calls counted from the session logs), runs that hit the time cap / crashed / needed a continue, runs below 6, score spread (SD) and the worst run. The `M7` row is the combined M7/M8 column, as in the scores |
 | `speed.csv` | The speed benchmark: model load times, warm-up curve, and prefill / decode / time-to-first-token at different context sizes |
 
 ## Scores (`scores.csv`, `scores_detailed.json`)
