@@ -5,8 +5,42 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%277%27 fill=%27%231b4d3e%27/%3E%3Cg fill=%27none%27 stroke=%27%233ddc97%27 stroke-width=%272%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27%3E%3Cpath d=%27M7 24.5h18%27/%3E%3Crect x=%278.5%27 y=%2714%27 width=%273.6%27 height=%277.5%27 rx=%271%27/%3E%3Crect x=%2714.2%27 y=%278%27 width=%273.6%27 height=%2713.5%27 rx=%271%27/%3E%3Crect x=%2719.9%27 y=%2711.5%27 width=%273.6%27 height=%2710%27 rx=%271%27/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:ital,wght@0,400;0,600;1,400&family=Caveat:wght@700&display=swap">
 <script>document.documentElement.setAttribute('data-theme','dark');</script>
+<style>
+#pgload{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(14,15,18,.74);backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);transition:opacity .45s ease,visibility .45s}
+#pgload.done{opacity:0;visibility:hidden;pointer-events:none}
+html.pl-on{overflow:hidden}
+.pl-card{display:flex;align-items:center;gap:18px;padding:20px 26px;border-radius:16px;background:rgba(32,33,36,.78);border:1px solid #303236;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);color:#e8e8ea;min-width:320px}
+/* the spinner and the bar shimmer animate only transform, so the browser runs them off the main thread:
+   they keep moving even while the page is busy parsing or decoding images */
+/* the ring keeps its original look; the whole element is rotated with transform, which the browser runs off the
+   main thread, so it keeps turning while the page parses and decodes images */
+/* looping spinner: the whole ring rotates with transform, which the browser runs off the main thread,
+   so it keeps turning smoothly while the page parses and decodes images */
+.pl-spin{flex:none;width:54px;height:54px;display:block;will-change:transform;animation:plspin 1s linear infinite}
+.pl-spin svg{display:block;width:100%;height:100%}
+.pl-spin circle{fill:none;stroke-width:5}
+.pl-bg{stroke:#303236}
+.pl-fg{stroke:#6ea1ff;stroke-linecap:round;stroke-dasharray:60 200}
+.pl-txt{display:grid;gap:6px;min-width:0;flex:1}
+.pl-txt b{font-size:15px}
+.pl-sub{font-size:12.5px;color:#8d9096}
+.pl-bar{display:block;position:relative;height:4px;border-radius:4px;background:#303236;overflow:hidden}
+.pl-bar::after{content:"";position:absolute;top:0;bottom:0;left:0;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);
+  will-change:transform;transform:translateX(-100%);animation:plshim 1.15s linear infinite}
+.pl-bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .25s ease;
+  background:linear-gradient(90deg,var(--m1,#5b8cf0),var(--m4,#22a882),var(--m7,#1fa3b9),var(--m6,#e85a8f))}
+.pl-pct{font:600 11.5px/1 var(--f-mono,monospace);color:#8d9096}
+.pl-skip{justify-self:end;margin-top:2px;font:600 11.5px/1 var(--f-body,sans-serif);color:#c9cbd0;background:transparent;border:1px solid #3a3c41;border-radius:999px;padding:5px 12px;cursor:pointer}
+.pl-skip:hover{border-color:#6ea1ff;color:#fff}
+@keyframes plspin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes plshim{to{transform:translateX(300%)}}
+@media (prefers-reduced-motion:reduce){.pl-spin{animation-duration:2.5s}.pl-bar::after{animation:none}}
+</style>
+<div id="pgload" role="status" aria-live="polite"><div class="pl-card"><span class="pl-spin" aria-hidden="true"><svg viewBox="0 0 64 64"><circle class="pl-bg" cx="32" cy="32" r="27"/><circle class="pl-fg" cx="32" cy="32" r="27"/></svg></span><div class="pl-txt"><b>Loading the report</b><span class="pl-sub">Preparing charts, media and live demos</span><span class="pl-bar"><i></i></span><span class="pl-pct num">0%</span></div></div></div>
 <style>
 /* Layout: a single reading column (1120px) with full-bleed grids for galleries; a sticky slim nav for jumping by category. */
 :root{
@@ -307,10 +341,10 @@ footer{color:var(--muted);font-size:13px;border-top:1px solid var(--line);paddin
 .btimer{position:relative;display:inline-flex;align-items:center;gap:7px;padding:5px 12px 5px 10px;border-radius:999px;background:var(--panel);
   font:600 12px/1 var(--f-mono);color:var(--muted);white-space:nowrap;isolation:isolate}
 .btimer::before{content:"";position:absolute;inset:-1.5px;border-radius:inherit;z-index:-1;
-  background:conic-gradient(from var(--btang),var(--m1),var(--m2),var(--m3),var(--m4),var(--m5),var(--m6),var(--m7),var(--m1));animation:btspin 6s linear infinite}
+  background:conic-gradient(from var(--btang),#22a882,#5fd3b3,#1fa3b9,transparent 70%,#22a882);animation:btspin 5s linear infinite}
 .btimer::after{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;background:var(--panel)}
-.btimer svg{width:15px;height:15px;color:var(--accent);animation:btpulse 2s ease-in-out infinite}
-.btimer b{font:700 14px/1 var(--f-mono);background:linear-gradient(90deg,var(--m1),var(--m4),var(--m7),var(--m2),var(--m1));background-size:300% 100%;
+.btimer svg{width:15px;height:15px;color:#22a882;animation:btpulse 2s ease-in-out infinite}
+.btimer b{font:700 14px/1 var(--f-mono);background:linear-gradient(90deg,#22a882,#5fd3b3,#1fa3b9,#5fd3b3,#22a882);background-size:300% 100%;
   -webkit-background-clip:text;background-clip:text;color:transparent;animation:btshine 8s linear infinite}
 .btimer .bt-l{text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
 .btimer .bt-r{font-size:11px;opacity:.8}
@@ -849,66 +883,67 @@ html.lc-on body > *:not(#lc):not(script):not(style){content-visibility:hidden}
 .reel .rbody{padding:10px 12px 12px}
 @media (max-width:700px){.reel .rpage{grid-template-columns:minmax(0,460px)}}
 </style>
-<div id="pgload" role="status" aria-live="polite"><div class="pl-card"><svg class="pl-ring" viewBox="0 0 64 64" aria-hidden="true"><circle class="pl-bg" cx="32" cy="32" r="27"/><circle class="pl-fg" cx="32" cy="32" r="27"/></svg><div class="pl-txt"><b>Loading the report</b><span class="pl-sub">Preparing charts, media and live demos</span><span class="pl-bar"><i></i></span><span class="pl-pct num">0%</span></div></div></div>
-<style>
-#pgload{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(14,15,18,.62);backdrop-filter:blur(14px) saturate(1.2);
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);transition:opacity .45s ease,visibility .45s}
-#pgload.done{opacity:0;visibility:hidden;pointer-events:none}
-html.pl-on{overflow:hidden}
-.pl-card{display:flex;align-items:center;gap:18px;padding:20px 26px;border-radius:16px;background:rgba(32,33,36,.78);border:1px solid #303236;
-  box-shadow:0 20px 60px rgba(0,0,0,.45);color:#e8e8ea;min-width:320px}
-.pl-ring{width:54px;height:54px;flex:none;animation:plspin 1.1s linear infinite}
-.pl-ring circle{fill:none;stroke-width:5}
-.pl-bg{stroke:#303236}
-.pl-fg{stroke:url(#plg);stroke:#6ea1ff;stroke-linecap:round;stroke-dasharray:60 200}
-.pl-txt{display:grid;gap:6px;min-width:0;flex:1}
-.pl-txt b{font-size:15px}
-.pl-sub{font-size:12.5px;color:#8d9096}
-.pl-bar{display:block;height:4px;border-radius:4px;background:#303236;overflow:hidden}
-.pl-bar i{display:block;height:100%;width:0;border-radius:4px;transition:width .25s ease;
-  background:linear-gradient(90deg,var(--m1,#5b8cf0),var(--m4,#22a882),var(--m7,#1fa3b9),var(--m6,#e85a8f))}
-.pl-pct{font:600 11.5px/1 var(--f-mono,monospace);color:#8d9096}
-.pl-skip{justify-self:end;margin-top:2px;font:600 11.5px/1 var(--f-body,sans-serif);color:#c9cbd0;background:transparent;border:1px solid #3a3c41;border-radius:999px;padding:5px 12px;cursor:pointer}
-.pl-skip:hover{border-color:#6ea1ff;color:#fff}
-@keyframes plspin{to{transform:rotate(360deg)}}
-@media (prefers-reduced-motion:reduce){.pl-ring{animation:none}}
-</style>
 <script>(function(){var el=document.getElementById('pgload');if(!el)return;document.documentElement.classList.add('pl-on');
 var bar=el.querySelector('.pl-bar i'),pct=el.querySelector('.pl-pct'),sub=el.querySelector('.pl-sub'),shown=0,done=false,phase=0,cached=0,total=0;
 function set(p,msg){p=Math.max(shown,Math.min(100,p));shown=p;bar.style.width=p+'%';pct.textContent=Math.round(p)+'%';if(msg)sub.textContent=msg;}
-function finish(){if(done)return;done=true;set(100,'Ready');setTimeout(function(){el.classList.add('done');document.documentElement.classList.remove('pl-on');
+function finish(){if(done)return;done=true;set(100,'Ready');setTimeout(function(){el.classList.add('done');document.documentElement.classList.remove('pl-on');try{window.dispatchEvent(new Event('report-ready'));}catch(e){}
   setTimeout(function(){el.remove();},600);},200);}
 /* phase 0: the page itself (0-30%) */
-function tick(){if(done||phase)return;set(document.readyState==='loading'?8:(document.readyState==='interactive'?20:30),
-  document.readyState==='loading'?'Reading the report':'Loading charts and live demos');requestAnimationFrame(tick);}
+function tick(){if(done||phase)return;var rs=document.readyState,cap=rs==='loading'?18:(rs==='interactive'?27:29.5);
+  set(Math.max(rs==='loading'?4:(rs==='interactive'?18:27),shown+(cap-shown)*0.035),rs==='loading'?'Reading the report':'Loading charts and live demos');requestAnimationFrame(tick);}
 requestAnimationFrame(tick);
-/* phase 1: cache every image and animation on the page (30-92%), then the first frame of every video (92-99%) */
+/* phase 1: cache every image and animation (30-99%). Gentle on purpose: a few downloads at a time, no forced
+   decoding, nothing kept in memory, and a pause between batches so the browser always has time to draw the
+   spinner. (Forcing all 1,049 images to decode at once froze the page and the spinner with it.) */
 function cacheAll(){phase=1;
   var urls=[],seen={};
-  [].forEach.call(document.images,function(im){var s=im.getAttribute('src');if(s&&!seen[s]&&s.indexOf('data:')!==0){seen[s]=1;urls.push(s);}im.loading='eager';});
-  total=urls.length;var next=0,active=0,LIM=10,keep=window.__mediaCache=[];
-  function upd(){set(30+62*(total?cached/total:1),'Caching media '+cached+' / '+total);}
-  function pump(){
-    while(active<LIM&&next<total){(function(u){active++;var im=new Image();im.decoding='async';keep.push(im);
-      var fin=function(){active--;cached++;upd();if(cached>=total)videos();else pump();};
-      im.onload=function(){(im.decode?im.decode().catch(function(){}):Promise.resolve()).then(fin);};im.onerror=fin;im.src=u;})(urls[next++]);}
-  }
-  upd();if(!total)videos();else pump();}
-function videos(){var vs=[].slice.call(document.querySelectorAll('video')),n=vs.length,k=0;if(!n)return finish();
-  sub.textContent='Preparing '+n+' videos';
-  vs.forEach(function(v){if(v.preload!=='auto')v.preload='metadata';var src=v.currentSrc||v.getAttribute('src')||(v.querySelector('source')||{}).src;
-    var f=function(){k++;set(92+7*k/n);if(k>=n)finish();};
-    if(v.readyState>=1)f();else{v.addEventListener('loadedmetadata',f,{once:true});v.addEventListener('error',f,{once:true});try{v.load();}catch(e){f();}}});
-  setTimeout(finish,8000);}
-window.addEventListener('load',function(){var f=(document.fonts&&document.fonts.ready)||Promise.resolve();f.then(cacheAll);});
+  [].forEach.call(document.images,function(im){var s=im.getAttribute('src');if(s&&!seen[s]&&s.indexOf('data:')!==0){seen[s]=1;urls.push(s);}});
+  total=urls.length;var next=0,active=0,LIM=6;
+  function upd(){set(30+69*(total?cached/total:1),'Caching media '+cached+' / '+total);}
+  function one(u){active++;var im=new Image(),fin=function(){im.onload=im.onerror=null;active--;cached++;upd();
+      if(cached>=total)finish();else if(next<total)setTimeout(pump,8);};
+    im.onload=fin;im.onerror=fin;im.src=u;}
+  function pump(){if(done)return;var n=0;while(active<LIM&&next<total&&n<2){one(urls[next++]);n++;}}
+  upd();if(!total)finish();else{for(var i=0;i<LIM;i++)setTimeout(pump,i*30);}}
+window.addEventListener('load',function(){var f=(document.fonts&&document.fonts.ready)||Promise.resolve();f.then(function(){requestAnimationFrame(function(){requestAnimationFrame(function(){setTimeout(cacheAll,60);});});});});
 /* never trap the reader: a Skip button after 5 s, and a hard stop after 90 s */
 setTimeout(function(){if(done)return;var s=document.createElement('button');s.type='button';s.className='pl-skip';s.textContent='Skip';
   s.addEventListener('click',finish);el.querySelector('.pl-txt').appendChild(s);},5000);
 setTimeout(finish,90000);})();</script>
+<a class="credit" href="https://github.com/adithyanraj03" target="_blank" rel="noopener" title="Made by Adithya N Raj (GitHub: adithyanraj03)"><small><svg class="ghi" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.69 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg><span>Crafted by</span></small><span class="sg">Adithya N Raj</span><svg viewBox="0 0 170 12" aria-hidden="true"><defs><linearGradient id="sigg" x1="0" x2="1"><stop offset="0" stop-color="#6ea1ff"/><stop offset=".5" stop-color="#9677f5"/><stop offset="1" stop-color="#6ea1ff"/></linearGradient></defs><path d="M3 8 C 40 2, 70 12, 100 6 S 150 3, 167 7"/></svg></a>
+<style>
+.credit{position:fixed;left:max(14px,env(safe-area-inset-left,0px));bottom:max(12px,env(safe-area-inset-bottom,0px));z-index:60;
+  display:inline-flex;flex-direction:column;line-height:1;padding:8px 14px 4px;border-radius:12px;text-decoration:none;
+  background:rgba(23,24,27,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.06);
+  transition:transform .25s ease,border-color .25s ease;animation:crin .8s ease .6s both}
+.credit small{display:flex;align-items:center;gap:6px;font:500 10.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:#8d9096;margin-bottom:3px}
+.credit .ghi{width:13px;height:13px;color:#c9cbd0;flex:none;transition:transform .35s ease,color .25s}
+.credit:hover .ghi{color:#fff;transform:rotate(-12deg) scale(1.15)}
+.credit .sg{font:700 27px/1 Caveat,"Segoe Script","Brush Script MT",cursive;padding-right:4px;
+  background:linear-gradient(90deg,#6ea1ff,#9677f5,#6ea1ff,#9677f5,#6ea1ff);background-size:200% 100%;
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:crshine 7s linear infinite}
+.credit svg{width:150px;height:11px;margin-top:-1px}
+.credit path{fill:none;stroke:url(#sigg);stroke-width:3;stroke-linecap:round;stroke-dasharray:220;stroke-dashoffset:220;animation:crdraw 3.6s ease-in-out infinite}
+.credit:hover{transform:translateY(-2px);border-color:rgba(150,119,245,.45)}
+@keyframes crdraw{0%{stroke-dashoffset:220}45%,80%{stroke-dashoffset:0}100%{stroke-dashoffset:-220}}
+@keyframes crshine{to{background-position:200% 0}}
+@keyframes crin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.credit,.credit .sg,.credit path{animation:none}.credit path{stroke-dashoffset:0}}
+@media (min-width:1600px){.toc{max-height:calc(100vh - 220px)}}
+@media print{.credit{display:none}}
+</style>
 <div class="wrap">
 <header class="hero">
 <div class="eyebrow">Full campaign · 54 tasks × 7 models · 378 of 378 runs finished · 378 scored · 125 hours of generation · updated 24 Nov 2026</div>
-<h1>Which local model builds the best software?</h1>
+<h1 class="qwh"><span class="qwlogo" title="Qwen3.8 models"><svg class="qwsvg" role="img" aria-label="Qwen" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M174.82 108.75L155.38 75L165.64 57.75C166.46 56.31 166.46 54.53 165.64 53.09L155.38 35.84C154.86 34.91 153.87 34.33 152.78 34.33H114.88L106.14 19.03C105.62 18.1 104.63 17.52 103.54 17.52H83.3C82.21 17.52 81.22 18.1 80.7 19.03L61.26 52.77H41.02C39.93 52.77 38.94 53.35 38.42 54.28L28.16 71.53C27.34 72.97 27.34 74.75 28.16 76.19L45.52 107.5L36.78 122.8C35.96 124.24 35.96 126.02 36.78 127.46L47.04 144.71C47.56 145.64 48.55 146.22 49.64 146.22H87.54L96.28 161.52C96.8 162.45 97.79 163.03 98.88 163.03H119.12C120.21 163.03 121.2 162.45 121.72 161.52L141.16 127.78H158.52C159.61 127.78 160.6 127.2 161.12 126.27L171.38 109.02C172.2 107.58 172.2 105.8 171.38 104.36L174.82 108.75Z" fill="url(#qwg0)"/><path d="M119.12 163.03H98.88L87.54 144.71H49.64L61.26 126.39H80.7L38.42 55.29H61.26L83.3 19.03L93.56 37.35L83.3 55.29H161.58L151.32 72.54L170.76 106.28H151.32L141.16 88.34L101.18 163.03H119.12Z" fill="white"/><path d="M127.86 79.83H76.14L101.18 122.11L127.86 79.83Z" fill="url(#qwg1)"/><defs><radialGradient id="qwg0" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(100)"><stop stop-color="#665CEE"/><stop offset="1" stop-color="#332E91"/></radialGradient><radialGradient id="qwg1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(100 100) rotate(90) scale(100)"><stop stop-color="#665CEE"/><stop offset="1" stop-color="#332E91"/></radialGradient></defs></svg></span><span>Which local model builds the best software?</span></h1>
+<style>
+h1.qwh{font-size:clamp(30px,5vw,55px);white-space:normal}
+.qwlogo{display:inline-block;width:.82em;height:.82em;vertical-align:-.06em;margin-right:.2em;cursor:default;animation:qwin 1.1s cubic-bezier(.2,.8,.2,1) .35s both}
+.qwlogo .qwsvg{width:100%;height:100%;display:block;transition:transform .45s cubic-bezier(.2,.8,.2,1),filter .35s ease;filter:drop-shadow(0 6px 18px rgba(102,92,238,.28))}
+.qwh:hover .qwsvg,.qwlogo:hover .qwsvg{transform:rotate(-12deg) scale(1.12);filter:drop-shadow(0 8px 26px rgba(102,92,238,.55))}
+@keyframes qwin{from{opacity:0;transform:rotate(-120deg) scale(.6)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.qwlogo{animation:none}.qwlogo .qwsvg{transition:none}}
+</style>
 <div class="verdict"><div style="display:grid;gap:14px">
 <p class="lede">Seven Qwen3.8 builds, served from one RTX 5090, each worked alone through the same 54 tasks: games and 3D worlds, SVG and shaders, web apps and extensions, C++, Rust and Go, refactors and bug hunts, LaTeX papers and research write-ups. Every result is rebuilt, run, screenshotted and tested by hand, then scored out of 10.</p>
 <p><b>M4 leads</b> on the 54 tasks that every model has a score for (8.98), ahead of <b>M7</b> (8.89), close enough that the two are effectively tied. Every run was <b>regraded on 18 Nov 2026</b> on Visual, Prompt following, Output, Creativity and Code, with points taken off for visual errors and bugs. The owner then played and rated every game, 3D, sound and design task by hand (cards marked <b>Rated by the owner</b>); the code-only tasks keep my scores. The X4 DevOps runs of M4, M5 and M6 are scored from their code and their own run logs, because rerunning them needs Docker Desktop. The <a href="#halluc">hallucination study</a> covers all builds, including the server-guardrail incident.</p>
@@ -19021,7 +19056,7 @@ version-sensitive generated settings page, and Uvicorn's spawn model.</li>
 </tbody><tfoot><tr><td>All Qwen3.8 builds above</td><td class="r">78,688</td><td class="r">267h</td><td class="r">6.64B</td><td class="r">93.5M</td><td class="r"></td><td class="r">$775</td><td class="r">$16.07</td><td class="r">$759</td></tr></tfoot></table></div>
 <script>(function(){var t=document.querySelector(".srvt");if(!t)return;var tb=t.tBodies[0];t.querySelectorAll("th[data-k]").forEach(function(th,ci){th.addEventListener("click",function(){var desc=th.getAttribute("aria-sort")!=="descending";t.querySelectorAll("th").forEach(function(x){x.removeAttribute("aria-sort");x.innerHTML=x.innerHTML.replace(/ [↑↓]$/,"");});th.setAttribute("aria-sort",desc?"descending":"ascending");th.innerHTML+=desc?" ↓":" ↑";var rows=[].slice.call(tb.rows);rows.sort(function(a,b){var x=a.cells[ci].dataset.v,y=b.cells[ci].dataset.v;var nx=parseFloat(x),ny=parseFloat(y);var c=(isNaN(nx)||isNaN(ny))?String(x).localeCompare(String(y)):nx-ny;return desc?-c:c;});rows.forEach(function(r){tb.appendChild(r);});});});})();</script>
 <h3 style="margin-top:22px">Cold prefill speed (0% cache hit)</h3><p class="muted" style="font-size:13px">Only requests with no cache hit, so every token is really prefilled. Median prefill tok/s; the bar shows each value against the fastest in its column.</p>
-<div class="srv" style="margin-top:14px"><div class="srvhead"><b>Cold prefill by context band</b></div><table class="srvt srvs" id="sp12722"><thead><tr><th>Engine / build</th><th class="r">Cold requests</th><th class="r">16&ndash;48k</th><th class="r">48&ndash;128k</th><th class="r">128k+</th></tr></thead><tbody>
+<div class="srv" style="margin-top:14px"><div class="srvhead"><b>Cold prefill by context band</b></div><table class="srvt srvs" id="sp24503"><thead><tr><th>Engine / build</th><th class="r">Cold requests</th><th class="r">16&ndash;48k</th><th class="r">48&ndash;128k</th><th class="r">128k+</th></tr></thead><tbody>
 <tr style="--c:#e5484d"><td data-v="Strata 384K GPTQ"><div class="sm"><span class="dot"></span><span><b>Strata 384K GPTQ</b><span class="seng" style="--e:#e0892f">Strata</span></span></div></td><td class="r" style="--c:#e5484d" data-v="329"><b>329</b><i style="width:50.8%"></i></td><td class="r" style="--c:#e5484d" data-v="1756"><b>1,756</b><i style="width:24.4%"></i></td><td class="r" style="--c:#e5484d" data-v="2413"><b>2,413</b><i style="width:43.6%"></i></td><td class="r" style="--c:#e5484d" data-v="3204"><b>3,204</b><i style="width:77.2%"></i></td></tr>
 <tr style="--c:#9b5de5"><td data-v="Strata 262K GPTQ"><div class="sm"><span class="dot"></span><span><b>Strata 262K GPTQ</b><span class="seng" style="--e:#e0892f">Strata</span></span></div></td><td class="r" style="--c:#9b5de5" data-v="58"><b>58</b><i style="width:9.0%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td><td class="r" style="--c:#9b5de5" data-v="947"><b>947</b><i style="width:17.1%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td></tr>
 <tr style="--c:#a3c940"><td data-v="Strata ModelOpt NVFP4"><div class="sm"><span class="dot"></span><span><b>Strata ModelOpt NVFP4</b><span class="seng" style="--e:#e0892f">Strata</span></span></div></td><td class="r" style="--c:#a3c940" data-v="126"><b>126</b><i style="width:19.4%"></i></td><td class="r" style="--c:#a3c940" data-v="2165"><b>2,165</b><i style="width:30.1%"></i></td><td class="r" style="--c:#a3c940" data-v="3321"><b>3,321</b><i style="width:60.0%"></i></td><td class="r" style="--c:#a3c940" data-v="3674"><b>3,674</b><i style="width:88.5%"></i></td></tr>
@@ -19030,8 +19065,8 @@ version-sensitive generated settings page, and Uvicorn's spawn model.</li>
 <tr style="--c:#2ec4b6"><td data-v="NInfer 27B DFlash2"><div class="sm"><span class="dot"></span><span><b>NInfer 27B DFlash2</b><span class="seng" style="--e:#2bb5a0">NInfer</span></span></div></td><td class="r" style="--c:#2ec4b6" data-v="175"><b>175</b><i style="width:27.0%"></i></td><td class="r best" style="--c:#2ec4b6" data-v="7198"><b>7,198</b><i style="width:100.0%"></i></td><td class="r best" style="--c:#2ec4b6" data-v="5533"><b>5,533</b><i style="width:100.0%"></i></td><td class="r" style="--c:#2ec4b6" data-v="1664"><b>1,664</b><i style="width:40.1%"></i></td></tr>
 <tr style="--c:#3ba6d6"><td data-v="NInfer 27B MTP"><div class="sm"><span class="dot"></span><span><b>NInfer 27B MTP</b><span class="seng" style="--e:#2bb5a0">NInfer</span></span></div></td><td class="r best" style="--c:#3ba6d6" data-v="648"><b>648</b><i style="width:100.0%"></i></td><td class="r" style="--c:#3ba6d6" data-v="6281"><b>6,281</b><i style="width:87.3%"></i></td><td class="r" style="--c:#3ba6d6" data-v="3741"><b>3,741</b><i style="width:67.6%"></i></td><td class="r" style="--c:#3ba6d6" data-v="2785"><b>2,785</b><i style="width:67.1%"></i></td></tr>
 </tbody></table></div>
-<script>(function(){var t=document.getElementById("sp12722");if(!t)return;var tb=t.tBodies[0];t.querySelectorAll("th").forEach(function(th,ci){th.addEventListener("click",function(){var desc=th.getAttribute("aria-sort")!=="descending";t.querySelectorAll("th").forEach(function(x){x.removeAttribute("aria-sort");x.innerHTML=x.innerHTML.replace(/ [↑↓]$/,"");});th.setAttribute("aria-sort",desc?"descending":"ascending");th.innerHTML+=desc?" ↓":" ↑";var rows=[].slice.call(tb.rows);rows.sort(function(a,b){var x=a.cells[ci].dataset.v,y=b.cells[ci].dataset.v;var nx=parseFloat(x),ny=parseFloat(y);var c=(isNaN(nx)||isNaN(ny))?String(x).localeCompare(String(y)):nx-ny;return desc?-c:c;});rows.forEach(function(r){tb.appendChild(r);});});});})();</script>
-<div class="srv" style="margin-top:14px"><div class="srvhead"><b>Cold prefill by prompt length &middot; median tok/s (median time to first token)</b></div><table class="srvt srvs" id="sp50464"><thead><tr><th>Prompt length</th><th class="r"><span class="hdot" style="--c:#2ec4b6"></span>NInfer DFlash2</th><th class="r"><span class="hdot" style="--c:#3ba6d6"></span>NInfer MTP</th><th class="r"><span class="hdot" style="--c:#c04fd8"></span>Basalt ORCA</th><th class="r"><span class="hdot" style="--c:#e5484d"></span>Strata 384K GPTQ</th><th class="r"><span class="hdot" style="--c:#d4c43a"></span>Strata iq3_xxs</th></tr></thead><tbody>
+<script>(function(){var t=document.getElementById("sp24503");if(!t)return;var tb=t.tBodies[0];t.querySelectorAll("th").forEach(function(th,ci){th.addEventListener("click",function(){var desc=th.getAttribute("aria-sort")!=="descending";t.querySelectorAll("th").forEach(function(x){x.removeAttribute("aria-sort");x.innerHTML=x.innerHTML.replace(/ [↑↓]$/,"");});th.setAttribute("aria-sort",desc?"descending":"ascending");th.innerHTML+=desc?" ↓":" ↑";var rows=[].slice.call(tb.rows);rows.sort(function(a,b){var x=a.cells[ci].dataset.v,y=b.cells[ci].dataset.v;var nx=parseFloat(x),ny=parseFloat(y);var c=(isNaN(nx)||isNaN(ny))?String(x).localeCompare(String(y)):nx-ny;return desc?-c:c;});rows.forEach(function(r){tb.appendChild(r);});});});})();</script>
+<div class="srv" style="margin-top:14px"><div class="srvhead"><b>Cold prefill by prompt length &middot; median tok/s (median time to first token)</b></div><table class="srvt srvs" id="sp83648"><thead><tr><th>Prompt length</th><th class="r"><span class="hdot" style="--c:#2ec4b6"></span>NInfer DFlash2</th><th class="r"><span class="hdot" style="--c:#3ba6d6"></span>NInfer MTP</th><th class="r"><span class="hdot" style="--c:#c04fd8"></span>Basalt ORCA</th><th class="r"><span class="hdot" style="--c:#e5484d"></span>Strata 384K GPTQ</th><th class="r"><span class="hdot" style="--c:#d4c43a"></span>Strata iq3_xxs</th></tr></thead><tbody>
 <tr style="--c:#8d9096"><td data-v="8&ndash;16k"><div class="sm"><span class="dot"></span><span><b>8&ndash;16k</b></span></div></td><td class="r" style="--c:#2ec4b6" data-v="957"><b>957</b><small>(12.3 s)</small><i style="width:12.4%"></i></td><td class="r best" style="--c:#3ba6d6" data-v="7297"><b>7,297</b><small>(1.5 s)</small><i style="width:100.0%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td><td class="r" style="--c:#e5484d" data-v="1017"><b>1,017</b><small>(7.9 s)</small><i style="width:29.9%"></i></td><td class="r" style="--c:#d4c43a" data-v="5015"><b>5,015</b><small>(1.7 s)</small><i style="width:88.5%"></i></td></tr>
 <tr style="--c:#8d9096"><td data-v="16&ndash;32k"><div class="sm"><span class="dot"></span><span><b>16&ndash;32k</b></span></div></td><td class="r best" style="--c:#2ec4b6" data-v="7691"><b>7,691</b><small>(3.8 s)</small><i style="width:100.0%"></i></td><td class="r" style="--c:#3ba6d6" data-v="6589"><b>6,589</b><small>(4.2 s)</small><i style="width:90.3%"></i></td><td class="r" style="--c:#c04fd8" data-v="2211"><b>2,211</b><small>(13.2 s)</small><i style="width:51.7%"></i></td><td class="r" style="--c:#e5484d" data-v="1741"><b>1,741</b><small>(15.3 s)</small><i style="width:51.1%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td></tr>
 <tr style="--c:#8d9096"><td data-v="32&ndash;48k"><div class="sm"><span class="dot"></span><span><b>32&ndash;48k</b></span></div></td><td class="r" style="--c:#2ec4b6" data-v="7085"><b>7,085</b><small>(5.7 s)</small><i style="width:92.1%"></i></td><td class="r" style="--c:#3ba6d6" data-v="5957"><b>5,957</b><small>(6.5 s)</small><i style="width:81.6%"></i></td><td class="r" style="--c:#c04fd8" data-v="2882"><b>2,882</b><small>(14.8 s)</small><i style="width:67.4%"></i></td><td class="r" style="--c:#e5484d" data-v="1791"><b>1,791</b><small>(21.8 s)</small><i style="width:52.6%"></i></td><td class="r best" style="--c:#d4c43a" data-v="5667"><b>5,667</b><small>(5.8 s)</small><i style="width:100.0%"></i></td></tr>
@@ -19041,7 +19076,7 @@ version-sensitive generated settings page, and Uvicorn's spawn model.</li>
 <tr style="--c:#8d9096"><td data-v="128&ndash;192k"><div class="sm"><span class="dot"></span><span><b>128&ndash;192k</b></span></div></td><td class="r" style="--c:#2ec4b6" data-v="1665"><b>1,665</b><small>(128.9 s)</small><i style="width:21.6%"></i></td><td class="r" style="--c:#3ba6d6" data-v="2879"><b>2,879</b><small>(48.3 s)</small><i style="width:39.5%"></i></td><td class="r" style="--c:#c04fd8" data-v="3128"><b>3,128</b><small>(45.6 s)</small><i style="width:73.1%"></i></td><td class="r" style="--c:#e5484d" data-v="1894"><b>1,894</b><small>(70.0 s)</small><i style="width:55.6%"></i></td><td class="r" style="--c:#d4c43a" data-v="4150"><b>4,150</b><small>(35.8 s)</small><i style="width:73.2%"></i></td></tr>
 <tr style="--c:#8d9096"><td data-v="192&ndash;300k"><div class="sm"><span class="dot"></span><span><b>192&ndash;300k</b></span></div></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td><td class="r" style="--c:#3ba6d6" data-v="2219"><b>2,219</b><small>(89.5 s)</small><i style="width:30.4%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td><td class="r best" style="--c:#e5484d" data-v="3407"><b>3,407</b><small>(68.8 s)</small><i style="width:100.0%"></i></td><td class="r" data-v="-1"><span class="dim">&ndash;</span></td></tr>
 </tbody></table></div>
-<script>(function(){var t=document.getElementById("sp50464");if(!t)return;var tb=t.tBodies[0];t.querySelectorAll("th").forEach(function(th,ci){th.addEventListener("click",function(){var desc=th.getAttribute("aria-sort")!=="descending";t.querySelectorAll("th").forEach(function(x){x.removeAttribute("aria-sort");x.innerHTML=x.innerHTML.replace(/ [↑↓]$/,"");});th.setAttribute("aria-sort",desc?"descending":"ascending");th.innerHTML+=desc?" ↓":" ↑";var rows=[].slice.call(tb.rows);rows.sort(function(a,b){var x=a.cells[ci].dataset.v,y=b.cells[ci].dataset.v;var nx=parseFloat(x),ny=parseFloat(y);var c=(isNaN(nx)||isNaN(ny))?String(x).localeCompare(String(y)):nx-ny;return desc?-c:c;});rows.forEach(function(r){tb.appendChild(r);});});});})();</script>
+<script>(function(){var t=document.getElementById("sp83648");if(!t)return;var tb=t.tBodies[0];t.querySelectorAll("th").forEach(function(th,ci){th.addEventListener("click",function(){var desc=th.getAttribute("aria-sort")!=="descending";t.querySelectorAll("th").forEach(function(x){x.removeAttribute("aria-sort");x.innerHTML=x.innerHTML.replace(/ [↑↓]$/,"");});th.setAttribute("aria-sort",desc?"descending":"ascending");th.innerHTML+=desc?" ↓":" ↑";var rows=[].slice.call(tb.rows);rows.sort(function(a,b){var x=a.cells[ci].dataset.v,y=b.cells[ci].dataset.v;var nx=parseFloat(x),ny=parseFloat(y);var c=(isNaN(nx)||isNaN(ny))?String(x).localeCompare(String(y)):nx-ny;return desc?-c:c;});rows.forEach(function(r){tb.appendChild(r);});});});})();</script>
 <p class="muted" style="font-size:13px">All cold (0% cache): median prefill tok/s with median time to first token in brackets; &ndash; means fewer than 3 requests. Basalt sits at about 2.2&ndash;4.3k tok/s, peaking around 48&ndash;96k, with almost no cold requests below 16k or above 192k.</p></section>
 <footer>Full campaign of the Ninfer&ndash;Strata model test, Oct&ndash;Nov 2026. Click any image to enlarge it.</footer>
 </div>
@@ -19986,7 +20021,11 @@ fetch('http://127.0.0.1:8765/launch?id='+encodeURIComponent(id)).then(function(r
     nav.parentNode.insertBefore(s, nav);
     function sbw() { document.documentElement.style.setProperty('--sbw', (innerWidth - document.documentElement.clientWidth) + 'px'); }
     sbw(); window.addEventListener('resize', sbw);
-    new IntersectionObserver(function (es) { var e = es[0]; nav.classList.toggle('stuck', !e.isIntersecting && e.boundingClientRect.top < 0); }).observe(s);
+    new IntersectionObserver(function (es) { var e = es[0]; sbw(); nav.classList.toggle('stuck', !e.isIntersecting && e.boundingClientRect.top < 0); }).observe(s);
+    // the scrollbar appears only after the loading screen goes away, so measure it again then
+    window.addEventListener('load', function () { setTimeout(sbw, 50); });
+    window.addEventListener('report-ready', sbw);
+    if (window.ResizeObserver) new ResizeObserver(sbw).observe(document.documentElement);
   })();
 
   /* ---------- highlights reel: the top-scoring run of each task */
