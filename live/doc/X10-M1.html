@@ -1,0 +1,195 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M1 · X10 · PROOFS.md <span>M1-qwen3.8-27b-nvfp4</span></div><main><h1 id="proofs-of-four-statements">Proofs of Four Statements</h1>
+<p>This document gives complete, step-by-step proofs of the following four statements:</p>
+<ol>
+<li>There are infinitely many primes congruent to 3 modulo 4.</li>
+<li><code>sqrt(2) + sqrt(3)</code> is irrational.</li>
+<li>Every finite tournament (a complete graph in which every edge is given a direction) has a Hamiltonian path.</li>
+<li>For every integer <code>n &gt;= 1</code>, the sum of the first <code>n</code> odd cubes, <code>1^3 + 3^3 + ... + (2n-1)^3</code>, equals <code>n^2 (2n^2 - 1)</code>.</li>
+</ol>
+<p><strong>Background assumed throughout.</strong> We use the integers and the real numbers, together with the following standard facts (each used where it occurs):</p>
+<ul>
+<li>Divisibility and modular arithmetic. <code>a ≡ b (mod m)</code> means <code>m | (a − b)</code>. If <code>a ≡ b (mod m)</code> and <code>c ≡ d (mod m)</code>, then <code>a + c ≡ b + d (mod m)</code> and <code>ac ≡ bd (mod m)</code>. Proof of the multiplicative case: write <code>a − b = mx</code> and <code>c − d = my</code>; then <code>ac − bd = ac − bc + bc − bd = c(a − b) + b(c − d) = cmx + bmy</code>, a multiple of <code>m</code>. (The additive case is identical with the second term omitted.)</li>
+<li>Every integer lies in a unique residue class mod <code>m</code> (division algorithm).</li>
+<li>The well-ordering principle: every nonempty set of positive integers has a least element.</li>
+<li>The principles of ordinary and strong induction.</li>
+<li>The elementary algebraic identities <code>(a+b)^2 = a^2 + 2ab + b^2</code>, <code>(a+b)^3 = a^3 + 3a^2b + 3ab^2 + b^3</code>, and distributivity.</li>
+<li>Square roots of nonnegative reals: for <code>r &gt;= 0</code> there is a unique <code>sqrt(r) &gt;= 0</code> with <code>(sqrt(r))^2 = r</code>.</li>
+</ul>
+<p>Every other auxiliary fact needed below is stated and proved inline, labeled <strong>F1</strong> through <strong>F6</strong>, and each theorem explicitly says which facts it uses.</p>
+<hr />
+<h2 id="statement-1-infinitely-many-primes-congruent-to-3-modulo-4">Statement 1. Infinitely many primes congruent to 3 modulo 4</h2>
+<h3 id="facts">Facts</h3>
+<p><strong>F1 (every integer at least 2 has a prime divisor).</strong>
+<em>Proof.</em> Strong induction on <code>n &gt;= 2</code>. Base case <code>n = 2</code>: 2 is prime. Let <code>n &gt;= 3</code> and assume the claim holds for every integer with <code>2 &lt;= m &lt; n</code>. If <code>n</code> is prime, we are done. Otherwise <code>n</code> is composite, so <code>n = ab</code> with <code>1 &lt; a &lt; n</code>. By the induction hypothesis applied to <code>a</code>, <code>a</code> has a prime divisor <code>p</code>. Since <code>p | a</code> and <code>a | n</code>, we get <code>p | n</code>: indeed <code>n = ab = p(cb)</code> because <code>a = pc</code>. ∎</p>
+<p><strong>F2 (numbers congruent to 1 mod 4 are closed under multiplication).</strong> If <code>a ≡ 1 (mod 4)</code> and <code>b ≡ 1 (mod 4)</code>, then <code>ab ≡ 1 (mod 4)</code>.
+<em>Proof.</em> Write <code>a = 4k + 1</code>, <code>b = 4l + 1</code>. Then
+<code>ab = (4k+1)(4l+1) = 16kl + 4k + 4l + 1 = 4(4kl + k + l) + 1 ≡ 1 (mod 4)</code>.
+Applying this repeatedly: the product of any finite list of integers, each congruent to 1 mod 4, is congruent to 1 mod 4 (prove by induction on the length of the list, the case of length 1 being trivial). ∎</p>
+<h3 id="theorem-and-proof">Theorem and proof</h3>
+<p><strong>Theorem.</strong> There are infinitely many primes <code>p</code> with <code>p ≡ 3 (mod 4)</code>.</p>
+<p><em>Proof.</em> Suppose, for contradiction, that only finitely many such primes exist. If there were none, we would be done, since 3 is a prime and <code>3 ≡ 3 (mod 4)</code>. So assume there are exactly <code>k &gt;= 1</code> of them: <code>p_1, p_2, ..., p_k</code>.</p>
+<p><strong>Step 1 (construction).</strong> Set</p>
+<p><code>N = 4 · p_1 · p_2 · ... · p_k − 1</code>.</p>
+<p>Since every <code>p_i</code> is a prime congruent to 3 mod 4, every <code>p_i</code> is odd, hence <code>p_i &gt;= 3</code>. The product <code>M := p_1 ... p_k</code> is therefore at least 3, and</p>
+<p><code>N = 4M − 1 &gt;= 4·3 − 1 = 11 &gt;= 2</code>.</p>
+<p><strong>Step 2 (<code>N</code> is odd and <code>N ≡ 3 (mod 4)</code>).</strong> Since <code>N = 4M − 1</code> and <code>4M</code> is even, <code>N</code> is odd. Also <code>N ≡ −1 ≡ 3 (mod 4)</code>.</p>
+<p><strong>Step 3 (<code>N</code> has a prime divisor <code>q</code> with <code>q ≡ 3 (mod 4)</code>).</strong> We first record: every prime divisor of <code>N</code> is odd (since <code>N</code> is odd, no prime divisor can equal 2), hence every prime divisor of <code>N</code> is congruent to 1 or 3 mod 4 (an odd integer has residue 1 or 3 mod 4).</p>
+<p>Now suppose, toward a contradiction, that <em>every</em> prime divisor of <code>N</code> is congruent to 1 mod 4. Extract prime divisors one at a time: set <code>N_0 = N</code>. As long as <code>N_j &gt; 1</code>, by F1 the integer <code>N_j</code> has a prime divisor <code>q_{j+1}</code>; by our supposition <code>q_{j+1} ≡ 1 (mod 4)</code>; define <code>N_{j+1} = N_j / q_{j+1}</code>. Each <code>N_{j+1}</code> is a positive integer (<code>q_{j+1} | N_j</code>, both positive), and <code>N_{j+1} = N_j / q_{j+1} &lt;= N_j / 2 &lt; N_j</code>, so <code>N_0 &gt; N_1 &gt; N_2 &gt; ...</code> is a strictly decreasing sequence of positive integers. By the well-ordering principle this sequence must stop: otherwise the set <code>{ N_j : j &gt;= 0 }</code> would be a nonempty set of positive integers whose least element <code>N_t</code> would have to satisfy <code>N_{t+1} &lt; N_t</code>, contradicting the minimality of <code>N_t</code>. Thus <code>N_t = 1</code> for some <code>t &gt;= 1</code>, and</p>
+<p><code>N = q_1 · q_2 · ... · q_t</code> with each <code>q_i ≡ 1 (mod 4)</code>.</p>
+<p>By F2 (applied <code>t</code> times), <code>N ≡ 1 (mod 4)</code>. This contradicts Step 2, which gave <code>N ≡ 3 (mod 4)</code>. Hence our supposition was false: <strong><code>N</code> has a prime divisor <code>q</code> with <code>q ≡ 3 (mod 4)</code></strong>.</p>
+<p><strong>Step 4 (<code>q</code> is not among <code>p_1, ..., p_k</code>).</strong> If <code>q = p_i</code> for some <code>i</code>, then <code>p_i | N</code>. But <code>p_i | M</code>, so <code>p_i | 4M</code>, and therefore</p>
+<p><code>N = 4M − 1 ≡ −1 (mod p_i)</code>.</p>
+<p>Since <code>p_i &gt;= 3</code>, the residue <code>−1</code> is not congruent to 0 mod <code>p_i</code>; hence <code>p_i ∤ N</code>, contradicting <code>p_i | N</code>. Therefore <code>q ∉ {p_1, ..., p_k}</code>.</p>
+<p><strong>Step 5 (contradiction).</strong> By Steps 3 and 4, <code>q</code> is a prime with <code>q ≡ 3 (mod 4)</code> that is not one of <code>p_1, ..., p_k</code>. This contradicts the assumption that <code>p_1, ..., p_k</code> were <em>all</em> such primes. The assumption was false, so there are infinitely many primes congruent to 3 mod 4. ∎</p>
+<hr />
+<h2 id="statement-2-sqrt2-sqrt3-is-irrational">Statement 2. <code>sqrt(2) + sqrt(3)</code> is irrational</h2>
+<h3 id="facts_1">Facts</h3>
+<p><strong>F3 (fourth powers mod 5).</strong> For every integer <code>u</code>, <code>u^4 ≡ 0 or 1 (mod 5)</code>.
+<em>Proof.</em> The residue of <code>u^4</code> mod 5 depends only on the residue of <code>u</code> mod 5. Checking the five residue classes:
+<code>0^4 ≡ 0</code>; <code>1^4 ≡ 1</code>; <code>2^4 = 16 ≡ 1</code>; <code>3^4 = 81 ≡ 1</code>; <code>4^4 = 256 ≡ 1</code> (all mod 5).
+In every case <code>u^4 ≡ 0</code> or <code>1</code> mod 5. Note in particular that <code>5 ∤ u</code> implies <code>u^4 ≡ 1 (mod 5)</code>, so <code>u^4 ≡ 0 (mod 5)</code> forces <code>5 | u</code>. ∎</p>
+<p><strong>F4 (the square root function is strictly increasing).</strong> If <code>0 &lt;= a &lt; b</code>, then <code>sqrt(a) &lt; sqrt(b)</code>.
+<em>Proof.</em> We have <code>sqrt(b)^2 − sqrt(a)^2 = b − a &gt; 0</code>. Factoring,
+<code>sqrt(b)^2 − sqrt(a)^2 = (sqrt(b) − sqrt(a))(sqrt(b) + sqrt(a))</code>.
+Since <code>a &gt;= 0</code> and <code>a &lt; b</code>, we have <code>b &gt;= 1</code>, hence <code>sqrt(b) &gt; 0</code> and <code>sqrt(b) + sqrt(a) &gt; 0</code>. A product of two reals is positive and one factor is positive, so the other is positive: <code>sqrt(b) − sqrt(a) &gt; 0</code>. ∎</p>
+<h3 id="theorem-and-proof_1">Theorem and proof</h3>
+<p><strong>Theorem.</strong> <code>sqrt(2) + sqrt(3)</code> is irrational.</p>
+<p><em>Proof.</em> Let <code>x = sqrt(2) + sqrt(3)</code>.</p>
+<p><strong>Step 1 (<code>x</code> satisfies an equation with integer coefficients).</strong></p>
+<ul>
+<li>By <code>(a+b)^2 = a^2 + 2ab + b^2</code> with <code>a = sqrt(2)</code>, <code>b = sqrt(3)</code>:
+  <code>x^2 = (sqrt(2) + sqrt(3))^2 = (sqrt(2))^2 + 2·sqrt(2)·sqrt(3) + (sqrt(3))^2 = 2 + 2·sqrt(6) + 3 = 5 + 2·sqrt(6)</code>.
+  Here we used <code>sqrt(2)·sqrt(3) = sqrt(6)</code>, which holds because <code>(sqrt(2)·sqrt(3))^2 = (sqrt(2))^2·(sqrt(3))^2 = 2·3 = 6</code> and <code>sqrt(2)·sqrt(3) &gt;= 0</code>, so <code>sqrt(2)·sqrt(3)</code> is the nonnegative square root of 6.</li>
+<li>Hence <code>x^2 − 5 = 2·sqrt(6)</code>. Since both sides of this equality are the same real number, squaring both sides gives
+  <code>(x^2 − 5)^2 = (2·sqrt(6))^2 = 4·(sqrt(6))^2 = 4·6 = 24</code>.</li>
+<li>Expanding the left side with <code>(a−b)^2 = a^2 − 2ab + b^2</code> (with <code>a = x^2</code>, <code>b = 5</code>):
+  <code>x^4 − 10x^2 + 25 = 24</code>, i.e.
+  <code>x^4 − 10x^2 + 1 = 0</code>.</li>
+</ul>
+<p>So <code>x</code> is a root of the polynomial <code>f(t) = t^4 − 10t^2 + 1</code> with integer coefficients.</p>
+<p><strong>Step 2 (clearing denominators, assuming <code>x</code> rational).</strong> Suppose for contradiction that <code>x</code> is rational. By definition of rational, <code>x = a/b</code> for integers <code>a</code>, <code>b</code> with <code>b ≠ 0</code>; replacing <code>(a,b)</code> by <code>(−a,−b)</code> if necessary, we may take <code>b &gt; 0</code>; and dividing numerator and denominator by <code>gcd(a,b)</code>, we may take <code>gcd(a,b) = 1</code>.
+Substitute <code>x = a/b</code> into <code>x^4 − 10x^2 + 1 = 0</code>:</p>
+<p><code>(a/b)^4 − 10(a/b)^2 + 1 = 0</code>.</p>
+<p>Multiplying both sides by <code>b^4 &gt; 0</code>:</p>
+<p><code>a^4 − 10a^2b^2 + b^4 = 0</code>, so <code>a^4 + b^4 = 10a^2b^2</code>.</p>
+<p>The right-hand side is divisible by 5, so the left-hand side is divisible by 5:</p>
+<p><code>a^4 + b^4 ≡ 0 (mod 5)</code>.</p>
+<p><strong>Step 3 (5 divides both <code>a</code> and <code>b</code>).</strong> By F3, <code>a^4 ≡ 0 or 1 (mod 5)</code> and <code>b^4 ≡ 0 or 1 (mod 5)</code>. The possible values of <code>a^4 + b^4 (mod 5)</code> are therefore <code>0+0 ≡ 0</code>, <code>0+1 ≡ 1</code>, <code>1+0 ≡ 1</code>, <code>1+1 ≡ 2</code>. The only way the sum is congruent to 0 mod 5 is <code>a^4 ≡ 0 (mod 5)</code> and <code>b^4 ≡ 0 (mod 5)</code>. By the final sentence of the proof of F3, <code>a^4 ≡ 0 (mod 5)</code> forces <code>5 | a</code>, and <code>b^4 ≡ 0 (mod 5)</code> forces <code>5 | b</code>.</p>
+<p><strong>Step 4 (contradiction).</strong> The prime 5 divides both <code>a</code> and <code>b</code>, so 5 divides <code>gcd(a,b)</code>. This contradicts <code>gcd(a,b) = 1</code> established in Step 2. Hence <code>x</code> is not rational.</p>
+<p>Therefore <code>sqrt(2) + sqrt(3)</code> is irrational. ∎</p>
+<p><strong>Remark.</strong> The proof never used that <code>f</code> is the <em>minimal</em> polynomial of <code>x</code>; it only used that <code>x</code> is a root of <em>some</em> polynomial of degree 4 with integer coefficients. The companion script <code>check.py</code> numerically supports the stronger claim that no polynomial of degree &lt; 4 with small integer coefficients vanishes at <code>x</code>, while <code>f</code> does.</p>
+<hr />
+<h2 id="statement-3-every-finite-tournament-has-a-hamiltonian-path">Statement 3. Every finite tournament has a Hamiltonian path</h2>
+<h3 id="definitions">Definitions</h3>
+<ul>
+<li>A <strong>tournament</strong> on a finite vertex set <code>V</code> with <code>|V| = n &gt;= 1</code> is a directed graph such that for every two distinct vertices <code>u, v ∈ V</code>, <em>exactly one</em> of the directed edges <code>u → v</code> and <code>v → u</code> is present.</li>
+<li>A <strong>Hamiltonian path</strong> of a tournament on <code>n</code> vertices is a listing <code>v_1, v_2, ..., v_n</code> of all <code>n</code> vertices, each appearing exactly once, such that <code>v_i → v_{i+1}</code> for every <code>i = 1, ..., n−1</code>. (A listing of a single vertex counts as a path vacuously, since there are no edges to check.)</li>
+</ul>
+<h3 id="facts_2">Facts</h3>
+<p><strong>F5 (deleting a vertex from a tournament leaves a tournament).</strong> If <code>T</code> is a tournament on <code>V</code> and <code>v ∈ V</code>, then <code>T − v</code> (vertex set <code>V \ {v}</code>, with exactly the edges of <code>T</code> between the remaining vertices) is a tournament on <code>n − 1</code> vertices.
+<em>Justification.</em> Take distinct <code>u, w ∈ V \ {v}</code>. In <code>T</code>, exactly one of <code>u → w</code>, <code>w → u</code> is present; neither edge is incident to <code>v</code>, so it survives in <code>T − v</code>. Hence exactly one direction between <code>u</code> and <code>w</code> is present in <code>T − v</code>. ∎</p>
+<p><strong>F6 (a path can be extended by one new vertex at the end).</strong> If <code>v_1 → v_2 → ... → v_m</code> is a path of distinct vertices in a tournament, <code>w</code> is a vertex not among <code>v_1, ..., v_m</code>, and <code>v_m → w</code>, then <code>v_1 → ... → v_m → w</code> is a path.
+<em>Justification.</em> The edges <code>v_i → v_{i+1}</code> for <code>1 &lt;= i &lt; m</code> are the original edges, and the new final edge is <code>v_m → w</code> by hypothesis; all vertices remain distinct. ∎</p>
+<h3 id="theorem-and-proof_2">Theorem and proof</h3>
+<p><strong>Theorem.</strong> Every tournament on <code>n &gt;= 1</code> vertices has a Hamiltonian path.</p>
+<p><em>Proof, by induction on <code>n</code>.</em></p>
+<p><strong>Base case <code>n = 1</code>.</strong> The vertex set is <code>V = {v}</code>. The one-vertex listing <code>(v)</code> lists every vertex exactly once and has no edges to verify, so by the convention in the definition it is a Hamiltonian path.</p>
+<p><strong>Inductive step.</strong> Fix <code>n &gt;= 2</code> and assume the theorem holds for all tournaments on <code>n − 1</code> vertices (induction hypothesis, <strong>IH</strong>). Let <code>T</code> be a tournament on <code>n</code> vertices and let <code>v ∈ V</code> be a vertex. By F5, <code>T' := T − v</code> is a tournament on <code>n − 1</code> vertices. By the IH, <code>T'</code> has a Hamiltonian path</p>
+<p><code>v_1 → v_2 → ... → v_{n−1}</code>.</p>
+<p>We now insert the deleted vertex <code>v</code> into this path. For each <code>i = 1, ..., n−1</code>, look at the pair <code>{v, v_i}</code>: by the definition of a tournament, exactly one of <code>v → v_i</code> and <code>v_i → v</code> holds.</p>
+<p><strong>Case A: <code>v → v_1</code>.</strong>
+Applying F6 repeatedly (first with <code>w = v_1</code> to the one-vertex path <code>(v)</code>, then with <code>w = v_2</code>, and so on), we obtain a path</p>
+<p><code>v → v_1 → v_2 → ... → v_{n−1}</code>.</p>
+<p>It lists <code>v</code> and all of <code>v_1, ..., v_{n−1}</code> — the <code>n</code> vertices, each exactly once. It is a Hamiltonian path of <code>T</code>.</p>
+<p><strong>Case B: <code>v_1 → v</code>.</strong> (This is the only alternative for the pair <code>{v, v_1}</code>.)</p>
+<ul>
+<li>
+<p><strong>Subcase B1: <code>v_i → v</code> for every <code>i = 1, ..., n−1</code>.</strong>
+  Then <code>v_1 → v_2 → ... → v_{n−1} → v</code> is a path: the first <code>n − 2</code> edges are the edges of the original path, and the final edge <code>v_{n−1} → v</code> holds by the subcase hypothesis. It lists all <code>n</code> vertices exactly once, so it is a Hamiltonian path of <code>T</code>.</p>
+</li>
+<li>
+<p><strong>Subcase B2: <code>v → v_i</code> for at least one <code>i</code>.</strong>
+  Let <code>j</code> be the <em>least</em> index with <code>v → v_j</code>.</p>
+</li>
+<li>Since <code>v_1 → v</code> (Case B), the index <code>1</code> does not satisfy <code>v → v_1</code>; hence <code>j &gt;= 2</code>.</li>
+<li>Since <code>j</code> is the least index with <code>v → v_j</code>, the index <code>j − 1</code> does not satisfy it. The pair <code>{v, v_{j−1}}</code> has exactly one direction, so <code>v_{j−1} → v</code>.</li>
+<li>Now form the listing <code>v_1, v_2, ..., v_{j−1}, v, v_j, v_{j+1}, ..., v_{n−1}</code>. Its consecutive pairs and their edges are:<ul>
+<li><code>v_i → v_{i+1}</code> for <code>1 &lt;= i &lt;= j−2</code>: edges of the original path;</li>
+<li><code>v_{j−1} → v</code>: proved above;</li>
+<li><code>v → v_j</code>: by the choice of <code>j</code>;</li>
+<li><code>v_i → v_{i+1}</code> for <code>j &lt;= i &lt;= n−2</code>: edges of the original path.
+Hence this listing is a path. It lists <code>v_1, ..., v_{n−1}</code> and <code>v</code> — all <code>n</code> vertices, each exactly once — so it is a Hamiltonian path of <code>T</code>.</li>
+</ul>
+</li>
+</ul>
+<p>In each of the three cases (A, B1, B2) we constructed a Hamiltonian path of <code>T</code>. This proves the theorem for <code>n</code>, and by induction the theorem holds for every <code>n &gt;= 1</code>. ∎</p>
+<p><strong>Remark.</strong> The proof is constructive: the "insert at the front / after <code>v_{j−1}</code> / at the end" rule is an explicit algorithm. <code>check.py</code> implements exactly this insertion procedure and verifies on every tournament (up to 6 vertices) that it outputs a valid Hamiltonian path.</p>
+<hr />
+<h2 id="statement-4-the-sum-of-the-first-n-odd-cubes">Statement 4. The sum of the first <code>n</code> odd cubes</h2>
+<p><strong>Theorem.</strong> For every integer <code>n &gt;= 1</code>,</p>
+<p><code>1^3 + 3^3 + 5^3 + ... + (2n − 1)^3 = n^2 (2n^2 − 1)</code>,</p>
+<p>i.e. <code>Σ_{k=1}^{n} (2k−1)^3 = n^2(2n^2 − 1)</code>.</p>
+<p><em>Proof, by induction on <code>n</code>.</em></p>
+<p><strong>Base case <code>n = 1</code>.</strong>
+Left side: <code>1^3 = 1</code>.
+Right side: <code>1^2 · (2·1^2 − 1) = 1 · 1 = 1</code>.
+The two sides are equal.</p>
+<p><strong>Inductive step.</strong> Fix <code>n &gt;= 1</code> and assume the identity holds for <code>n</code> (induction hypothesis, <strong>IH</strong>):
+<code>Σ_{k=1}^{n} (2k−1)^3 = n^2(2n^2 − 1)</code>.
+We prove it for <code>n + 1</code>.</p>
+<p><strong>Step 1 (express the <code>(n+1)</code>-st partial sum).</strong> By the definition of a partial sum and the IH:</p>
+<p><code>Σ_{k=1}^{n+1} (2k−1)^3 = Σ_{k=1}^{n} (2k−1)^3 + (2(n+1) − 1)^3 = n^2(2n^2 − 1) + (2n + 1)^3</code>.</p>
+<p><strong>Step 2 (expand <code>(2n+1)^3</code>).</strong>
+<code>(2n+1)^2 = 4n^2 + 4n + 1</code> (from <code>(a+b)^2 = a^2 + 2ab + b^2</code> with <code>a = 2n</code>, <code>b = 1</code>).
+<code>(2n+1)^3 = (2n+1)(2n+1)^2 = (2n+1)(4n^2 + 4n + 1)</code>
+<code>= 2n(4n^2 + 4n + 1) + 1·(4n^2 + 4n + 1)</code>
+<code>= (8n^3 + 8n^2 + 2n) + (4n^2 + 4n + 1)</code>
+<code>= 8n^3 + 12n^2 + 6n + 1</code>.</p>
+<p><strong>Step 3 (compute the left side).</strong>
+Left side <code>= n^2(2n^2 − 1) + (8n^3 + 12n^2 + 6n + 1)</code>
+<code>= (2n^4 − n^2) + (8n^3 + 12n^2 + 6n + 1)</code>
+<code>= 2n^4 + 8n^3 + (−1 + 12)n^2 + 6n + 1</code>
+<code>= 2n^4 + 8n^3 + 11n^2 + 6n + 1</code>.</p>
+<p><strong>Step 4 (compute the right side at <code>n + 1</code>).</strong>
+Right side <code>= (n+1)^2 · (2(n+1)^2 − 1)</code>.
+First factor: <code>(n+1)^2 = n^2 + 2n + 1</code>.
+Second factor: <code>2(n+1)^2 − 1 = 2(n^2 + 2n + 1) − 1 = 2n^2 + 4n + 2 − 1 = 2n^2 + 4n + 1</code>.
+Therefore
+Right side <code>= (n^2 + 2n + 1)(2n^2 + 4n + 1)</code>.
+Distribute each term of the first factor:
+- <code>n^2(2n^2 + 4n + 1) = 2n^4 + 4n^3 + n^2</code>;
+- <code>2n(2n^2 + 4n + 1) = 4n^3 + 8n^2 + 2n</code>;
+- <code>1·(2n^2 + 4n + 1) = 2n^2 + 4n + 1</code>.
+Adding these three lines and combining like terms:
+- <code>n^4</code>: <code>2</code>;
+- <code>n^3</code>: <code>4 + 4 = 8</code>;
+- <code>n^2</code>: <code>1 + 8 + 2 = 11</code>;
+- <code>n</code>: <code>2 + 4 = 6</code>;
+- constant: <code>1</code>.
+So Right side <code>= 2n^4 + 8n^3 + 11n^2 + 6n + 1</code>.</p>
+<p><strong>Step 5 (conclusion for <code>n + 1</code>).</strong> Steps 3 and 4 give
+Left side <code>= 2n^4 + 8n^3 + 11n^2 + 6n + 1 =</code> Right side.
+Hence the identity holds for <code>n + 1</code>.</p>
+<p>By the principle of induction, the identity holds for every integer <code>n &gt;= 1</code>. ∎</p>
+<p><strong>Spot checks.</strong> <code>n = 2</code>: <code>1 + 27 = 28 = 4·(8−1) = 4·7</code>. <code>n = 3</code>: <code>1 + 27 + 125 = 153 = 9·(18−1) = 9·17</code>. <code>n = 4</code>: <code>1 + 27 + 125 + 343 = 496 = 16·(32−1) = 16·31</code>.</p>
+<hr />
+<h2 id="numerical-verification-checkpy">Numerical verification (<code>check.py</code>)</h2>
+<p>The companion script <code>check.py</code> verifies each statement numerically for small cases:</p>
+<ul>
+<li><strong>Check 1.</strong> Sieve of Eratosthenes up to <code>10^6</code>; counts the primes <code>p ≡ 3 (mod 4)</code> (showing they keep appearing: every block of 10 000 contains many of them, the largest ones are cross-checked by independent trial division, and the sieve is sanity-checked against <code>π(10^6) = 78498</code>).</li>
+<li><strong>Check 2.</strong> Computes <code>x = sqrt(2) + sqrt(3)</code> at 120-digit precision; verifies <code>x^4 − 10x^2 + 1 = 0</code> to that precision; evaluates <em>all</em> <code>14 640</code> nonzero polynomials of degree <code>&lt; 4</code> with integer coefficients in <code>[−5, 5]</code> at <code>x</code> and confirms the smallest absolute value is bounded away from 0; and performs an exact (integer-arithmetic) check in the basis <code>{1, sqrt(2), sqrt(3), sqrt(6)}</code> for coefficients in <code>[−50, 50]</code>.</li>
+<li><strong>Check 3.</strong> Enumerates <em>all</em> <code>2^(n(n−1)/2)</code> tournaments on <code>n = 1, ..., 6</code> vertices (33 867 in total). For each, it runs the inductive insertion algorithm of the proof (and an independent backtracking search), then verifies the output is a genuine Hamiltonian path (all vertices listed once, every consecutive pair an edge).</li>
+<li><strong>Check 4.</strong> Checks the identity <code>Σ_{k=1}^{n} (2k−1)^3 = n^2(2n^2 − 1)</code> for every <code>n = 1, ..., 1000</code>.</li>
+</ul>
+<p>Run it with <code>python check.py</code>. It prints <code>PASS</code>/<code>FAIL</code> with details for each check and exits with a nonzero status if any check fails.</p></main>

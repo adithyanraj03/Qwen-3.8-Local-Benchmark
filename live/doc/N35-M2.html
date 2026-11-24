@@ -1,0 +1,340 @@
+<!doctype html><meta charset=utf-8><title>REVIEW.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M2 · N35 · REVIEW.md <span>M2-qwen3.8-27b-orca-uncensored-nvfp4</span></div><main><h1 id="peer-review-fast-inference-from-transformers-via-speculative-decoding">Peer Review: "Fast Inference from Transformers via Speculative Decoding"</h1>
+<p>Reviewed source: <code>main.tex</code> (802 lines), <code>references.bib</code> (273 lines), <code>main.bbl</code> (245 lines), plus figure files
+(<code>figure1.png</code> 2624x657, <code>alpha_v_tokens.pdf</code>, <code>alpha_v_optimal_gamma.pdf</code>, <code>arith_ops.pdf</code>, <code>trace_diagram.pdf</code>).
+All equations and tabulated numbers below were re-derived and re-computed independently from the stated inputs.</p>
+<hr />
+<h2 id="1-summary-of-contributions">1. Summary of contributions</h2>
+<ol>
+<li><strong>Speculative sampling</strong> (Sec. 3.3, <code>main.tex:204</code>): sample a guess $x \sim q(x)$, keep it if $q(x) \le p(x)$,
+   accept it with probability $p(x)/q(x)$ otherwise, and on rejection resample from the normalized residual
+   $p'(x) \propto \max(0, p(x) - q(x))$. The output is exactly distributed as $p(x)$ (proof in Appendix A,
+   <code>main.tex:649-677</code>).</li>
+<li><strong>Speculative decoding</strong> (Algorithm 1, <code>main.tex:211-236</code>): draw $\gamma$ guesses autoregressively from a cheap
+   draft model $M_q$, verify them with a single parallel batch of $\gamma+1$ target-model ($M_p$) calls, and emit
+   $n+1 \in [1, \gamma+1]$ tokens per iteration. No retraining, no architecture change, exact output distribution.</li>
+<li><strong>Closed-form analysis</strong> (Sec. 4): acceptance rate $\beta = 1 - D_{LK}(p,q)$ where $D_{LK}$ is a symmetric
+   divergence (Def. 2, <code>main.tex:269-272</code>); expected tokens per iteration $(1-\alpha^{\gamma+1})/(1-\alpha)$ under
+   i.i.d. $\beta$ (Eq. 1, <code>main.tex:251-254</code>); walltime improvement
+   $(1-\alpha^{\gamma+1})/((1-\alpha)(\gamma c+1))$ (Thm 5, <code>main.tex:330-334</code>); arithmetic-op inflation
+   (Thm 7, <code>main.tex:363-366</code>); optimal-$\gamma$ procedure (<code>main.tex:387-389</code>).</li>
+<li><strong>Experiments</strong> (Sec. 5): 2.3X--3.4X walltime speedups vs T5X for T5-XXL (11B) on WMT EnDe and CNNDM
+   (Table 1, <code>main.tex:477-507</code>); empirical $\alpha$ across GPT-like 97M, T5-XXL, and LaMDA 137B targets with
+   transformer, unigram and bigram drafts (Table 3, <code>main.tex:526-585</code>); theory-vs-empirics table
+   (Table 4, <code>main.tex:701-731</code>); a "lenience" relaxation (Appendix E).</li>
+</ol>
+<h2 id="2-strengths">2. Strengths</h2>
+<ul>
+<li><strong>The correctness proof is short, elementary, and correct.</strong> I re-derived it: the accept path contributes
+  $\min(q, p)$ and the reject-resample path contributes $p - \min(p,q)$ (using the normalizer $1-\beta$,
+  <code>main.tex:651</code>), summing to $p$. The guarantee holds for <em>any</em> draft $q$, including disjoint support
+  (<code>main.tex:444</code>), and the argument extends cleanly to top-k/nucleus/temperature via the standardization
+  reduction (Sec. 3.2, <code>main.tex:200</code>).</li>
+<li><strong>Every closed-form result checks out.</strong> I recomputed all of Table 2 (<code>main.tex:406-411</code>) exactly
+  (e.g., $\alpha{=}0.9, \gamma{=}10$: ops $1.603$, speed $6.862$); the "Exp" column of Table 4 matches
+  Thm 5 to two decimals in all 12 rows; the bigram claim "1.25X with $\gamma=3$" reproduces exactly
+  ($(1-0.2^4)/0.8 = 1.248$, <code>main.tex:450,522</code>); the temp-0 lenience numbers at $\gamma=8$
+  (3.3/3.3/3.9/4.9X, <code>main.tex:779</code>) reproduce to two decimals from Table 5's $\alpha$ values.</li>
+<li><strong>Training-free, deployment-friendly design</strong> with off-the-shelf drafts (T5-small/base/large checkpoints),
+  and an honest accounting of the price paid: increased arithmetic ops (Thm 7) and an explicit
+  compute-availability precondition (<code>main.tex:320, 354-357, 608</code>).</li>
+<li><strong>Breadth of $\alpha$ measurement</strong> (Table 3): four model families, two temperatures, transformer and
+  n-gram drafts, showing $\alpha \in [0.5, 0.9]$ for $\sim 100$--1000x smaller drafts and even $\alpha \approx 0.2$
+  for a trivial bigram on translation.</li>
+<li><strong>Good experimental hygiene where it matters most</strong>: a dedicated theory-vs-empirics table with the cost
+  coefficient $c$ estimated from profiler traces (Appendix C), ablations over draft size, and both sampling
+  regimes.</li>
+<li><strong>Candid positioning</strong> against the two closest prior methods (Stern et al. 2018, SAD) with concrete
+  distinguishing properties (<code>main.tex:594-598</code>), and acknowledgment of concurrent independent work
+  (Chen et al. 2023, <code>main.tex:600</code>).</li>
+</ul>
+<h2 id="3-weaknesses">3. Weaknesses</h2>
+<p><strong>W1. Reproducibility is the paper's weakest axis.</strong> No code, data, or configuration release; single hardware
+(TPU-v4), batch size 1 only (<code>main.tex:470</code>); no absolute runtimes (tokens/s), no P50/P99; no T5X version, XLA
+flags, or numeric precision for the baseline; the LaMDA and 97M-GPT $\alpha$ measurements give no prompt set,
+context lengths, or generation lengths (<code>main.tex:513,517-518</code>); no error bars or confidence intervals on any
+$\alpha$ (10K tokens is fine for $\alpha \approx 0.8$ but the paper never states the sampling protocol or
+seeds). A reader cannot reproduce any number in Tables 1--5.</p>
+<p><strong>W2. The i.i.d. $\beta$ assumption is load-bearing but empirically untested.</strong> Eq. 1, Thm 5, Thm 7 and the
+optimal-$\gamma$ analysis all assume i.i.d. acceptance (<code>main.tex:249</code>), yet $\beta_{x_{&lt;t}}$ is a function of the
+prefix and is certainly not independent across positions (long repeated segments, code, lists). The only
+acknowledgment is "being only an approximation" (<code>main.tex:699</code>). The paper could have measured per-position
+$\hat\beta$ (it already computes everything needed for Table 3) and reported its variance/autocorrelation and the
+gap between predicted and observed tokens-per-iteration. That direct test is missing.</p>
+<p><strong>W3. Several specific numerical/technical blemishes</strong> (details in Sec. 6):
+  - the lenience acceptance inequality at <code>main.tex:779</code> has the wrong direction (see L779 comment);
+  - the temp-1 lenience speedups (2.5/3.1/3.6/5X, <code>main.tex:753</code>) <em>exceed</em> the maximum of the paper's own formula
+    (2.33/2.94/3.45/4.79X) given Table 5's $\alpha$ and $c=0.015$; the $\gamma$ values used are not reported;
+  - the "up to $\sim$60% higher" oracle-$\gamma$ claim (<code>main.tex:440</code>) is never derived and is not a consequence
+    of the stated assumptions (under "unbounded compute" the fixed-$\gamma$ optimum already approaches the
+    oracle value; my recomputation gives 0--114% uplift depending on unreported $(\alpha, c)$);
+  - the encoder upper bound at <code>main.tex:373</code> is vague (see L373);
+  - "identical outputs" (abstract, <code>main.tex:150</code>; intro, <code>main.tex:185</code>) overstates the stochastic case —
+    what is guaranteed is an identical <em>distribution</em>, which the body itself says correctly
+    (<code>main.tex:148,181,608</code>).</p>
+<p><strong>W4. Theory-vs-empirics agreement is weaker than "mostly match" (<code>main.tex:698</code>).</strong> Two configurations show
+the empirical speedup <em>below</em> the predicted value by 30-32% (EnDe T5-large: 1.7X vs 2.5X, 1.4X vs 2.0X,
+<code>main.tex:714,717</code>), while CNNDM T5-small/T5-base show +29%/+22% above (<code>main.tex:719,723</code>). The stated causes
+("optimization differences", i.i.d. assumption, <code>main.tex:699</code>) are asserted, not quantified.</p>
+<p><strong>W5. Related work is thin for a camera-ready.</strong> <code>references.bib</code> itself contains entries that are never cited:
+Generalized Aggressive Decoding (Xia et al. 2022, <code>references.bib:41-47</code>) — a direct lossless-translation
+speedup method using a smaller model — and Adaptive Computation Time (Graves 2016, <code>references.bib:242-248</code>).
+Also, $D_{LK}$ is exactly the total-variation distance ($D_{LK} = \tfrac12\sum_x |p-q|$), so Thm 4 is the
+statement $\beta = 1 - \mathrm{TV}(p,q)$; this identification is never made, which overstates the novelty of
+the divergence bookkeeping and hides a useful connection to known rejection-sampling theory.</p>
+<p><strong>W6. Walltime evidence is confined to one model family and one hardware.</strong> Only T5 (encoder-decoder) on TPU-v4
+has measured speedups; the decoder-only 137B LaMDA and 97M GPT results are $\alpha$-only
+(<code>main.tex:513,517-522</code>). The "good default" framing (<code>main.tex:187-188,606-608</code>) is broader than the measured
+evidence, and the KV-cache memory overhead of running $\gamma+1$ sequences in parallel is never quantified.</p>
+<h2 id="4-questions-for-the-authors">4. Questions for the authors</h2>
+<ol>
+<li>(<code>main.tex:779</code>) Is "accept the token $x$ sampled from $M_q$ in case $p(x) \le l \cdot \max(p)$" a sign error?
+   As written, smaller $l$ makes the rule <em>stricter</em> and rejects the argmax token itself ($p(x)=\max(p) &gt; l\max(p)$
+   for $l&lt;1$), the opposite of lenience. The monotone $\alpha$ values 0.75/0.75/0.80/0.87 for
+   $l = 1/0.5/0.3/0.1$ are consistent with $p(x) \ge l\cdot\max(p)$. Please confirm and fix.</li>
+<li>(<code>main.tex:753</code>) Which $\gamma$ produces the reported 2.5X/3.1X/3.6X/5X? With the Table 5 $\alpha$ values and
+   $c=0.015$, Thm 5 maximizes at 2.33X/2.94X/3.45X/4.79X over all $\gamma \in [1, 60]$; the reported figures
+   require either $c \to 0$ or a larger $\gamma$ than any optimum. Please report $\gamma$ and the $c$ actually
+   used, or reconcile.</li>
+<li>(<code>main.tex:440</code>) Please derive the "$\sim$60% higher" oracle-$\gamma$ bound. Under the stated "unbounded
+   compute" assumption ($c \to 0$) the fixed-$\gamma$ optimum already equals $1/(1-\alpha)$ in the limit, so the
+   stated identity $E(#\text{tokens}) = 1/(1-\alpha)$ for the oracle equals the trivial bound; the 60% figure
+   seems to depend on specific $(\alpha, c)$ values that are not given.</li>
+<li>(<code>main.tex:540,543</code> vs <code>main.tex:522</code>) The GPT-like 97M row has $\alpha(t{=}1)=0.89 &gt; \alpha(t{=}0)=0.88$,
+   contradicting "for all models, the sharper the adjusted distribution, the higher the $\alpha$ values". Is this
+   within the measurement noise? What is the standard error of the 10K-token $\alpha$ estimates?</li>
+<li>(<code>main.tex:470</code>) The draft sizes "T5-small (77M), T5-base (250M), T5-large (800M)" do not match the sizes
+   tabulated in the cited T5 paper (Raffel et al., 60M/220M/770M). Are these the T5 1.1 checkpoints? Please
+   state exactly which checkpoints were used.</li>
+<li>(<code>main.tex:714,717</code>) What specifically explains the EnDe T5-large results falling 30-32% <em>below</em> the
+   theoretical prediction (1.7X vs 2.5X; 1.4X vs 2.0X)? Is the $c=0.11$ estimate reliable?</li>
+<li>Can you report the empirical distribution of per-position $\hat\beta$ (variance, autocorrelation) and the
+   gap between predicted and observed tokens-per-iteration, to validate the i.i.d. assumption?</li>
+<li>(<code>main.tex:589</code>) "Wisdom of Committees" is cited to <code>Matching_Model_and_Instance_Complexities</code> (Schwartz et
+   al. 2020); the intended reference appears to be Wang et al. ICLR 2020 (<code>references.bib:139-144</code>, present but
+   uncited, absent from <code>main.bbl</code>). Please fix the key.</li>
+<li>(<code>main.tex:745</code>) Please give the exact form of the output distribution under lenience and a proof of the
+   guarantee $P_l(x) \le p(x)/l$. Note that for $l \ne 1$ the residual normalizer is $\sum_x (p(x)-lq(x))_+$,
+   which is not $1-\beta_l$ (unlike the $l=1$ case used in Appendix A, <code>main.tex:651</code>), so the Appendix A
+   argument does not transfer verbatim.</li>
+<li>(<code>main.tex:697</code>) How were the $c$ values estimated from profiler traces, and what is their uncertainty?</li>
+<li>(<code>main.tex:470</code>) What is the T5X baseline version and optimization configuration (JAX/XLA flags, bf16?), and
+    what are absolute tokens/s numbers for both baseline and speculative decoding?</li>
+</ol>
+<h2 id="5-assessments">5. Assessments</h2>
+<p><strong>Novelty — Moderate-to-high (system level), modest (sampling rule).</strong> The sampling rule itself is a classical
+rejection-sampling identity: the accept probability is $\min(1, p/q)$ and the "resample from $p-q$" residual makes
+one evaluation of $p$ amortize over up to $\gamma+1$ tokens; equivalently $\beta = 1-\mathrm{TV}(p,q)$, which the
+paper presents as a new divergence ($D_{LK}$) without naming the connection. What is genuinely new is (a) the
+batched parallel <em>verification</em> structure that turns one target-model call into $1$--$\gamma+1$ tokens, (b) the
+training-free off-the-shelf-draft formulation with an exact-distribution guarantee, and (c) the full
+$\alpha/c/\gamma$ analysis. Prior work (Stern et al. 2018 blockwise decoding; SAD) covers only greedy decoding
+and/or copy-style drafts with custom training, so the gap to "general stochastic, lossless, no training" is real
+and was not closed before this paper. Chen et al. 2023 arrived independently with the same core algorithm, which
+the paper properly acknowledges (<code>main.tex:600</code>) — it confirms novelty of the idea space but weakens first-publication
+credit for the algorithm itself.</p>
+<p><strong>Soundness — Good, with caveats.</strong> All proofs I re-checked are correct (Appendix A; Lemma 1; Thms 4-7; the
+$\gamma=1$ lower bound in the Corollary at <code>main.tex:343-349</code> follows since the improvement factor is
+quasi-concave in $\gamma$, so $\alpha &gt; c \iff f(1) &gt; 1$). The main soundness caveats: (i) the i.i.d. $\beta$
+assumption is untested (W2); (ii) the walltime model assumes $\gamma+1$ parallel target calls cost one serial
+call (<code>main.tex:320</code>), which is an assumption, not a property of TPU execution of a batched kernel — the 30%
+negative deviations in Table 4 show it can fail in either direction; (iii) the lenience appendix states a
+guarantee without proof and contains the sign issue (W3); (iv) the "60% oracle" and encoder-bound claims are
+underived/vague. None of these affects the core result (exact distribution + measured 2.3-3.4X speedup).</p>
+<p><strong>Clarity — Good.</strong> The paper is well-organized and the algorithm is presented compactly; the trace diagram
+(<code>main.tex:430-436</code>) and Figure 1 help. Dragged down by: template residue ("Llama specific" block
+<code>main.tex:74-79</code>, <code>\COMMENTLLAMA</code> at <code>main.tex:209</code>, "ICML 2023 EXAMPLE" comment at <code>main.tex:1</code>), a fragile
+<code>\stepcounter{footnote}</code> hack (<code>main.tex:524</code>), a duplicated <code>\appendix</code> (<code>main.tex:638,641</code>), a table label
+containing a space (<code>tbl:empirical alphas</code>, <code>main.tex:528</code>), mixed straight/curly apostrophes, and several typos
+(anaylsis <code>main.tex:320</code>, autogreressive <code>main.tex:456</code>, sparcification <code>main.tex:588</code>, down-stream
+<code>main.tex:596</code>). The abstract's "identical outputs" is imprecise relative to the body (W3).</p>
+<p><strong>Reproducibility — Weak.</strong> See W1. Everything is Google-internal (TPU-v4, LaMDA checkpoints, T5X codebase), no
+artifact is released, no absolute timings or variance are reported, and the $\alpha$-measurement protocol
+(prompts, lengths, tokenizer for LaMDA) is underspecified. For the era and venue this was common for systems
+results, but as written the experiments cannot be independently reproduced.</p>
+<h2 id="6-line-level-comments">6. Line-level comments</h2>
+<h3 id="maintex"><code>main.tex</code></h3>
+<ul>
+<li><strong>L1</strong> — Leftover template comment "ICML 2023 EXAMPLE LATEX SUBMISSION FILE". Remove for camera-ready.</li>
+<li><strong>L25</strong> — <code>\usepackage[accepted]{icml2023}</code>: authors visible; consistent with the acknowledgments (L619-622),
+  but confirm this is the intended camera-ready mode and not the blind version.</li>
+<li><strong>L74-79, L209</strong> — "Llama specific" template block and <code>\COMMENTLLAMA</code> macro name carried over from another
+  paper. Harmless but unprofessional in camera-ready.</li>
+<li><strong>L145, L150</strong> — "without any changes to the outputs" / "with identical outputs": true only for argmax; for
+  temp-1 sampling the individual outputs differ — the <em>distribution</em> is identical (as correctly stated at
+  L148 and L181). Rewrite as "without changing the output distribution".</li>
+<li><strong>L150</strong> — "2X-3X" understates the paper's own results (2.3X-3.4X, Table 1). State the measured range.</li>
+<li><strong>L163</strong> — "as is evidenced countless times in recent years e.g., in the text or image domains, like GPT-3" —
+  redundant "e.g. ... like" and unfalsifiable phrasing.</li>
+<li><strong>L182</strong> — "38 tokens ... only 9 serial runs": not verifiable from the source (Figure 1 is a raster PNG with a
+  descriptive caption). Provide the acceptance trace or make the figure machine-readable.</li>
+<li><strong>L204</strong> — "It's easy to show": curly apostrophe; more importantly, the key identity is exactly
+  $\beta = 1-\mathrm{TV}(p,q)$ (Lemma 1 + Thm 4) — state that directly instead of deferring to the appendix.</li>
+<li><strong>L226</strong> — Correct, but the edge case $q_i(x_i) &gt; 0, p_i(x_i) = 0$ (draft proposes an out-of-support token)
+  should be called out: the ratio is 0, the guess is rejected, and $p'$ is unaffected. Support-mismatch is only
+  mentioned later (L444).</li>
+<li><strong>L249</strong> — The i.i.d. assumption should carry a forward pointer to an empirical check; as it stands it is
+  asserted once (L249) and apologized for once (L699) but never tested.</li>
+<li><strong>L271</strong> — $D_{LK}(p,q) = \sum_x |p(x) - (p+q)/2| = \tfrac12 \sum_x |p(x)-q(x)|$ is the total-variation
+  distance. Name it; Thm 4 then reads $\beta = 1-\mathrm{TV}(p,q)$, and the "new divergence" framing
+  (L267) is not needed.</li>
+<li><strong>L320</strong> — Typo: "anaylsis".</li>
+<li><strong>L328</strong> — "c was always less than 0.05" conflicts with Table 4's $c = 0.11$ for T5-large
+  (<code>main.tex:714,717,721,724</code>). The qualifier "typically a couple of orders of magnitude smaller" is meant to
+  exclude T5-large (~14x smaller, &lt;1.2 orders), but the appendix table includes it; reconcile the scope.</li>
+<li><strong>L348</strong> — Curly apostrophe ("we'd"); the corollary's "the improvement factor will be at least
+  $(1+\alpha)/(1+c)$" should specify "for the optimal $\gamma$" (the statement as written is ambiguous).</li>
+<li><strong>L373</strong> — "can be bounded from above by a single run of the same-size Transformer encoder": unclear what
+  sequence length and which regime (cached vs. recomputed attention) are meant. The intended statement is
+  presumably that $\gamma+1$ cached single-token decodes cost no more than one uncached forward pass over the
+  same $\gamma+1$ new tokens; say so explicitly, including the attention (quadratic) term.</li>
+<li><strong>L440</strong> — "up to $\sim$60% higher" is never derived. Under the stated unbounded-compute assumption the
+  fixed-$\gamma$ optimum approaches $1/(1-\alpha)$ (e.g., $\alpha{=}0.9, c{=}0$: fixed optimum 9.41 at
+  $\gamma{=}20$ vs oracle 10, a 6% gap); my recomputation over plausible $(\alpha, c)$ gives 18% (0.7, 0.02),
+  114% (0.9, 0.05) — 60% corresponds to no stated configuration. Add the derivation or cite the $(\alpha,c)$ used.</li>
+<li><strong>L450</strong> — "we get $\alpha \approx 0.2$ ... 1.25X with $\gamma=3$": matches the $t{=}0$ value (0.20,
+  <code>main.tex:548</code>); the $t{=}1$ value (0.19, <code>main.tex:553</code>) gives 1.23X. State the temperature.</li>
+<li><strong>L456</strong> — "non-autoregressive models, like those from Stern et al.": Stern et al.'s model is a <em>blockwise</em>
+  autoregressive model with a copy mechanism, not non-autoregressive; cite precisely. (The usage itself is fine:
+  any per-position distribution $q_i$ suffices for the guarantee.)</li>
+<li><strong>L470</strong> — "T5-small (77M), T5-base (250M), T5-large (800M)" vs the cited T5 paper's 60M/220M/770M; identify
+  the checkpoints (T5 1.1?). Also add: T5X baseline version, precision, absolute timings.</li>
+<li><strong>L513</strong> — "10K tokens generated by $M_p$": specify prompts/tasks, context lengths, and whether tokens are
+  from a fixed seed; report standard errors.</li>
+<li><strong>L515</strong> — Missing space after <code>\paragraph{GPT-like (97M params)}</code>; "Bert tokenization with 8k tokens" should
+  be "an 8k-token BERT vocabulary".</li>
+<li><strong>L522</strong> — "for all models, the sharper the adjusted distribution, the higher the $\alpha$ values" is
+  contradicted by the GPT-like 97M row ($0.88$ at $t{=}0$ vs $0.89$ at $t{=}1$, L540/L543). Either qualify
+  ("except within noise") or explain.</li>
+<li><strong>L524</strong> — <code>\stepcounter{footnote}</code> is a fragile hack to sync the <code>\footnotemark[\value{footnote}]</code> at L527
+  with the <code>\footnotetext</code> at L602; the latter sits in the Related-work section. Move the note next to the
+  LaMDA setup (L517-518) and drop the hack.</li>
+<li><strong>L528</strong> — Label <code>tbl:empirical alphas</code> contains a space; same for <code>\cref{tbl:empirical alphas}</code> at L313.</li>
+<li><strong>L533</strong> — <code>\begin{tabular}{lllccr}</code> declares 6 columns for a 4-column header.</li>
+<li><strong>L547-556</strong> — The T5 $\alpha$ rows duplicate Table 1 exactly; this shows Table 1's $\alpha$ comes from the
+  offline 10K-token estimate, not from the speedup runs — good, but make the relationship explicit (it means the
+  "Exp" column of Table 4 is a plug-in prediction, and the only genuinely predictive content is $c$ and the
+  measured walltime).</li>
+<li><strong>L573</strong> — LaMDA 100M is ~1370x (3.1 orders) smaller than 137B, yet $\alpha = 0.61$: this weakens the
+  "around two orders of magnitude" heuristic stated at L447 and L522.</li>
+<li><strong>L588</strong> — Typo: "sparcification". Also cite the uncited bib entries <code>gad</code> (Generalized Aggressive Decoding —
+  a direct lossless-translation speedup prior work) and <code>graves-adaptive-computation-for-rnn</code> (ACT), or remove
+  them from <code>references.bib</code>.</li>
+<li><strong>L589</strong> — Wrong citation key: "Wisdom of Committees" points to <code>Matching_Model_and_Instance_Complexities</code>
+  (Schwartz et al. 2020); it should point to <code>Wisdom_of_Committees</code> (Wang et al., ICLR 2020), which exists in
+  <code>references.bib:139-144</code> but is uncited and absent from <code>main.bbl</code>. As shipped, the sentence cites the wrong
+  paper.</li>
+<li><strong>L596</strong> — "down-stream" → "downstream".</li>
+<li><strong>L600</strong> — "After we initially published our work": give the arXiv id/date for verifiability.</li>
+<li><strong>L608</strong> — "can be used to speedup inference" — "speed up" (verb); also "provides the speedup with
+  significant benefits" is awkward.</li>
+<li><strong>L638-641</strong> — <code>\appendix</code> appears twice (L638 and L641) after <code>\onecolumn</code>; drop the duplicate.</li>
+<li><strong>L651</strong> — The normalizer argument ($1-\beta$) is valid only for $l=1$; the lenience section (L745-751) never
+  re-derives the normalizer for $l \ne 1$ ($\sum_x (p-lq)_+ \ne 1-\beta_l$ in general), so the induced
+  distribution under lenience is not actually characterized. See Q9.</li>
+<li><strong>L689</strong> — Broken sentence: "the expected accept probability here is $E_{x \sim q(x)} \frac{p(x)}{Mq(x)} =
+  \sum_x p(x)\min_{x'}\frac{q(x')}{p(x')} \le \dots = \alpha$ <strong>is (potentially much) lower than the expected
+  accept probability in our method $\alpha$</strong>." As written it compares $\alpha$ to itself; the subject of the
+  comparison should be $1/M = \min_{x'} q(x')/p(x')$. Rewrite.</li>
+<li><strong>L710</strong> — Table 4: add the uncertainty of the $c$ estimates (L697) — the negative deviations (L714, L717)
+  may be $c$-estimation error, which the current presentation cannot distinguish from model misspecification.</li>
+<li><strong>L739</strong> — Beam-search condition "$top_w(M_p) \subseteq top_u(M_q)$": specify that $M_p$ refers to the target's
+  score distribution over $M_q$'s candidates; the $(w + u\gamma)$ compute budget deserves a one-line derivation.</li>
+<li><strong>L745</strong> — "no guarantee on the minimum probability, so lenience could hurt the diversity" — justify the
+  direction (lenience raises probabilities of $q$-likely/$p$-unlikely tokens, so the effect on diversity depends
+  on the draft; state it as a claim or an observation).</li>
+<li><strong>L753</strong> — See Q2: 2.5/3.1/3.6/5X exceed the maxima of Thm 5 (2.33/2.94/3.45/4.79X) computed from Table 5's
+  $\alpha$ and $c=0.015$; report the $\gamma$ values used.</li>
+<li><strong>L779</strong> — <strong>Likely sign error.</strong> "accept the token $x$ ... in case $p(x) \leq l \cdot \max(p)$": for $l &lt; 1$
+  this <em>rejects</em> the argmax token ($p(x) = \max(p) &gt; l \max(p)$) and accepts weaker tokens — the opposite of
+  lenience. The reported monotone $\alpha$ values (0.75 → 0.87 as $l$ decreases) are consistent with
+  $p(x) \ge l \cdot \max(p)$. Fix the inequality.</li>
+</ul>
+<h3 id="referencesbib"><code>references.bib</code></h3>
+<ul>
+<li><strong>L41-47</strong> (<code>gad</code>) and <strong>L242-248</strong> (<code>graves-adaptive-computation-for-rnn</code>): present but never cited; GAD is
+  directly relevant prior work for lossless translation speedup. Cite in Related work or remove.</li>
+<li><strong>L49-55</strong> (<code>iad_maybe</code>): duplicate of <code>sad</code> (L177-183); remove.</li>
+<li><strong>L139-144</strong> (<code>Wisdom_of_Committees</code>): uncited; cited in its stead at <code>main.tex:589</code> (see L589 comment).</li>
+<li><strong>L19</strong> (<code>lamda</code>): author list rendering problem — "Ed Huai-hsin Chi" sorts as "hsin Chi" in <code>main.bbl:215,225</code>;
+  fix the name field.</li>
+</ul>
+<h3 id="mainbbl"><code>main.bbl</code></h3>
+<ul>
+<li><strong>L1</strong> — Consistent with the (incorrect) citation set above: <code>Wisdom_of_Committees</code> is missing, which is the
+  visible symptom of the <code>main.tex:589</code> key error. Regenerate after fixing the key.</li>
+</ul>
+<h3 id="figures">Figures</h3>
+<ul>
+<li><code>figure1.png</code> (L154): raster 2624x657; the caption's color legend and the "38 tokens / 9 serial runs" claim
+  (L182) cannot be verified from the source; consider a vector version and/or a textual acceptance trace.</li>
+<li><code>trace_diagram.pdf</code>, <code>alpha_v_tokens.pdf</code>, <code>alpha_v_optimal_gamma.pdf</code>, <code>arith_ops.pdf</code>: all present and
+  non-trivial in size; the plots referenced by the analysis sections exist. <code>icml_numpapers.eps/pdf</code> are the
+  standard copyright marks.</li>
+</ul>
+<h2 id="7-are-the-abstracts-claims-supported">7. Are the abstract's claims supported?</h2>
+<table>
+<thead>
+<tr>
+<th>Claim (abstract)</th>
+<th>Supported?</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Decoding $K$ tokens takes $K$ serial runs</td>
+<td>Yes (motivation)</td>
+<td>Standard autoregressive decoding; no experiment needed</td>
+</tr>
+<tr>
+<td>Faster sampling "without any changes to the outputs" / "identical outputs"</td>
+<td><strong>Partially</strong></td>
+<td>Exact-distribution guarantee is proven (Appendix A) and holds for both temp regimes (Tables 1, 3); but for stochastic sampling individual outputs are <em>not</em> identical — only the distribution is. "2X-3X ... with identical outputs" (L150) is precise only for the argmax rows.</td>
+</tr>
+<tr>
+<td>"2X-3X acceleration compared to the standard T5X implementation"</td>
+<td>Yes (conservative)</td>
+<td>Table 1 measures 2.3X-3.4X (<code>main.tex:488-500</code>) vs T5X on TPU-v4; the abstract's range understates the best result.</td>
+</tr>
+<tr>
+<td>"hard tasks include easier subtasks approximated by more efficient models"</td>
+<td>Yes</td>
+<td>$\alpha \in [0.5, 0.9]$ with $\sim$100-1000x smaller drafts across 3 tasks/4 model families (Table 3); even n-gram drafts give $\alpha \ge 0.16$ (L560-578).</td>
+</tr>
+<tr>
+<td>"accelerate existing off-the-shelf models without retraining or architecture changes"</td>
+<td>Yes (with scope caveat)</td>
+<td>All speedups use existing checkpoints (L470); caveat: measured walltime is only for T5-XXL on TPU-v4 at batch size 1 — LaMDA/97M-GPT are $\alpha$-only (W6).</td>
+</tr>
+<tr>
+<td>"novel sampling method"</td>
+<td>Yes</td>
+<td>The batched-verification + residual-resampling combination with the exact-distribution guarantee and full analysis is new relative to Stern et al. 2018 and SAD (L594-598); concurrent Chen et al. 2023 acknowledged (L600).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> the headline quantitative claim is supported (even understated); the "identical outputs" phrasing
+is the one substantive imprecision.</p>
+<h2 id="8-recommendation">8. Recommendation</h2>
+<p><strong>Accept (minor revisions).</strong> The core algorithm is elegant, the distributional guarantee is proven correctly,
+all closed-form results reproduce exactly from the paper's own inputs, and the measured 2.3X-3.4X speedups over
+an optimized T5X baseline with training-free off-the-shelf drafts constitute a strong, practically important
+contribution that was the first to combine losslessness, general stochastic sampling, and no training. The
+deficiencies are real but non-fatal: reproducibility is limited (W1), the i.i.d. assumption is untested (W2),
+and a handful of specific errors (sign at L779, under-derived 60% claim at L440, lenience numbers at L753,
+wrong citation key at L589) should be fixed. I verified the mathematics line by line; the errors above do not
+touch the central theorem or the main experimental comparison.</p>
+<p><strong>Confidence: 4/5</strong> (high). I read the complete LaTeX source, bibliography, and figure inventory, and
+independently re-derived every equation and re-computed every tabulated figure (Tables 2, 4, 5, 6 and all
+closed-form spot checks); I did not run the models or inspect the raster figure's pixel content.</p></main>

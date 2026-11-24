@@ -1,0 +1,260 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M6 · X10 · PROOFS.md <span>M6-qwen3.8-flash-next-sc117-abliterated-iq3_xxs</span></div><main><h1 id="four-proofs">Four Proofs</h1>
+<p>Each proof is written out step by step. The small elementary facts that the proofs
+rely on are collected in Section 0, so that every citation inside a proof ("by
+Fact 0.5", "by Lemma 2.1", ...) points to something precise.</p>
+<h2 id="0-elementary-facts-used">0. Elementary facts used</h2>
+<p><strong>Fact 0.1 (Well-ordering and induction).</strong> Every nonempty set of positive
+integers has a least element. Equivalently (and this is the form we actually use):
+if a statement P(n) is true for n = 1, and if P(n) implies P(n+1) for every
+n &gt;= 1, then P(n) is true for every n &gt;= 1. We use the two forms
+interchangeably, as is standard.</p>
+<p><strong>Fact 0.2 (Fundamental theorem of arithmetic).</strong> Every integer N &gt; 1 can be
+written as a product of primes, and this writing is unique up to reordering of
+the factors. We use only these consequences:
+(a) every integer N &gt; 1 has at least one prime divisor;
+(b) if a prime q divides a product a_1 * a_2 * ... * a_s of primes, then q is
+    equal to one of the a_i (because q, together with a suitable rearrangement,
+    would otherwise give a second, different prime factorization of the product).</p>
+<p><strong>Fact 0.3 (Congruences).</strong> We write a ≡ b (mod m) to mean that m divides
+a − b. If a ≡ b (mod m) and c ≡ d (mod m), then ac ≡ bd (mod m). Proof: by
+definition a = b + mu and c = d + mv for integers u, v, so
+ac = (b + mu)(d + mv) = bd + m(bv + du + muv), and m divides ac − bd.
+By repeating this, if a_i ≡ b_i (mod m) for i = 1, ..., s then
+a_1···a_s ≡ b_1···b_s (mod m). Congruence is also symmetric and transitive
+(both follow directly from the definition: m | (a − b) implies m | (b − a), and
+m | (a − b), m | (b − c) imply m | ((a − b) + (b − c)) = a − c). In particular,
+if a ≡ 0 (mod m) and a ≡ r (mod m), then r ≡ 0 (mod m), i.e. m | r.</p>
+<p><strong>Fact 0.4 (Divisibility basics).</strong> If d | a and d | b then d | (a − b), since
+a = dx, b = dy give a − b = d(x − y). Divisibility is transitive: d | e and
+e | a imply d | a. No prime divides 1, because a prime is at least 2 and
+d | 1 forces d ≤ 1.</p>
+<p><strong>Fact 0.5 (Parity).</strong> An integer n is even if and only if n^2 is even. Proof:
+if n = 2k then n^2 = 4k^2 = 2(2k^2) is even; conversely, if n is odd, say
+n = 2k + 1, then n^2 = 4k^2 + 4k + 1 = 2(2k^2 + 2k) + 1 is odd, so if n^2 is
+even then n cannot be odd. We also use: the product of two odd numbers is odd
+((2a+1)(2b+1) = 2(2ab + a + b) + 1), and the product of an even number with
+any integer is even.</p>
+<p><strong>Fact 0.6 (Rational numbers).</strong> A rational number is a number of the form a/b
+with a, b integers and b ≠ 0. Every positive rational number can be written as
+m/n with m, n positive integers and gcd(m, n) = 1 (write it in any way, then
+divide numerator and denominator by their greatest common divisor). The rational
+numbers are closed under addition, subtraction, multiplication, and division by a
+nonzero rational: (a/b) + (c/d) = (ad + bc)/(bd), (a/b)(c/d) = (ac)/(bd),
+(a/b)/(c/d) = (ad)/(bc), with all denominators nonzero. In particular, if x and
+y are rational then x − y, xy, and x/y (for y ≠ 0) are rational.</p>
+<p><strong>Fact 0.7 (Square roots).</strong> For every real a ≥ 0 there is a unique real number
+r ≥ 0 with r^2 = a; we denote it by √a (existence is a consequence of the
+completeness of the real numbers; uniqueness holds because r^2 = s^2 with
+r, s ≥ 0 gives (r − s)(r + s) = 0 and r + s &gt; 0 unless r = s = 0). Two
+consequences we use: (i) √a · √a = a for a ≥ 0; (ii) √a · √b = √(ab) for
+a, b ≥ 0, because √a·√b is nonnegative and (√a·√b)^2 = (√a)^2 (√b)^2 = ab, so
+√a·√b is <em>the</em> nonnegative number whose square is ab, namely √(ab).</p>
+<hr />
+<h2 id="1-there-are-infinitely-many-primes-congruent-to-3-modulo-4">1. There are infinitely many primes congruent to 3 modulo 4</h2>
+<p><strong>Lemma 1.1.</strong> Every positive integer N with N ≡ 3 (mod 4) has a prime divisor
+q with q ≡ 3 (mod 4).</p>
+<p><em>Proof.</em> Write N = 4k + 3 with k ≥ 0. Then N ≥ 3, so N &gt; 1 (in particular
+N ≠ 1: if N = 1 then 1 ≡ 3 (mod 4), i.e. 4 | (3 − 1) = 2, which is false).
+By Fact 0.2(a), N has prime divisors; write N = q_1 q_2 ··· q_s as a product of
+primes.</p>
+<p>Step 1: no q_i equals 2. Indeed, if some q_i = 2, then 2 | q_i and q_i | N, so
+2 | N by transitivity of divisibility (Fact 0.4), making N even; but
+N = 4k + 3 = 2(2k + 1) + 1 is odd. Contradiction.</p>
+<p>Step 2: each q_i satisfies q_i ≡ 1 (mod 4) or q_i ≡ 3 (mod 4). By the division
+algorithm every integer is congruent to exactly one of 0, 1, 2, 3 modulo 4. If
+q_i ≡ 0 (mod 4) then 4 | q_i, so q_i = 4·t with t ≥ 1, and q_i is composite
+unless t = 1, but q_i = 4 is not prime; either way q_i ≡ 0 (mod 4) is
+impossible for a prime q_i &gt; 2 (it would make q_i even and greater than 2). If
+q_i ≡ 2 (mod 4) then 2 | (q_i − 2) and 2 | 2, so 2 | q_i (Fact 0.4), and q_i
+is an even prime, hence q_i = 2, excluded by Step 1. So q_i ≡ 1 or 3 (mod 4).</p>
+<p>Step 3: some q_i satisfies q_i ≡ 3 (mod 4). Suppose not; then q_i ≡ 1 (mod 4)
+for all i. By the multiplicativity of congruences (Fact 0.3),
+N = q_1···q_s ≡ 1·1···1 = 1 (mod 4). But we also have N ≡ 3 (mod 4), so by
+transitivity 1 ≡ 3 (mod 4), i.e. 4 | 2, a contradiction. ∎</p>
+<p><strong>Theorem 1.2.</strong> There are infinitely many primes congruent to 3 modulo 4.</p>
+<p><em>Proof.</em> Suppose, for contradiction, that there are only finitely many such
+primes. The set is nonempty because 3 ≡ 3 (mod 4) is prime, so we can list all
+of them as p_1 &lt; p_2 &lt; ··· &lt; p_k (with p_1 = 3). Define</p>
+<p>N = 4 · p_1 p_2 ··· p_k − 1.</p>
+<p>Step 1: N ≡ 3 (mod 4). By Fact 0.3, 4 · (p_1···p_k) ≡ 0 · (p_1···p_k) = 0
+(mod 4), and −1 ≡ 3 (mod 4) because 4 | (3 − (−1)) = 4. Hence
+N = 4·(p_1···p_k) − 1 ≡ 0 − 1 ≡ 3 (mod 4).</p>
+<p>Step 2: N &gt; 1. Since k ≥ 1 and p_1 = 3, we have N ≥ 4·3 − 1 = 11 &gt; 1.</p>
+<p>Step 3: by Lemma 1.1 (applied to N, using Steps 1 and 2), some prime
+q ≡ 3 (mod 4) divides N.</p>
+<p>Step 4: q is one of the listed primes, say q = p_j, because p_1, ..., p_k was
+the complete list of primes congruent to 3 mod 4.</p>
+<p>Step 5: contradiction. Since q = p_j, q divides the product
+p_1···p_k, hence q divides 4·p_1···p_k. We also have q | N. By Fact 0.4,
+q divides (4·p_1···p_k) − N = 1. But q is a prime, so q ≥ 2, and no integer
+≥ 2 divides 1 (Fact 0.4). Contradiction.</p>
+<p>Therefore the assumed complete finite list does not exist: there are infinitely
+many primes congruent to 3 modulo 4. ∎</p>
+<hr />
+<h2 id="2-the-number-2-3-is-irrational">2. The number √2 + √3 is irrational</h2>
+<p><strong>Lemma 2.1.</strong> √6 is irrational.</p>
+<p><em>Proof.</em> Suppose, for contradiction, that √6 = m/n where m, n are positive
+integers with gcd(m, n) = 1 (Fact 0.6 gives such a representation for any
+positive rational; √6 &gt; 0 since 6 &gt; 0 and the nonnegative square root of a
+positive number is positive). Squaring both sides gives m/n = √6, hence
+m^2 = 6n^2. (Squaring is valid: m/n = √6 implies (m/n)^2 = (√6)^2 = 6 by
+Fact 0.7(i); clearing denominators, m^2 = 6n^2.)</p>
+<p>Step 1: m is even. We have m^2 = 6n^2 = 2·(3n^2), so m^2 is even, and by
+Fact 0.5, m is even.</p>
+<p>Step 2: write m = 2k. Substituting: 4k^2 = 6n^2. Then
+2·(2k^2 − 3n^2) = 4k^2 − 6n^2 = 0, so 2k^2 − 3n^2 = 0 (a product of nonzero
+integers is nonzero, so 2·x = 0 forces x = 0), i.e.</p>
+<p>2k^2 = 3n^2.</p>
+<p>Step 3: n is even. The left side 2k^2 is even, so 3n^2 is even. If n were odd,
+then 3n^2 would be a product of two odd numbers, hence odd by Fact 0.5, a
+contradiction. So n is even.</p>
+<p>Step 4: contradiction. Steps 1 and 3 show 2 | m and 2 | n, so
+gcd(m, n) ≥ 2, contradicting gcd(m, n) = 1. ∎</p>
+<p><strong>Theorem 2.2.</strong> √2 + √3 is irrational.</p>
+<p><em>Proof.</em> First compute the square of √2 + √3. By the distributive law,
+(√2 + √3)^2 = (√2)^2 + 2·√2·√3 + (√3)^2. By Fact 0.7(i), (√2)^2 = 2 and
+(√3)^2 = 3; by Fact 0.7(ii), √2·√3 = √(2·3) = √6. Hence</p>
+<p>(√2 + √3)^2 = 5 + 2√6.   (∗)</p>
+<p>Now suppose, for contradiction, that √2 + √3 = a/b with a, b integers and
+b ≠ 0. Squaring and using (∗): a^2/b^2 = 5 + 2√6. Subtract 5 from both sides
+(allowed: equality is preserved under adding the same number to both sides):
+2√6 = a^2/b^2 − 5 = (a^2 − 5b^2)/b^2. Divide both sides by 2 (i.e. multiply by
+1/2, which is legitimate since 2 ≠ 0):</p>
+<p>√6 = (a^2 − 5b^2) / (2b^2).</p>
+<p>The numerator a^2 − 5b^2 is an integer, and the denominator 2b^2 is a nonzero
+integer because b ≠ 0. So the right side exhibits √6 as a quotient of two
+integers with nonzero denominator, i.e. √6 is rational. (Equivalently: a/b is
+rational, so a^2/b^2 = (a/b)(a/b) is rational by closure under multiplication
+(Fact 0.6); then a^2/b^2 − 5 is rational by closure under subtraction; then
+dividing by 2 keeps it rational.) This contradicts Lemma 2.1.</p>
+<p>Therefore √2 + √3 is irrational. ∎</p>
+<p><em>Remark.</em> The same argument shows more: √2 + √3 is a root of
+x^4 − 10x^2 + 1 = 0 (square (∗): (√2+√3)^4 = 25 + 20√6 + 24 = 49 + 20√6 and
+10(√2+√3)^2 − 1 = 49 + 20√6), and the argument above is exactly the statement
+that this polynomial has no rational root.</p>
+<hr />
+<h2 id="3-every-finite-tournament-has-a-hamiltonian-path">3. Every finite tournament has a Hamiltonian path</h2>
+<p><strong>Definitions.</strong> A <em>tournament</em> on a finite vertex set V is an orientation of
+the complete graph on V: for every pair of distinct vertices {u, w} with
+u, w ∈ V, exactly one of the directed edges u → w or w → u is present (exactly
+one, because the underlying graph is complete, so some edge joins u and w, and
+because an orientation puts a direction on each edge, and only one). A <em>directed
+path</em> in a tournament is a sequence of distinct vertices v_1, v_2, ..., v_t such
+that v_i → v_{i+1} is an edge for each i = 1, ..., t−1. A directed path is
+<em>Hamiltonian</em> if t = |V|, i.e. if {v_1, ..., v_t} = V: it visits every vertex
+exactly once.</p>
+<p><strong>Theorem 3.1.</strong> Every tournament on n ≥ 1 vertices has a Hamiltonian path.</p>
+<p><em>Proof.</em> We induct on n (Fact 0.1).</p>
+<p><em>Base case, n = 1.</em> Let V = {v_1}. The one-term sequence (v_1) is a directed
+path: its vertices are distinct, and there are no indices i with
+1 ≤ i ≤ 0, so the condition "v_i → v_{i+1} for all i" holds vacuously. Its
+vertex set is {v_1} = V, so it is Hamiltonian.</p>
+<p><em>Inductive step.</em> Assume n ≥ 2 and that every tournament on n vertices has a
+Hamiltonian path (inductive hypothesis). Let T be a tournament on n + 1
+vertices, with vertex set V.</p>
+<p>Step 1: pick a vertex and delete it. V is nonempty, so choose any v ∈ V. Let
+T′ be the tournament obtained by deleting v: its vertex set is V′ = V \ {v},
+which has n vertices, and for any two distinct vertices x, y ∈ V′ we keep as
+the edge between x and y exactly the edge that T has between them. Since T has
+exactly one directed edge between x and y, so does T′; hence T′ is a tournament
+on n vertices.</p>
+<p>Step 2: apply the inductive hypothesis. By the inductive hypothesis, T′ has a
+Hamiltonian path P = (v_1 → v_2 → ··· → v_n). Because P is Hamiltonian in T′,
+the vertices v_1, ..., v_n are all distinct and {v_1, ..., v_n} = V′ = V \ {v}.</p>
+<p>Step 3: case analysis on the edges between v and the endpoints of P. The pair
+{v, v_1} consists of distinct vertices of T, so exactly one of v → v_1 and
+v_1 → v is an edge of T; likewise exactly one of v → v_n and v_n → v is an
+edge. We consider the three cases determined by these two choices.</p>
+<p><em>Case 1: v → v_1.</em> Then (v → v_1 → v_2 → ··· → v_n) is a Hamiltonian path of
+T. Verification: its vertices are v together with v_1, ..., v_n; these are all
+distinct because v ∉ V′ = {v_1, ..., v_n}; and the vertex set is
+{v} ∪ V′ = V, so the path visits every vertex exactly once. Its consecutive
+edges are: v → v_1, which holds by the assumption of this case, and
+v_i → v_{i+1} for i = 1, ..., n−1, which hold because they are the edges of P
+and T′'s edges are exactly the edges of T between vertices of V′.</p>
+<p><em>Case 2: v_1 → v and v_n → v.</em> Then (v_1 → ··· → v_n → v) is a Hamiltonian
+path, by the same verification: the new final edge v_n → v holds by assumption,
+and all other edges come from P.</p>
+<p><em>Case 3: v_1 → v and v → v_n.</em> (These are the only two remaining
+possibilities: Case 1 fails exactly when v_1 → v, and within that, Case 2 fails
+exactly when v_n → v fails, i.e. when v → v_n.) Consider the set</p>
+<p>S = { i ∈ {1, ..., n−1} : v → v_{i+1} }.</p>
+<p>S is nonempty: we claim n − 1 ∈ S. Indeed v → v_n holds in this case, and
+v_n = v_{(n−1)+1}, so n − 1 satisfies the defining condition of S, and
+n − 1 ≥ 1 because n ≥ 2. By the well-ordering principle (Fact 0.1), S has a
+least element; call it i.</p>
+<p>We claim that v_i → v is an edge of T. If i = 1, this is v_1 → v, which holds
+by the assumption of Case 3. If i ≥ 2, then i − 1 ∉ S by minimality of i, so
+v → v_{(i−1)+1} = v_i is <em>not</em> an edge; since exactly one of the two directions
+between the distinct vertices v and v_i is an edge, it must be that v_i → v.</p>
+<p>Now form the sequence (v_1 → ··· → v_i → v → v_{i+1} → ··· → v_n), i.e. insert
+v between v_i and v_{i+1}. Verification: its vertices are v_1, ..., v_n (all
+distinct, from P) together with v, which is distinct from all of them since
+v ∉ V′; the vertex set is V, so it visits every vertex exactly once. Its
+consecutive edges are: v_j → v_{j+1} for j ≠ i, which come from P as in
+Case 1; v_i → v, proved above; and v → v_{i+1}, which holds because i ∈ S.</p>
+<p>Step 4: conclusion of the inductive step. The three cases cover all possible
+orientations of the two edges between v and {v_1, v_n}, and in every case we
+produced a Hamiltonian path of T. So T has a Hamiltonian path.</p>
+<p>By induction (Fact 0.1), every tournament on n ≥ 1 vertices has a Hamiltonian
+path. ∎</p>
+<hr />
+<h2 id="4-the-sum-of-the-first-n-odd-cubes-is-n22n2-1">4. The sum of the first n odd cubes is n^2(2n^2 − 1)</h2>
+<p><strong>Theorem 4.1.</strong> For every integer n ≥ 1,</p>
+<p>1^3 + 3^3 + 5^3 + ··· + (2n−1)^3 = n^2 (2n^2 − 1).</p>
+<p><em>Proof.</em> Write S(n) = Σ_{i=1}^{n} (2i−1)^3, the sum of the first n odd cubes
+(the i-th odd positive integer is 2i − 1: for i = 1 it is 1, and 2(i+1)−1 =
+(2i−1) + 2, so the list 1, 3, 5, ..., is exactly the list of odd numbers in
+order). We induct on n (Fact 0.1).</p>
+<p><em>Base case, n = 1.</em> S(1) = 1^3 = 1·1·1 = 1, using the definition of cubing as
+repeated multiplication. The right side is 1^2 · (2·1^2 − 1) = 1 · (2 − 1) =
+1 · 1 = 1. The two sides are equal.</p>
+<p><em>Inductive step.</em> Assume n ≥ 1 and S(n) = n^2(2n^2 − 1) (inductive
+hypothesis). Then, separating the last term of the sum for n + 1,</p>
+<p>S(n+1) = Σ_{i=1}^{n+1} (2i−1)^3 = Σ_{i=1}^{n} (2i−1)^3 + (2(n+1)−1)^3
+       = S(n) + (2n+1)^3,</p>
+<p>where 2(n+1) − 1 = 2n + 1 is the (n+1)-st odd number. By the inductive
+hypothesis, S(n+1) = n^2(2n^2 − 1) + (2n+1)^3. We now expand the right side.</p>
+<p>Expansion 1: n^2(2n^2 − 1) = n^2·2n^2 − n^2·1 = 2n^4 − n^2 (distributive law).</p>
+<p>Expansion 2: (2n+1)^3. First, by the distributive law,
+(2n+1)^2 = (2n+1)(2n+1) = (2n)(2n) + (2n)(1) + (1)(2n) + (1)(1)
+        = 4n^2 + 2n + 2n + 1 = 4n^2 + 4n + 1.
+Then, again distributing,
+(2n+1)^3 = (4n^2 + 4n + 1)(2n + 1)
+         = (4n^2)(2n) + (4n^2)(1) + (4n)(2n) + (4n)(1) + (1)(2n) + (1)(1)
+         = 8n^3 + 4n^2 + 8n^2 + 4n + 2n + 1
+         = 8n^3 + 12n^2 + 6n + 1,
+where the last line collects like terms: 4n^2 + 8n^2 = (4+8)n^2 = 12n^2 and
+4n + 2n = 6n (distributive law in reverse).</p>
+<p>Adding: S(n+1) = (2n^4 − n^2) + (8n^3 + 12n^2 + 6n + 1)
+= 2n^4 + 8n^3 + (−1 + 12)n^2 + 6n + 1 = 2n^4 + 8n^3 + 11n^2 + 6n + 1.</p>
+<p>Now expand the claimed right side at n + 1. First,
+(n+1)^2 = n^2 + 2n + 1 (by the same distribution as in Expansion 2), so
+2(n+1)^2 − 1 = 2n^2 + 4n + 2 − 1 = 2n^2 + 4n + 1. Then</p>
+<p>(n+1)^2 (2(n+1)^2 − 1) = (n^2 + 2n + 1)(2n^2 + 4n + 1)
+= (n^2)(2n^2) + (n^2)(4n) + (n^2)(1) + (2n)(2n^2) + (2n)(4n) + (2n)(1)
+  + (1)(2n^2) + (1)(4n) + (1)(1)
+= 2n^4 + 4n^3 + n^2 + 4n^3 + 8n^2 + 2n + 2n^2 + 4n + 1
+= 2n^4 + (4+4)n^3 + (1+8+2)n^2 + (2+4)n + 1
+= 2n^4 + 8n^3 + 11n^2 + 6n + 1.</p>
+<p>This is exactly the expression we obtained for S(n+1). Hence
+S(n+1) = (n+1)^2 (2(n+1)^2 − 1), which is the statement for n + 1.</p>
+<p>By induction (Fact 0.1), the identity holds for all n ≥ 1. ∎</p>
+<p><em>Remark (alternative route, not carried out in full).</em> The identity also
+follows from the classical formula Σ_{k=1}^{m} k^3 = (m(m+1)/2)^2 (itself
+provable by induction) by subtracting the even cubes from all cubes:
+Σ_{i=1}^{n}(2i−1)^3 = Σ_{k=1}^{2n} k^3 − Σ_{k=1}^{n} (2k)^3
+= (2n(2n+1)/2)^2 − 8(n(n+1)/2)^2 = n^2(2n+1)^2 − 2n^2(n+1)^2
+= n^2[(4n^2 + 4n + 1) − (2n^2 + 4n + 2)] = n^2(2n^2 − 1). The inductive proof
+above is preferred here because it is self-contained. ∎</p></main>

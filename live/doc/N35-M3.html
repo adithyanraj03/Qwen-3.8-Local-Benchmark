@@ -1,0 +1,418 @@
+<!doctype html><meta charset=utf-8><title>REVIEW.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M3 · N35 · REVIEW.md <span>M3-qwen3.8-27b-thinkingcap-heretic-nvfp4</span></div><main><h1 id="peer-review-fast-inference-from-transformers-via-speculative-decoding">Peer Review: "Fast Inference from Transformers via Speculative Decoding"</h1>
+<p>Reviewed files: <code>main.tex</code> (802 lines), <code>references.bib</code> (273 lines), <code>main.bbl</code>, figures
+(<code>figure1.png</code>, <code>alpha_v_tokens.pdf</code>, <code>alpha_v_optimal_gamma.pdf</code>, <code>arith_ops.pdf</code>,
+<code>trace_diagram.pdf</code>), plus <code>icml2023.sty/bst</code> and leftover <code>icml_numpapers.{pdf,eps}</code>.</p>
+<hr />
+<h2 id="1-summary-of-contributions">1. Summary of contributions</h2>
+<p>The paper introduces <strong>speculative decoding</strong>: draft up to γ candidate tokens with a small
+"approximation model" M_q, verify them with one batched parallel forward pass of the large
+"target model" M_p, and accept/reject token-by-token via <strong>speculative sampling</strong> (accept a
+draft x ~ q with probability min(1, p/q), otherwise resample from the residual
+p'(x) ∝ max(0, p(x) − q(x))). The main claimed contributions are:</p>
+<ol>
+<li>A stochastic generalization of speculative execution, with a sampling rule that preserves
+   the target distribution exactly (proved in <code>main.tex:646–677</code>).</li>
+<li>A closed-form analysis: acceptance rate β = 1 − D_LK(p, q) where D_LK is a new
+   "divergence" (<code>main.tex:267–311</code>); expected tokens per step (1 − α^{γ+1})/(1 − α);
+   expected walltime improvement (1 − α^{γ+1})/((1 − α)(γc + 1)); expected arithmetic-op
+   inflation; and the resulting choice of γ (<code>main.tex:316–392</code>).</li>
+<li>Empirical demonstration on T5-XXL (11B) for WMT EnDe and CNN/DM summarization on a single
+   TPU-v4: 2.3X–3.4X walltime speedups vs T5X, with T5-small/base/large as drafters
+   (<code>main.tex:465–507</code>), plus α measurements for a 97M GPT (lm1b), T5-XXL, and LaMDA 137B
+   (<code>main.tex:510–585</code>).</li>
+</ol>
+<h2 id="2-are-the-abstracts-claims-supported-by-the-experiments">2. Are the abstract's claims supported by the experiments?</h2>
+<p>Abstract (<code>main.tex:143–151</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"decoding K tokens takes K serial runs"</td>
+<td>Supported (standard fact, <code>main.tex:144,163</code>).</td>
+</tr>
+<tr>
+<td>"hard tasks include easier subtasks approximated well by smaller models"</td>
+<td>Supported: α = 0.53–0.89 for same-architecture drafters ~1–2 orders of magnitude smaller (<code>main.tex:547–578</code>).</td>
+</tr>
+<tr>
+<td>"without any changes to the outputs" / "with identical outputs" (<code>main.tex:145,150</code>)</td>
+<td><strong>Only partially.</strong> The guarantee is on the <em>output distribution</em> (Appendix A). Only in the argmax (temp=0) case are individual outputs literally identical; at temp=1 each sample differs (in general) from vanilla decoding. The abstract should say "output distribution." The body is more careful (<code>main.tex:175,190,608</code>).</td>
+</tr>
+<tr>
+<td>"2X-3X acceleration compared to the standard T5X implementation" (<code>main.tex:150</code>)</td>
+<td>Supported, if anything conservative: measured 2.3X–3.4X (<code>main.tex:488–500</code>). Note the intro/discussion repeat "2X-3X" (<code>main.tex:185,606</code>) while the tables show 3.1X/3.4X — a minor internal inconsistency in the headline range.</td>
+</tr>
+<tr>
+<td>"without retraining or architecture changes"</td>
+<td>Supported: existing checkpoints (<code>main.tex:470,518</code>).</td>
+</tr>
+</tbody>
+</table>
+<p>Caveats that the abstract omits: (i) the speedup claim is demonstrated for T5-XXL on a single
+hardware platform at batch size 1 only; (ii) it presupposes spare compute (memory-bandwidth
+bottleneck), <code>main.tex:174,320</code>. The abstract scopes "We demonstrate it on T5-XXL" honestly,
+so this is acceptable, but the "identical outputs" phrasing is the one claim that overstates.</p>
+<h2 id="3-strengths-specific">3. Strengths (specific)</h2>
+<ul>
+<li><strong>The core correctness result is clean and I verified it.</strong> The identity
+  P(out = x') = min(p, q) + (p − min(p, q)) = p (<code>main.tex:655–675</code>) is correct, and the
+  normalizing constant 1 − β follows correctly from Lemma 1 (<code>main.tex:651</code>). Edge cases
+  (q with smaller support than p; ties under argmax) are handled by the construction since
+  drafts are drawn from q and the residual is only used on rejection.</li>
+<li><strong>All stated theorems check out numerically.</strong> I recomputed Eq. (1), Theorem 4 (walltime),
+  Corollary 3 (γ=1 ⇒ (1+α)/(1+c)), and Theorem 5 (op count); Table 1
+  (<code>main.tex:406–411</code>) matches the formulas to the displayed precision (e.g., α=0.8, γ=5:
+  ops 1.63X, speed 3.69X — I get 1.626/3.689). The bigram negligible-cost example
+  (α≈0.2, γ=3 ⇒ 1.25X, <code>main.tex:450,522</code>) computes to 1.248. The argmax-lenience numbers at
+  <code>main.tex:779</code> (3.3/3.3/3.9/4.9X) reproduce exactly from the formula with γ=8, c=0.015.</li>
+<li><strong>The α / D_LK parameterization is the paper's genuinely useful analytical contribution</strong>:
+  it converts "how well does the drafter match the target" into a single measurable scalar
+  (the token overlap Σ min(p, q) = 1 − D_LK), which the authors then measure across models
+  and temperatures (<code>main.tex:538–578</code>) and use to predict which drafter/γ to deploy
+  (Table 1's ⋆ choices).</li>
+<li><strong>Breadth of drafter exploration</strong> beyond smaller Transformers: unigram/bigram
+  negligible-cost models (<code>main.tex:449–453</code>), and a discussion of n-gram/copy heuristics and
+  non-autoregressive drafters (<code>main.tex:452–458</code>).</li>
+<li><strong>Honest theory-vs-empirics comparison</strong> with per-row expected vs measured speedups
+  (<code>main.tex:701–731</code>), including the c values — rare in systems-leaning ML papers.</li>
+<li>The trace diagram (<code>trace_diagram.pdf</code>, <code>main.tex:430–436</code>) makes the concurrency structure
+  clear, including the single shared encoder call.</li>
+</ul>
+<h2 id="4-weaknesses-specific">4. Weaknesses (specific)</h2>
+<h3 id="w1-the-theory-vs-empirics-deviations-are-systematic-not-some-variance">W1. The theory-vs-empirics deviations are systematic, not "some variance"</h3>
+<p>The paper attributes deviations to "(1) optimization differences between our implementation
+and the baseline, and (2) the i.i.d. β assumption" (<code>main.tex:698–699</code>). Recomputing the
+Theorem 4 values from the paper's own α, γ, c (Table 5, <code>main.tex:712–724</code>) against the
+measured speedups gives:</p>
+<table>
+<thead>
+<tr>
+<th>row</th>
+<th>theory</th>
+<th>emp</th>
+<th>deviation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>EnDe, T5-base, T=0</td>
+<td>3.25</td>
+<td>2.8</td>
+<td><strong>−14%</strong></td>
+</tr>
+<tr>
+<td>EnDe, T5-large, T=0</td>
+<td>2.50</td>
+<td>1.7</td>
+<td><strong>−32%</strong></td>
+</tr>
+<tr>
+<td>EnDe, T5-large, T=1</td>
+<td>1.93</td>
+<td>1.4</td>
+<td><strong>−28%</strong></td>
+</tr>
+<tr>
+<td>CNNDM, T5-small, T=0</td>
+<td>2.40</td>
+<td>3.1</td>
+<td><strong>+29%</strong></td>
+</tr>
+<tr>
+<td>CNNDM, T5-small, T=1</td>
+<td>1.89</td>
+<td>2.3</td>
+<td><strong>+22%</strong></td>
+</tr>
+<tr>
+<td>CNNDM, T5-base, T=1</td>
+<td>1.80</td>
+<td>2.2</td>
+<td><strong>+22%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Two features are not explained: (a) the sign flips with drafter size — larger drafters
+(larger c) run <em>below</em> theory on EnDe, while on CNNDM everything runs <em>above</em> theory; (b) the
+deviation is task-correlated, which the i.i.d.-β argument (task-independent in spirit) and a
+generic "implementation differences" remark do not cover. If the speculative implementation
+were simply faster than T5X, both tasks should show positive bias. As written, either the
+cost model (uniform per-step cost T; free parallelism of γ+1 M_p runs, <code>main.tex:320</code>) is
+misspecified in a way that depends on task length/structure (e.g., first-step/encoder
+overhead, XLA dispatch, padded batching of the γ+1 branches — none of which is described), or
+the measured speedups are contaminated by implementation asymmetries. A per-row breakdown
+(where the wall time actually goes) is needed to support "these empirical results match well
+with the theoretical predictions" (<code>main.tex:475</code>).</p>
+<h3 id="w2-no-release-of-code-data-or-raw-measurements">W2. No release of code, data, or raw measurements</h3>
+<p>"We implement our algorithm" (<code>main.tex:468</code>) but no repository, no absolute latencies
+(ms/token), no number of measurement runs, no seeds, no error bars on the speedups or on the
+α estimates (10K tokens, <code>main.tex:513</code> — α differences of 0.01–0.02 in Tables 2–3 are plausibly
+within estimation noise, yet they drive drafter/γ choices). c is "estimated based on profiler
+traces" with no raw traces (<code>main.tex:697</code>). Given the paper's central selling point is
+out-of-the-box reproducibility of the speedup, the absence of an artifact is the largest
+practical gap.</p>
+<h3 id="w3-the-parallel-verification-mechanism-is-never-described">W3. The parallel-verification mechanism is never described</h3>
+<p>How are the γ+1 M_p evaluations actually executed — one batched/padded call with a tree
+attention mask, γ+1 separate XLA computations, or separate calls with forked KV caches? This
+determines (i) whether the "free concurrency" assumption (<code>main.tex:320</code>) holds, (ii) the
+memory footprint (γ+1 KV-cache states per sequence), and (iii) the W1 deviations. The trace
+diagram suggests separate blocks, but no text confirms it. This is the single most important
+implementation detail for a practitioner and for judging the walltime model, and it is
+missing.</p>
+<h3 id="w4-related-work-a-close-competitor-is-in-the-bibliography-but-never-cited">W4. Related work: a close competitor is in the bibliography but never cited</h3>
+<p><code>references.bib:41–47</code> contains <code>gad</code> — Xia et al., "Lossless Speedup of Autoregressive
+Translation with <strong>Generalized</strong> Aggressive Decoding" (2022) — which drafts with a smaller
+model and claims a <em>lossless</em> speedup for translation, i.e., very close to this work's setting.
+It is never cited in <code>main.tex</code> (verified: 32 bib keys, 28 cited; unused: <code>gad</code>,
+<code>iad_maybe</code>, <code>Wisdom_of_Committees</code>, <code>graves-adaptive-computation-for-rnn</code>). Meanwhile
+<code>main.tex:589</code> calls "Wisdom of Committees" but cites <code>Matching_Model_and_Instance_Complexities</code>
+(Schwartz et al.); the bib entry actually titled "Wisdom of Committees" (<code>references.bib:139–144</code>)
+is uncited. <code>sad</code> (<code>references.bib:177–183</code>) and <code>iad_maybe</code> (<code>references.bib:49–55</code>) are the
+same arXiv paper (abs/2106.04970) under two keys. For a camera-ready version, the related work
+(<code>main.tex:587–601</code>) should at least position the method against GAD.</p>
+<h3 id="w5-novelty-framing-of-the-sampling-rule-and-of-d_lk">W5. Novelty framing of the sampling rule and of D_LK</h3>
+<p>The accept-with-probability-min(1, p/q) / resample-from-residual rule is a standard
+accept–reject construction (cf. the independent-sampler Metropolis–Hastings step; the
+residual distribution is the classical "squeeze" idea). The paper presents it as "a novel
+sampling method" (<code>main.tex:148,181,190</code>) without naming the closest classical objects (the
+Appendix B comparison to rejection sampling, <code>main.tex:679–689</code>, is good but comes late and
+does not address MCMC/coupling ancestors). Likewise, D_LK (<code>main.tex:269–272</code>) is exactly
+<strong>twice the total variation distance</strong> (D_LK = Σ|p−M| = ½·2·Σ|p−q| = 2·TV), so
+β = 1 − TV(p, q) is the standard "overlap." Presenting it as a newly defined divergence with
+its own lemma/corollary (Definition 2, Lemma 1, Corollary 1, <code>main.tex:269–290</code>) is an
+overclaim of one sentence's worth of prior art; a one-line "D_LK = 2·TV" would sharpen the
+positioning and the novelty claim should be "new for this setting," not "a novel sampling
+method" per se.</p>
+<h3 id="w6-secondary-quantitative-inconsistencies">W6. Secondary quantitative inconsistencies</h3>
+<ul>
+<li><code>main.tex:328</code> claims "c was always less than 0.05", but Table 5 reports c = 0.11 for
+  T5-large on both tasks (<code>main.tex:714,717,721,724</code>).</li>
+<li><code>main.tex:440</code>: with an oracle for γ, improvement "can be up to ~60% higher" than fixed γ.
+  Not derived, and the ~60% is only reachable in regimes outside the paper's own data: with
+  the natural oracle model (stop drafting at the first predicted rejection; drafter cost
+  c per accepted token; oracle improvement 1/(1−α+c)), the ratio to the optimal fixed γ is
+  ~1.19–1.31 for the paper's α ∈ [0.5, 0.9] and c ∈ [0.02, 0.11], and maximizes to ≈1.53 only
+  at α ≈ 0.97, c = 0.05.</li>
+<li><code>main.tex:753</code> (lenience): claims 2.5X/3.1X/3.6X/5X for l = 1/0.5/0.3/0.1 with c = 0.015.
+  From the paper's own α in Table 4 (<code>main.tex:764–770</code>) and Theorem 4, optimizing over γ
+  gives 2.33X/2.94X/3.45X/4.79X — i.e., the claims are 7–17% high (the argmax-lenience
+  numbers at <code>main.tex:779</code> do check out exactly, which makes the standard-sampling ones look
+  like they came from a different, unstated calculation).</li>
+<li>Table 5 row CNNDM/T5-large/T=1 (<code>main.tex:724</code>): formula gives 1.54 with α=0.56, γ=3,
+  c=0.11; the printed Exp is 1.6.</li>
+<li><code>main.tex:182</code> claims the Figure 1 sentence has 38 tokens; the final line of
+  <code>figure1.png</code> contains 30 tokens including <code>[END]</code> (29 text tokens + EOS). Either the
+  figure is truncated or the count is wrong.</li>
+<li><code>main.tex:73–79</code> still carries a "Llama specific" comment block from a different paper's
+  template (darkgreen is in fact used by <code>\COMMENTLLAMA</code>, <code>main.tex:209</code>).</li>
+</ul>
+<h3 id="w7-scope-of-the-walltime-demonstration">W7. Scope of the walltime demonstration</h3>
+<p>One model family (T5), one precision regime, one device class (TPU-v4), batch size 1
+(<code>main.tex:470</code>). No throughput/batched results, no GPU results, no memory-footprint
+numbers (both models resident; γ+1 KV states), no comparison against any competing decoder
+acceleration on the same hardware. The claim that this is "a good default" for production
+(<code>main.tex:188</code>) is stronger than what batch-1 TPU evidence supports; batched serving is
+typically compute-bound, which is precisely the regime the paper's own analysis says the
+method can hurt (<code>main.tex:351–376</code>).</p>
+<h3 id="w8-minor-theoretical-loose-ends">W8. Minor theoretical loose ends</h3>
+<ul>
+<li>Theorem 4 (<code>main.tex:330–339</code>) is stated without its precondition that γ+1 parallel M_p
+  runs are free in walltime (assumed two paragraphs earlier, <code>main.tex:320</code>); the assumption
+  should be in the theorem statement.</li>
+<li>Corollary 3's proof (<code>main.tex:347–349</code>) asserts monotonicity in γ ("if we get an
+  improvement for γ, we'd also get it for any 0 &lt; γ* &lt; γ") without proof.</li>
+<li><code>main.tex:373</code>: "the total number of arithmetic operations … can be bounded from above by
+  a single run of the same-size Transformer encoder" — an unsupported, hard-to-interpret
+  claim (for a decoder, what does an encoder run bound?).</li>
+<li><code>main.tex:446</code> restricts experiments to "the same architecture … and the same probability
+  standardization," but Appendix A's correctness holds for any M_q and any standardization of
+  q (only α is affected); the paper should say so, since it matters for the nucleus/top-k
+  discussion in <code>main.tex:614</code>.</li>
+<li>The two-token narrative at <code>main.tex:206</code> says "if x₁ is accepted, we keep both tokens,"
+  but x₂ still needs verification (the algorithm needs M_p(prefix+x₁+x₂), i.e., the
+  (γ+1)-th run in <code>main.tex:222–223</code>); as written the narrative describes only two M_p runs
+  for two draft tokens.</li>
+</ul>
+<h2 id="5-line-level-comments">5. Line-level comments</h2>
+<p><strong><code>main.tex</code></strong></p>
+<ul>
+<li><strong>L25</strong>: <code>\usepackage[accepted]{icml2023}</code> — camera-ready option in what is otherwise
+  review-tracked material (fine if intentional; note the blind-version comment at L22).</li>
+<li><strong>L37/L42</strong>: <code>\usepackage{listings}</code> loaded twice; <strong>L38/L76</strong>: <code>\usepackage{xcolor}</code>
+  loaded twice.</li>
+<li><strong>L92</strong>: running title "Fast Inference from Transformers via Speculative Decoding" is long
+  for the ICML header (acceptable but will be cramped).</li>
+<li><strong>L150</strong>: "with identical outputs" → "with identical output distribution" (see §2).</li>
+<li><strong>L182–183</strong>: "38 tokens" vs. ~30 visible in <code>figure1.png</code> (W6); also "97M parameters" /
+  "an 11B parameters T5-XXL model" (L185) — inconsistent singular/plural.</li>
+<li><strong>L196</strong>: "accepting all those that <em>can</em> lead to an identical distribution" — the
+  algorithm accepts greedily up to the first rejection; the "can" is doing unexplained work.</li>
+<li><strong>L204</strong>: "It's easy to show (see Appendix A)" — fine, but note the proof at
+  <code>main.tex:649–677</code> implicitly requires sampling x from q (so q(x) &gt; 0); state that the
+  procedure is well-defined for any proper p, q.</li>
+<li><strong>L226</strong>: n definition is correct; consider also stating the boundary convention
+  (r_i = p_i/q_i counts as accept) for completeness.</li>
+<li><strong>L320</strong>: typo "anaylsis"; the free-parallelism assumption should be flagged as an
+  explicit modeling assumption (it is the assumption that fails in W1).</li>
+<li><strong>L328</strong>: "c was always less than 0.05" contradicts c = 0.11 in Table 5 (W6).</li>
+<li><strong>L341</strong>: "the improvement factor is capped by the number of generated tokens" — give the
+  actual short-generation formula or a bound; as stated it is hand-wavy.</li>
+<li><strong>L373</strong>: unsupported encoder-FLOPs bound (W8).</li>
+<li><strong>L389</strong>: "it can be easily found numerically" — the optimal γ is where the marginal
+  benefit of an extra draft token drops below its c·T cost; a one-line characterization
+  (or a reference to a plot) would make this self-contained rather than "see Fig. 3".</li>
+<li><strong>L439–440</strong>: oracle ~60% claim (W6); the footnote "if we skip those verifications …
+  substantial additional improvement" is a further unquantified claim.</li>
+<li><strong>L456</strong>: typo "autogreressive".</li>
+<li><strong>L470</strong>: "single TPU-v4" with T5-XXL (11B) — please state the numerical precision and how
+  the weights/KV cache fit the chip's HBM (see Questions Q1).</li>
+<li><strong>L475</strong>: "match well … some variance" — replace with the systematic-deviation analysis of W1.</li>
+<li><strong>L486</strong>: column "Temp" vs. "Smpl t=0/t=1" in Table 2 (<code>main.tex:535</code>) and "Smpl" values
+  "t=0/t=1" — unify notation; "Temp" implies a scalar temperature but the rows are
+  {argmax, standard}.</li>
+<li><strong>L513</strong>: "10K tokens generated by M_p" — which test set/prompts? How many sequences? Add
+  standard errors for α (W2).</li>
+<li><strong>L515</strong>: "We used Bert tokenization \citep{bert} with 8k tokens" — which BERT tokenizer?
+  Standard BERT vocabularies are ~29–30k; "8k tokens" is ambiguous (vocab size? context?).
+  Also "Bert" → "BERT". Same ambiguity in the Figure 1 caption (L155, "8k tokens").</li>
+<li><strong>L524</strong>: <code>\stepcounter{footnote}</code> + <code>\footnotemark[\value{footnote}]</code> (L527) +
+  <code>\footnotetext</code> at L602: the LaMDA Top-40 footnote text is typeset on the <em>Related Work</em>
+  page, not on the page of Table 2's caption. Verify the compiled PDF; if the mark and the
+  note land on different pages, this is a visible bug.</li>
+<li><strong>L528 / L479 / L397</strong>: labels with spaces — <code>tbl:empirical alphas</code>, <code>tbl:t5 model
+  results</code>, <code>table:non optimal gamma</code> (works with cleveref but fragile; rename to
+  underscores).</li>
+<li><strong>L587</strong>: "Related work" placed <em>after</em> Experiments; for a method paper the SAD/BPD/GAD
+  comparisons are needed before the reader reads the claims. Move to §1/§2 or add a
+  forward reference from the introduction.</li>
+<li><strong>L588</strong>: typo "sparcification".</li>
+<li><strong>L589</strong>: "Wisdom of Committees \citep{Matching_Model_and_Instance_Complexities}" —
+  misattributed (see W4); cite <code>Wisdom_of_Committees</code> if that is the intended paper.</li>
+<li><strong>L600</strong>: "After we initially published our work" — state the version/date (arXiv Oct
+  2022 vs. Chen et al. Feb 2023) so the priority relationship is unambiguous for readers of
+  this camera-ready.</li>
+<li><strong>L608</strong>: "can be used to speedup inference" → "speed up".</li>
+<li><strong>L621</strong>: "YaGuang Li" → "Yaguang Li" (consistent with the LaMDA paper).</li>
+<li><strong>L638/L641</strong>: <code>\appendix</code> issued twice.</li>
+<li><strong>L689</strong>: in the rejection-sampling comparison, "the expected accept probability here is …
+  ≤ … = α" — the final α is the <em>per-step</em> acceptance probability of speculative sampling;
+  since the same symbol α is used for both the per-step β and its expectation elsewhere
+  (L249, L310), restate this comparison as a per-step statement to avoid a symbol clash.</li>
+<li><strong>L696–699</strong>: add absolute runtimes and a decomposition of where speculative-decoding time
+  is spent (M_q serial latency, M_p parallel batch, sync) — needed to close W1/W3.</li>
+<li><strong>L753</strong>: lenience speedups inconsistent with Theorem 4 (W6).</li>
+<li><strong>L742–753</strong> (Lenience): state what the output distribution actually is under lenience
+  (a mixture that is <em>not</em> p; the paper gives only the upper bound p/l at L745). The long
+  equality chain at L751 is the per-step acceptance probability — label it as such.</li>
+</ul>
+<p><strong><code>references.bib</code></strong></p>
+<ul>
+<li><strong>L41–47</strong> (<code>gad</code>): cite in related work or delete (W4).</li>
+<li><strong>L49–55</strong> (<code>iad_maybe</code>): duplicate of <code>sad</code> (L177–183), same arXiv id.</li>
+<li><strong>L139–144</strong> (<code>Wisdom_of_Committees</code>): uncited; see <code>main.tex:589</code>.</li>
+<li><strong>L242–248</strong> (<code>graves-adaptive-computation-for-rnn</code>): uncited; if adaptive computation is
+  discussed, ACT should be cited, or delete.</li>
+<li><strong>L267–272</strong> (<code>chen2023accelerating</code>): fine; consider noting the naming collision
+  (both papers call the core rule "speculative sampling") in <code>main.tex:600</code>.</li>
+</ul>
+<p><strong>Figures / files</strong></p>
+<ul>
+<li><code>figure1.png</code> vs. <code>main.tex:182</code> token count (W6).</li>
+<li><code>icml_numpapers.pdf</code> / <code>icml_numpapers.eps</code>: unreferenced ICML-template leftovers; delete.</li>
+<li><code>trace_diagram.pdf</code>: good; the caption (<code>main.tex:432–433</code>) should state the γ values used
+  for the orange/blue block <em>counting</em> (the caption does; verify the figure's block counts
+  actually match γ=7 and γ=3 — the figure could not be machine-verified here).</li>
+</ul>
+<h2 id="6-questions-for-the-authors">6. Questions for the authors</h2>
+<ol>
+<li><strong>Hardware fit</strong>: T5-XXL (11B) on a <em>single</em> TPU-v4 (16 GB HBM) — what precision
+   (fp32/bf16/fp16), and what is the memory layout (weights + KV cache) at batch size 1?
+   (<code>main.tex:470</code>)</li>
+<li><strong>Parallel mechanism</strong>: how are the γ+1 M_p calls executed (one padded/tree-attention
+   batched call vs. separate calls; how are the γ+1 KV-cache states materialized)? How does
+   this mechanism change with γ, and what is the extra memory at γ=7 for T5-XXL?</li>
+<li><strong>Deviation direction</strong>: why do EnDe measurements run <em>below</em> theory for large drafters
+   (−14%…−32%) while CNNDM runs <em>above</em> theory (+10%…+29%)? Which component of the cost
+   model (uniform T, free parallelism, drafter serial latency γc, first-step overhead) is
+   responsible in each case? (<code>main.tex:712–724</code>)</li>
+<li><strong>Oracle bound</strong>: derive the "~60% higher" claim at <code>main.tex:440</code>, or state the α, c and
+   oracle model under which it holds (my analysis: ≤~31% within the paper's empirical
+   range; ~53% only at α≈0.97).</li>
+<li><strong>Lenience arithmetic</strong>: the numbers at <code>main.tex:753</code> exceed Theorem 4 evaluated with
+   the paper's own α and c = 0.015 even at the optimal γ (2.33/2.94/3.45/4.79 vs.
+   2.5/3.1/3.6/5). Which γ (and which α) were used?</li>
+<li><strong>α estimation</strong>: on which data are the 10K α-measurement tokens drawn (<code>main.tex:513</code>),
+   and what are the standard errors? Are the 0.01–0.02 gaps between drafter αs significant?</li>
+<li><strong>Tokenizer</strong>: what exactly is "Bert tokenization with 8k tokens" (<code>main.tex:155,515</code>)?</li>
+<li><strong>Token count</strong>: is the Figure 1 sentence 38 tokens as stated (<code>main.tex:182</code>) or 30 as
+   displayed?</li>
+<li><strong>GAD</strong>: how does this work differ from Generalized Aggressive Decoding (Xia et al. 2022,
+   in the bib as <code>gad</code>), which also claims lossless speedup for translation with a smaller
+   model?</li>
+<li><strong>Batching</strong>: at what batch size does the method stop helping on TPU-v4 (where does the
+    memory-bandwidth regime end)? Even one data point would substantially strengthen the
+    "good default" claim.</li>
+</ol>
+<h2 id="7-assessment">7. Assessment</h2>
+<p><strong>Novelty: Moderate (3.5/5).</strong> The sampling rule is a classical accept–reject with a
+residual distribution; D_LK is 2× total variation; speculative execution is borrowed from
+computer architecture. The novelty is in (a) casting draft-verify into a <em>distributionally
+exact</em> decoding scheme usable with off-the-shelf model pairs, (b) the α-based analysis
+(predictable speedup from a single measurable quantity), and (c) the first scale
+demonstration. The independent contemporaneous work (Chen et al. 2023) is acknowledged
+(<code>main.tex:600</code>), but the one closest neighbor (GAD, <code>references.bib:41</code>) is not discussed.
+The "novel sampling method" phrasing should be softened (W5).</p>
+<p><strong>Soundness: Good (4/5).</strong> All core theorems verified correct; the correctness proof is
+tight. Deductions: unexplained systematic theory–empirics deviations (W1, up to 32% and
+task-dependent in sign); the unsupported encoder-FLOPs bound (<code>main.tex:373</code>); the
+underived ~60% oracle claim and the slightly inflated lenience numbers (W6); Theorem 4
+missing its free-parallelism precondition (W8). None of these threatens the headline
+empirical result (speedups are measured directly), which is why this is not a major weakness.</p>
+<p><strong>Clarity: Good (3.5/5).</strong> Well-structured (analysis → experiments → theory-vs-empirics
+appendix), with a genuinely useful trace diagram and clean tables. Dragged down by: related
+work after experiments (<code>main.tex:587</code>), notation inconsistencies (Temp vs. t; overloaded
+p(x); α as both per-step and expected), the misplaced LaMDA footnote (L524/527/602),
+template leftovers (L73–79, duplicated packages, duplicated <code>\appendix</code>), and typos
+(<code>anaylsis</code> L320, <code>autogreressive</code> L456, <code>sparcification</code> L588).</p>
+<p><strong>Reproducibility: Fair (3/5).</strong> All model checkpoints are public (T5 family, T5X, LaMDA
+αs aside), and the method is simple to implement from Algorithm 1 + Appendix A. But: no code
+artifact, no raw timings/c profiles, no training recipe for the 97M/6M GPT models (only
+architecture dims, <code>main.tex:515</code>), ambiguous tokenizer description, unspecified
+α-measurement data, and — critically — no description of the parallel-verification mechanism
+(W3), which is what makes the speedup real. A third party could reimplement a <em>correct</em>
+version, but could not verify the reported 2.3–3.4X numbers.</p>
+<p><strong>Abstract support: Supported with one imprecision</strong> — "identical outputs" should read
+"identical output distribution" (argmax: literal; temp=1: distributional). The 2X–3X range
+is supported (2.3–3.4X measured).</p>
+<h2 id="8-recommendation">8. Recommendation</h2>
+<p><strong>Borderline Accept (weak accept).</strong></p>
+<p>The paper contributes a simple, exactly-correct decoding algorithm with a clean
+parameterization (α) that makes expected speedups predictable, and demonstrates 2.3–3.4X
+lossless walltime speedups on a real 11B model against an optimized baseline — a
+practically significant result for a top venue. The core mathematics is sound (I verified
+every stated theorem and table entry that depends on them). The case is not a strong accept
+because of (i) the unexplained, systematic, task-dependent deviations between the walltime
+model and measurements (W1), (ii) the missing description of the parallel-verification
+mechanism (W3), (iii) the absent artifact for what is sold as an off-the-shelf technique
+(W2), and (iv) the related-work gap with GAD (W4). All are fixable in a revision without new
+experiments except a profiling breakdown (Q3) and ideally one batched-throughput data point
+(Q10).</p>
+<p><strong>Confidence: 4/5.</strong> I am familiar with the relevant literature (speculative execution,
+accept–reject/coupling samplers, adaptive and parallel decoding) and verified the paper's
+claims numerically; I did not rerun the experiments.</p></main>

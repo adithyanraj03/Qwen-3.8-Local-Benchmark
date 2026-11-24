@@ -1,0 +1,186 @@
+<!doctype html><meta charset=utf-8><title>ARCHITECTURE.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M5 · N14 · ARCHITECTURE.md <span>M5-qwen3.8-flash-next-orca-uncensored-nvfp4</span></div><main><h1 id="typer-architecture">Typer Architecture</h1>
+<p>Typer (v0.27.3, <code>typer/__init__.py:3</code>) is a thin, type-hint-driven layer on top of a
+<strong>vendored copy of Click 8.3.1</strong> (<code>typer/_click/</code>, see the header note in
+<code>typer/_click/__init__.py:1-3</code>). Users write plain Python functions with type
+annotations; Typer converts them into Click <code>Command</code>/<code>Parameter</code> objects at
+invocation time and delegates all parsing to Click's machinery.</p>
+<h2 id="modules-and-dependencies">Modules and dependencies</h2>
+<pre><code>typer/__init__.py          Public API surface; re-exports Typer, Option, Argument,
+  |                        Exit/Abort, prompt/echo/style, etc. from the modules below.
+  +-- main.py              THE BRIDGE. Typer class (app/command/callback/add_typer
+  |     |                  decorators), and all &quot;solve&quot;/&quot;get_*&quot; functions that turn
+  |     |                  Python signatures into Click objects.
+  |     +-- core.py        Click subclasses: TyperArgument, TyperOption,
+  |     |     |            TyperCommand, TyperGroup; the adapted _main() entry point;
+  |     |     |            rich help/param formatting hooks.
+  |     |     +-- _click/  Vendored Click: core.py (Command/Parameter/Context),
+  |     |     |            parser.py (_OptionParser), types.py (ParamTypes),
+  |     |     |            exceptions.py, formatting.py, termui.py, utils.py, ...
+  |     |     +-- exceptions.py   Exit, Abort, TyperException (plain, no deps).
+  |     |     +-- utils.py        get_params_from_function(): signature -&gt; ParamMeta,
+  |     |     |                   Annotated-style validation.
+  |     |     +-- rich_utils.py   Optional Rich rendering of help/errors/tracebacks
+  |     |     |                   (imported lazily; gated by core.HAS_RICH, core.py:27).
+  |     |     +-- completion.py   --install-completion/--show-completion options and
+  |     |     |                   shell-complete dispatch, using _completion_classes.py
+  |     |     |                   and _completion_shared.py (script templates).
+  |     |     +-- models.py       Pure data: CommandInfo, TyperInfo, ParameterInfo/
+  |     |     |                   OptionInfo/ArgumentInfo, ParamMeta, DefaultPlaceholder,
+  |     |     |                   File*/Context/CallbackParam aliases, TyperPath.
+  |     |     +-- params.py       Option()/Argument() factory functions (typed overloads
+  |     |                         returning OptionInfo/ArgumentInfo).
+  |     +-- _typing.py, _types.py  Typing helpers; TyperChoice ParamType.
+  +-- testing.py           CliRunner: isolated stdin/stdout/stderr invocation of a
+  |                        Typer app via main.get_command (testing.py:128,289).
+  +-- cli.py, __main__.py  The `typer` console script (pyproject.toml:50-51):
+                           `typer run` auto-discovery of app/main functions in a module.
+</code></pre>
+<p>Key dependency facts:</p>
+<ul>
+<li><code>models.py</code> is the shared vocabulary (data only, depends only on <code>_click</code>);
+  <code>params.py</code> and <code>main.py</code> produce/consume those objects.</li>
+<li><code>main.py</code> is the only module that knows both worlds: it imports <code>_click</code>
+  (<code>main.py:21</code>) and <code>core</code> (<code>main.py:26</code>) and translates between them.</li>
+<li><code>core.py</code> subclasses <code>_click</code> classes (<code>TyperArgument(_click.core.Parameter)</code>,
+  <code>core.py:245</code>; <code>TyperCommand(_click.core.Command)</code>, <code>core.py:903</code>) and copies/patches
+  their behavior (e.g. <code>get_help_record</code> duplicated at <code>core.py:752</code>, <code>_main</code> copied
+  from <code>click.Command.main</code> at <code>core.py:158-169</code>).</li>
+<li>Notably, <code>TyperGroup</code> extends <code>Command</code>, <strong>not</strong> Click's <code>Group</code>: group dispatch is
+  re-implemented in Typer (<code>core.py:991</code>, <code>invoke</code> at <code>core.py:1088</code>,
+  <code>resolve_command</code> at <code>core.py:1171</code> with the "Did you mean" suggestion).</li>
+<li>There is a deliberate <strong>circular edge</strong>: vendored <code>_click</code> imports back from
+  <code>typer.core</code> (<code>_click/core.py:757</code> imports <code>..core.TyperOption</code>;
+  <code>_click/decorators.py:7</code> imports <code>TyperGroup</code>/<code>TyperOption</code>), resolved with lazy
+  imports.</li>
+<li><code>rich_utils.py</code> is optional: everything is gated on <code>HAS_RICH</code>
+  (<code>core.py:27-32</code>) and imported lazily (<code>core.py:206-209</code>, <code>core.py:982</code>).</li>
+</ul>
+<h2 id="request-flow-decorated-function-parsed-command-line">Request flow: decorated function -&gt; parsed command line</h2>
+<p><strong>Registration (import time, does almost nothing):</strong></p>
+<ol>
+<li><code>@app.command()</code> (<code>main.py:753</code>) returns a decorator that only appends a
+   <code>CommandInfo</code> data bag to <code>app.registered_commands</code> (<code>main.py:890-911</code>) and returns
+   the original function. <code>@app.callback()</code> (<code>main.py:549</code>) and <code>app.add_typer()</code>
+   (<code>main.py:915</code>) likewise just store <code>TyperInfo</code> objects. No Click object exists yet.</li>
+</ol>
+<p><strong>Build (first invocation):</strong></p>
+<ol start="2">
+<li><code>app()</code> (<code>main.py:1133</code>) installs the pretty-traceback <code>sys.excepthook</code>
+   (<code>main.py:61</code>) and calls <code>get_command(self)</code> (<code>main.py:1173</code>).</li>
+<li><code>get_command</code> decides the shape: a <code>TyperGroup</code> if there is a callback, any
+   sub-group, or &gt;1 command; otherwise a single <code>TyperCommand</code> for the lone command
+   (<code>main.py:1176-1205</code>). Completion options are appended to the root command here
+   (<code>main.py:1184-1186</code>).</li>
+<li><code>get_command_from_info</code> (<code>main.py:1392</code>) builds one command:
+   - name: <code>command_info.name</code> or <code>get_command_name(func.__name__)</code> (lowercase,
+     <code>_</code>-&gt;<code>-</code>, <code>main.py:1360</code>); help falls back to the docstring (<code>main.py:1400-1404</code>).
+   - <code>get_params_convertors_ctx_param_name_from_function</code> (<code>main.py:1373</code>) calls
+     <code>utils.get_params_from_function</code> (<code>utils.py:107</code>): <code>inspect.signature(...,
+     eval_str=True)</code> + <code>get_type_hints</code>, then <code>_split_annotation_from_typer_annotations</code>
+     (<code>utils.py:94</code>) peels <code>Annotated[...]</code> metadata, rejecting mixed
+     Annotated/default styles (<code>utils.py:115-160</code>). Output: one <code>ParamMeta
+     (name, default, annotation)</code> per function parameter.
+   - <code>get_click_param</code> (<code>main.py:1632</code>) classifies each <code>ParamMeta</code>:
+     <code>ParameterInfo</code> default -&gt; that info; no default/<code>Required</code> -&gt; <code>ArgumentInfo</code>
+     (required); plain default -&gt; <code>OptionInfo</code> (<code>main.py:1641-1652</code>). It unwraps
+     <code>Optional[X]</code>, <code>list[X]</code> (nargs=-1/multiple), <code>tuple[...]</code>
+     (<code>main.py:1665-1693</code>), maps the annotation to a Click type via <code>get_click_type</code>
+     (<code>main.py:1530</code>: <code>STRING/INT/IntRange/BOOL/UUID/DateTime/TyperPath/File/
+     TyperChoice</code> for Enums and Literals), and constructs a <code>TyperOption</code>/
+     <code>TyperArgument</code> (<code>core.py:435</code>/<code>core.py:245</code>). Bool options become
+     <code>--flag/--no-flag</code> flags (<code>main.py:1706-1719</code>); user param callbacks and
+     autocompletion functions are introspected and wrapped (<code>main.py:1797</code>,
+     <code>main.py:1849</code>).
+   - <code>get_callback</code> (<code>main.py:1496</code>) wraps the user function: the wrapper applies
+     post-parse convertors for <code>Path</code>/<code>Enum</code> (<code>main.py:1437</code>), injects the Click
+     <code>Context</code> if the function declares one (<code>main.py:1522-1523</code>), and calls the user
+     function with exactly its declared parameters.
+   - A <code>TyperCommand</code>/<code>TyperGroup</code> is instantiated with those params and wrapper
+     callback (<code>main.py:1411-1433</code>, <code>main.py:1329-1356</code>). Group assembly is recursive
+     over <code>registered_commands</code>/<code>registered_groups</code>, with per-field default resolution
+     priorities (add_typer arg &gt; sub-app callback &gt; sub-app Typer() &gt; default) done by
+     <code>solve_typer_info_defaults</code> (<code>main.py:1248</code>).</li>
+</ol>
+<p><strong>Parse &amp; invoke (per run):</strong></p>
+<ol start="5">
+<li><code>TyperCommand.main</code> -&gt; <code>_main</code> (<code>core.py:158</code>): takes <code>sys.argv[1:]</code> (expanded on
+   Windows), detects the program name, handles shell-completion env-var requests
+   early (<code>core.py:182</code>, <code>core.py:882</code>), then <code>self.make_context(prog_name, args)</code>.</li>
+<li><code>Command.make_context</code> (<code>_click/core.py:687</code>) creates a <code>Context</code> and calls
+   <code>parse_args</code> (<code>_click/core.py:711</code>): <code>make_parser</code> builds an <code>_OptionParser</code>
+   (<code>_click/parser.py:207</code>) by asking each param to <code>add_to_parser</code>
+   (<code>core.py:588</code> for options incl. flag/secondary opts, <code>core.py:431</code> for arguments).
+   <code>parser.parse_args</code> walks the raw argv and returns <code>(opts, args, order)</code>.</li>
+<li>Each param is then finalized via <code>handle_parse_result</code> (<code>_click/core.py:1051</code>) in
+   <code>iter_params_for_processing</code> order (eager first, <code>_click/core.py:74</code>):
+   <code>consume_value</code> (command line -&gt; env var incl. auto-env in <code>core.py:686</code> -&gt;
+   defaults -&gt; interactive prompt in <code>core.py:705</code>), <code>type_cast_value</code> (runs the
+   <code>ParamType.convert</code>), required check, then the param callback; results land in
+   <code>ctx.params</code> (<code>_click/core.py:1076-1077</code>).</li>
+<li>For groups, <code>TyperGroup.parse_args</code> (<code>core.py:1077</code>) keeps the first non-option
+   token as the subcommand name; <code>TyperGroup.invoke</code> (<code>core.py:1088</code>) resolves it
+   (<code>resolve_command</code>, <code>core.py:1171</code>, adding "Did you mean" suggestions when
+   <code>suggest_commands</code> is on), invokes the group callback, then recurses into
+   <code>sub_ctx = cmd.make_context(...)</code> / <code>sub_ctx.command.invoke(sub_ctx)</code>.</li>
+<li><code>Command.invoke</code> (<code>_click/core.py:729</code>) calls <code>ctx.invoke(self.callback,
+   **ctx.params)</code> -&gt; the <code>get_callback</code> wrapper -&gt; the user's function.</li>
+<li>Failures are translated in <code>_main</code> (<code>core.py:184-242</code>): <code>ClickException</code> -&gt;
+    Rich-formatted usage error (<code>rich_utils.rich_format_error</code>), <code>typer.Exit</code> -&gt;
+    <code>sys.exit(code)</code>, <code>Abort</code> -&gt; "Aborted!", <code>EOFError</code>/<code>KeyboardInterrupt</code> mapped to
+    exit codes; user-code tracebacks are filtered by <code>except_hook</code> (<code>main.py:61</code>).</li>
+</ol>
+<h2 id="design-decisions">Design decisions</h2>
+<h3 id="good">Good</h3>
+<ol>
+<li><strong>Lazy, data-only registration.</strong> Decorators store plain data (<code>CommandInfo</code>,
+   <code>TyperInfo</code>; <code>main.py:890</code>, <code>main.py:729</code>) and all Click objects are built on first
+   call in <code>get_command</code> (<code>main.py:1173</code>). Importing a module with a Typer app has
+   almost no cost, the app can still be mutated after decoration (more
+   <code>add_typer</code>/<code>command</code> calls), the same function stays a normal callable, and tests
+   like <code>CliRunner.invoke</code> (<code>testing.py:275</code>) get a fresh command tree per call.</li>
+<li><strong><code>Default</code>/<code>DefaultPlaceholder</code> sentinel</strong> (<code>models.py:170-197</code>). Because Typer
+   merges settings from three levels (<code>add_typer(...)</code> &gt; <code>@sub_app.callback()</code> &gt;
+   <code>typer.Typer(...)</code>), <code>None</code>/<code>False</code> can't double as "unset". The sentinel makes
+   <code>solve_typer_info_defaults</code> (<code>main.py:1248-1280</code>) able to distinguish "explicitly
+   set to None" from "not set", which is what makes the documented priority order
+   actually work.</li>
+<li><strong>Vendoring Click as <code>typer._click</code>.</strong> Typer's needs diverge hard from upstream
+   Click: <code>TyperGroup</code> replaces <code>click.Group</code> entirely (<code>core.py:991</code>), <code>_main</code> is a
+   forked copy (<code>core.py:158</code>), <code>get_help_record</code> is duplicated to tweak one line
+   (<code>core.py:752-755</code>), and the parser/<code>Parameter</code> API was recently rewritten upstream.
+   Vendoring pins the behavior, removes a dependency-version matrix, and lets Typer
+   patch internals (e.g. <code>_typer_param_setup_autocompletion_compat</code>, <code>core.py:45</code>)
+   without monkey-patching a third-party package at runtime.</li>
+</ol>
+<h3 id="would-change">Would change</h3>
+<ol>
+<li><strong>The 40-kwarg copy-paste cascade.</strong> The same giant keyword list is repeated in
+   <code>params.py</code> overloads (1833 lines for two factories), <code>ParameterInfo</code>/<code>OptionInfo</code>/
+   <code>ArgumentInfo</code> (<code>models.py:280-617</code>), <code>get_click_param</code> (<code>main.py:1632</code>),
+   <code>TyperOption.__init__</code> (<code>core.py:435</code>), and again in <code>Typer.__init__</code>/<code>callback</code>/
+   <code>add_typer</code>/<code>command</code> (<code>main.py:135-1131</code>). Adding one option (e.g. <code>atomic</code>)
+   touches ~6 files, and drift between copies is a standing bug source. I'd keep only
+   the public typed overloads in <code>params.py</code> and have the internal layers carry a
+   dataclass (or forward <code>**kwargs</code> into a single schema definition).</li>
+<li><strong>Dead-but-advertised settings, and the reverse dependency from <code>_click</code> back into
+   <code>typer.core</code>.</strong> <code>chain</code> is accepted by <code>Typer</code>/<code>TyperInfo</code> (<code>main.py:217</code>,
+   <code>models.py:245</code>) but never reaches <code>TyperGroup</code> (<code>get_group_from_info</code> doesn't pass
+   it, <code>main.py:1329-1356</code>) and its handling is commented out (<code>core.py:1101</code>), so
+   <code>chain=True</code> silently does nothing. Relatedly, the vendored library imports its
+   consumer (<code>_click/core.py:757</code>, <code>_click/decorators.py:7</code>, <code>_click/core.py:543</code>),
+   making the layering circular and forcing lazy imports. I'd either implement or
+   remove <code>chain</code> (and <code>subcommand_metavar</code>-style Click leftovers marked "you probably
+   shouldn't use this"), and give <code>_click.Command</code> an <code>option_class</code>/<code>group_class</code>
+   hook so the vendored core never imports <code>typer.core</code>.</li>
+</ol></main>

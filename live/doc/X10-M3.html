@@ -1,0 +1,173 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M3 · X10 · PROOFS.md <span>M3-qwen3.8-27b-thinkingcap-heretic-nvfp4</span></div><main><h1 id="proofs-of-four-statements">Proofs of Four Statements</h1>
+<p>Conventions used throughout: "rational" means "an element of Q"; we freely use the
+basic facts that the integers are rational, that Q is closed under addition,
+subtraction, and multiplication, and that a rational number divided by a nonzero
+rational number is rational. Induction is used in its standard form: verify the
+statement for the smallest case, then show that the statement for some k implies
+the statement for k + 1.</p>
+<hr />
+<h2 id="statement-1-there-are-infinitely-many-primes-congruent-to-3-modulo-4">Statement 1. There are infinitely many primes congruent to 3 modulo 4</h2>
+<p><strong>Lemma 1.1.</strong> If a ≡ 1 (mod 4) and b ≡ 1 (mod 4), then ab ≡ 1 (mod 4).</p>
+<p><em>Proof.</em> Write a = 1 + 4r and b = 1 + 4s with r, s integers. Then</p>
+<p>ab = (1 + 4r)(1 + 4s) = 1 + 4(r + s + 4rs),</p>
+<p>so ab − 1 is a multiple of 4, i.e. ab ≡ 1 (mod 4). ∎</p>
+<p>By repeated application (induction on the number of factors), the product of any
+finite number of integers, each ≡ 1 (mod 4), is ≡ 1 (mod 4).</p>
+<p><strong>Theorem 1.1.</strong> There are infinitely many primes p with p ≡ 3 (mod 4).</p>
+<p><em>Proof.</em> (By contradiction.) Note first that 3 itself is a prime with 3 ≡ 3 (mod 4),
+so at least one such prime exists; if finitely many exist, some finite list contains
+all of them. Suppose, for contradiction, that</p>
+<p>p₁, p₂, …, pₖ      (k ≥ 1)</p>
+<p>is a complete list of all primes congruent to 3 (mod 4). Let M = p₁p₂⋯pₖ and define</p>
+<p>N = (2M)² − 1 = 4M² − 1.</p>
+<p><strong>Step 1 — N ≡ 3 (mod 4), N is odd, and N &gt; 1.</strong>
+The number (2M)² = 4M² is a multiple of 4, so N = 4M² − 1 ≡ −1 ≡ 3 (mod 4).
+Since 4M² is even, N = 4M² − 1 is odd. Every prime pᵢ is at least 3 (it is a prime
+≡ 3 mod 4), so M ≥ 3, and therefore N ≥ 4·3² − 1 = 35 &gt; 1.</p>
+<p><strong>Step 2 — N has a prime divisor q with q ≡ 3 (mod 4).</strong>
+Since N &gt; 1, N has a prime divisor (by the fundamental theorem of arithmetic).
+Since N is odd, every prime divisor of N is odd, and every odd integer is
+congruent to either 1 or 3 (mod 4) (being ≡ 2 mod 4 would make it even).
+Suppose, for contradiction, that every prime divisor of N were ≡ 1 (mod 4).
+Then N itself, being a product (with multiplicities) of prime factors each
+≡ 1 (mod 4), would be ≡ 1 (mod 4) by Lemma 1.1 and induction on the number of
+prime factors. That contradicts N ≡ 3 (mod 4) from Step 1. Hence N has at least
+one prime divisor q with q ≡ 3 (mod 4).</p>
+<p><strong>Step 3 — q is not one of p₁, …, pₖ.</strong>
+Fix i ∈ {1, …, k}. The prime pᵢ divides M, hence divides (2M)², hence divides
+N + 1 = 4M². If pᵢ also divided N, then pᵢ would divide the difference
+(N + 1) − N = 1, which is impossible since pᵢ ≥ 2. Thus pᵢ ∤ N for every i,
+and in particular q (a prime divisor of N) is none of p₁, …, pₖ.</p>
+<p>So q is a prime congruent to 3 (mod 4) that is not on our complete list — a
+contradiction. Therefore no finite list can contain all such primes, i.e. there
+are infinitely many. ∎</p>
+<p><em>Earlier results used:</em> the fundamental theorem of arithmetic (existence of a
+prime divisor of N &gt; 1), Lemma 1.1, elementary properties of congruences.</p>
+<hr />
+<h2 id="statement-2-the-number-2-3-is-irrational">Statement 2. The number √2 + √3 is irrational</h2>
+<p><strong>Lemma 2.1.</strong> √2 is irrational.</p>
+<p><em>Proof.</em> (By contradiction.) Suppose √2 = a/b with integers a, b, b &gt; 0, and
+gcd(a, b) = 1 (such a representation exists if √2 is rational, by writing it in
+lowest terms). Squaring both sides gives 2 = a²/b², i.e. a² = 2b². So a² is even.
+An integer whose square is even is itself even: if a were odd, a = 2c + 1 and
+a² = 4c² + 4c + 1 = 2(2c² + 2c) + 1 would be odd. Hence a = 2c for some integer c.
+Substituting: (2c)² = 2b², so 4c² = 2b² and b² = 2c². Thus b² is even, and by the
+same argument b is even. But then 2 divides both a and b, contradicting
+gcd(a, b) = 1. ∎</p>
+<p><strong>Theorem 2.1.</strong> √2 + √3 is irrational.</p>
+<p><em>Proof.</em> (By contradiction.) Let α = √2 + √3 and suppose α ∈ Q.</p>
+<p><strong>Step 1 — √6 is rational.</strong>
+Compute α² using (x + y)² = x² + 2xy + y² with x = √2, y = √3:</p>
+<p>α² = (√2)² + 2·√2·√3 + (√3)² = 2 + 2√6 + 3 = 5 + 2√6.</p>
+<p>Here √2·√3 = √6, since for nonnegative reals √x·√y = √(xy) and 2·3 = 6.
+Since α ∈ Q, α² ∈ Q (Q is closed under multiplication). Then α² − 5 ∈ Q
+(closure under subtraction), and α² − 5 = 2√6. Since 2 is a nonzero rational
+number, √6 = (α² − 5)/2 ∈ Q (a rational number divided by a nonzero rational
+number is rational).</p>
+<p><strong>Step 2 — √2 is rational.</strong>
+Set β = α·√6. Since α ∈ Q and √6 ∈ Q, their product β is rational (closure of Q
+under multiplication). Now compute β directly from its definition:</p>
+<p>β = (√2 + √3)·√6 = √2·√6 + √3·√6 = √12 + √18.</p>
+<p>Reduce each radical: √12 = √(4·3) = √4·√3 = 2√3 and √18 = √(9·2) = √9·√2 = 3√2,
+using √(xy) = √x·√y for nonnegative reals and √4 = 2, √9 = 3 (since 2² = 4,
+3² = 9). Hence</p>
+<p>β = 2√3 + 3√2.</p>
+<p>Now form β − 2α. Since β ∈ Q and 2α ∈ Q (2 ∈ Q and Q is closed under
+multiplication), their difference is rational. But</p>
+<p>β − 2α = (2√3 + 3√2) − 2(√2 + √3) = 3√2 + 2√3 − 2√2 − 2√3 = √2.</p>
+<p>So √2 ∈ Q.</p>
+<p><strong>Step 3 — Contradiction.</strong> This contradicts Lemma 2.1. Therefore α ∉ Q, i.e.
+√2 + √3 is irrational. ∎</p>
+<p><em>Earlier results used:</em> Lemma 2.1 (this document), the field properties of Q,
+the law √(xy) = √x√y for nonnegative reals.</p>
+<hr />
+<h2 id="statement-3-every-finite-tournament-has-a-hamiltonian-path">Statement 3. Every finite tournament has a Hamiltonian path</h2>
+<p>Recall: a tournament is a complete graph in which each edge has been given a
+direction (so between any two distinct vertices there is exactly one directed
+edge). A Hamiltonian path is a directed path that visits every vertex exactly once.</p>
+<p><strong>Theorem 3.1.</strong> Every finite tournament has a Hamiltonian path.</p>
+<p><em>Proof.</em> (By induction on n = |V|, the number of vertices.)</p>
+<p><strong>Base case, n = 1.</strong> The single vertex, viewed as a path of length zero, visits
+every vertex of the graph exactly once; it is a Hamiltonian path. (There are no
+edges to orient, so it is a tournament.)</p>
+<p><strong>Inductive step.</strong> Let n ≥ 2 and assume every tournament on n − 1 vertices has a
+Hamiltonian path. Let T be a tournament on n vertices and pick a vertex v ∈ V(T).
+Delete v and the edges incident to it; call the result T'. T' is again a
+tournament on n − 1 vertices: for any two distinct remaining vertices u, w, the
+edge between u and w in T was still present in T', with the same direction, and
+every pair of remaining vertices is adjacent. By the induction hypothesis, T'
+has a Hamiltonian path</p>
+<p>v₁ → v₂ → ⋯ → v_{n−1}.</p>
+<p>We now insert v into this path. For each j = 1, …, n − 1, exactly one of the two
+orientations of the edge {vⱼ, v} holds — namely either vⱼ → v or v → vⱼ — because
+T is a tournament. Consider the set</p>
+<p>A = { j ∈ {1, …, n − 1} : vⱼ → v }</p>
+<p>and let i = max A, with the convention i = 0 if A is empty.</p>
+<p>We claim the following sequence is a directed path through all n vertices:</p>
+<p>v₁ → v₂ → ⋯ → vᵢ → v → v_{i+1} → ⋯ → v_{n−1},</p>
+<p>reading the left end as "v → v₁ → ⋯" when i = 0 and the right end as "⋯ → v_{n−1} → v"
+when i = n − 1. All links other than the two created by inserting v are links of
+the old path v₁ → ⋯ → v_{n−1}, so they are directed correctly. It remains to check
+the two new links:</p>
+<ul>
+<li><em>The link into v.</em> If i ≥ 1, then i ∈ A by definition, so vᵢ → v.</li>
+<li><em>The link out of v.</em> If i ≤ n − 2, then i + 1 ∉ A (otherwise the maximum of A
+  would be at least i + 1, contradicting i = max A); so v_{i+1} does not point to
+  v, and since exactly one orientation of {v, v_{i+1}} holds, we have v → v_{i+1}.</li>
+<li><em>The boundary cases.</em> If i = 0, then A = ∅, so v₁ does not point to v; as above
+  this forces v → v₁, giving the first link. If i = n − 1, then n − 1 ∈ A, so
+  v_{n−1} → v, giving the last link.</li>
+</ul>
+<p>In all cases the sequence is a directed path containing each of the n vertices
+exactly once: a Hamiltonian path of T. By induction, the claim holds for all n. ∎</p>
+<p><em>Earlier results used:</em> the principle of induction only.</p>
+<hr />
+<h2 id="statement-4-13-33-2n13-n22n2-1">Statement 4. 1³ + 3³ + ⋯ + (2n−1)³ = n²(2n² − 1)</h2>
+<p><strong>Theorem 4.1.</strong> For every integer n ≥ 1,</p>
+<p>1³ + 3³ + ⋯ + (2n−1)³ = n²(2n² − 1).</p>
+<p><em>Proof.</em> (By induction on n.)</p>
+<p><strong>Base case, n = 1.</strong> Left side = (2·1 − 1)³ = 1³ = 1.
+Right side = 1²·(2·1² − 1) = 1·(2 − 1) = 1. The two sides are equal.</p>
+<p><strong>Inductive step.</strong> Let n ≥ 2 and assume the formula holds for n − 1, i.e.</p>
+<p>1³ + 3³ + ⋯ + (2(n−1)−1)³ = (n−1)²(2(n−1)² − 1).   (I)</p>
+<p>Let S denote the left side for n. Since S = (left side for n − 1) + (2n−1)³,
+combining (I) with the new term gives</p>
+<p>S = (n−1)²(2(n−1)² − 1) + (2n−1)³.                    (∗)</p>
+<p>We now evaluate the right side of (∗) step by step.</p>
+<p><em>First term.</em> First expand the factors:</p>
+<p>(n−1)² = n² − 2n + 1,
+  2(n−1)² − 1 = 2(n² − 2n + 1) − 1 = 2n² − 4n + 2 − 1 = 2n² − 4n + 1.</p>
+<p>Multiply (n² − 2n + 1)(2n² − 4n + 1) by the distributive law, term by term:</p>
+<p>n²·(2n² − 4n + 1)     = 2n⁴ − 4n³ + n²
+  (−2n)·(2n² − 4n + 1)  = −4n³ + 8n² − 2n
+  1·(2n² − 4n + 1)      = 2n² − 4n + 1</p>
+<p>Adding the three lines, collecting like powers:</p>
+<p>2n⁴  +  (−4 − 4)n³  +  (1 + 8 + 2)n²  +  (−2 − 4)n  +  1
+  = 2n⁴ − 8n³ + 11n² − 6n + 1.</p>
+<p>So the first term of (∗) is 2n⁴ − 8n³ + 11n² − 6n + 1.</p>
+<p><em>Second term.</em> Expand (2n − 1)³ with the binomial theorem
+(a − b)³ = a³ − 3a²b + 3ab² − b³, with a = 2n, b = 1:</p>
+<p>(2n − 1)³ = (2n)³ − 3(2n)²·1 + 3(2n)·1² − 1³ = 8n³ − 12n² + 6n − 1.</p>
+<p><em>Sum.</em> Add the two terms, coefficient by coefficient:</p>
+<p>S = (2n⁴ − 8n³ + 11n² − 6n + 1) + (8n³ − 12n² + 6n − 1)
+    = 2n⁴ + (−8 + 8)n³ + (11 − 12)n² + (−6 + 6)n + (1 − 1)
+    = 2n⁴ − n²
+    = n²(2n² − 1).</p>
+<p>This is exactly the required formula for n. By induction the identity holds for
+every n ≥ 1. ∎</p>
+<p><em>Sanity checks at small n.</em>
+n = 2: 1³ + 3³ = 1 + 27 = 28, and 2²(2·2² − 1) = 4·7 = 28.
+n = 3: 1³ + 3³ + 5³ = 28 + 125 = 153, and 3²(2·3² − 1) = 9·17 = 153.</p>
+<p><em>Earlier results used:</em> the principle of induction, the distributive law, and the
+binomial theorem for cubes.</p></main>

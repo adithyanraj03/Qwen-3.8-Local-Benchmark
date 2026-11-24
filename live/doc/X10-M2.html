@@ -1,0 +1,341 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M2 · X10 · PROOFS.md <span>M2-qwen3.8-27b-orca-uncensored-nvfp4</span></div><main><h1 id="proofs-of-four-statements">Proofs of Four Statements</h1>
+<p>Four statements are proved below, in full detail, one step at a time. Each proof
+states explicitly which earlier results (lemmas or standard facts) it uses.
+The file <code>check.py</code> in the same directory verifies each statement numerically
+on small cases; a description of those checks and their observed output is
+given in Section 5.</p>
+<p>Conventions: <code>a ≡ b (mod m)</code> means <code>m | (a − b)</code>. We write ∎ at the end of
+each proof.</p>
+<hr />
+<h2 id="0-preliminaries">0. Preliminaries</h2>
+<p>We use only the following facts. Each is proved here except where flagged.</p>
+<p><strong>P.1 (Congruence rules).</strong> For integers a, b, c, d and m ≥ 2:</p>
+<ul>
+<li>(addition) If a ≡ b (mod m) and c ≡ d (mod m), then a + c ≡ b + d (mod m).</li>
+<li>(multiplication) If a ≡ b (mod m) and c ≡ d (mod m), then ac ≡ bd (mod m).</li>
+<li>(powers) If a ≡ b (mod m), then a^k ≡ b^k (mod m) for every integer k ≥ 1.</li>
+</ul>
+<p><em>Proof.</em> By definition, a ≡ b (mod m) means a − b = m·x for some integer x,
+and c ≡ d (mod m) means c − d = m·y.</p>
+<p>For addition: (a + c) − (b + d) = (a − b) + (c − d) = m·x + m·y = m(x + y),
+so a + c ≡ b + d (mod m).</p>
+<p>For multiplication: ac − bd = ac − bc + bc − bd = c(a − b) + b(c − d)
+= c·(m·x) + b·(m·y) = m(cx + by), so ac ≡ bd (mod m).</p>
+<p>For powers: induction on k. k = 1 is the assumption. If a^k ≡ b^k (mod m),
+then by the multiplication rule (with a, a^k in place of a, c and b, b^k in
+place of b, d) we get a^k·a ≡ b^k·b (mod m), i.e. a^(k+1) ≡ b^(k+1) (mod m). ∎</p>
+<p><strong>P.2 (Existence of prime factorizations).</strong> Every integer N ≥ 2 is a product
+of primes. In particular, every N ≥ 2 has at least one prime divisor.</p>
+<p><em>Proof.</em> Strong induction on N. For N = 2, 2 is prime, so N is a product of
+primes (one prime). Assume the claim for every integer from 2 up to N − 1,
+where N ≥ 3. If N is prime, we are done. If N is not prime, then by the
+definition of "not prime" there is an integer a with 1 &lt; a &lt; N and a | N.
+Write N = a·b, so b = N/a is an integer; since 1 &lt; a &lt; N we also have
+1 &lt; b &lt; N. By the induction hypothesis, a = a₁…aᵣ and b = b₁…bₛ are products
+of primes, and therefore N = a₁…aᵣb₁…bₛ is a product of primes. The
+particular statement "N has a prime divisor" is the case r = 1 inside the
+argument (any factor in such a product is a prime divisor of N). ∎</p>
+<p><strong>P.3 (The rationals are closed under the four operations).</strong> If a, b, c, d
+are integers with b, d ≠ 0, then a/b + c/d = (ad + bc)/(bd), a/b − c/d =
+(ad − bc)/(bd), and (a/b)·(c/d) = (ac)/(bd) are all rational numbers, since
+the numerator and denominator are integers and the denominator is nonzero.
+In particular, if r ∈ ℚ and r ≠ 0, then r², r − s (for any s ∈ ℚ), and
+r/2 are all in ℚ.</p>
+<p><strong>P.4 (Positive square roots).</strong> For every real a &gt; 0 there exists a unique
+real number y &gt; 0 with y² = a; we denote it by √a. (Existence and uniqueness
+are standard consequences of the completeness of ℝ; we use them as a known
+fact.) From uniqueness we record the following useful corollary: if u &gt; 0 and
+v &gt; 0 and u² = v², then u = v. Proof: 0 = u² − v² = (u − v)(u + v), and since
+u + v &gt; 0 (both are positive), we must have u − v = 0. ∎</p>
+<p><strong>P.5 (Parity of squares).</strong> For every integer a, a² is even if and only if
+a is even.</p>
+<p><em>Proof.</em> If a is even, a = 2k, so a² = 4k² = 2(2k²) is even. Conversely, if
+a is odd, a = 2k + 1, so a² = 4k² + 4k + 1 = 2(2k² + 2k) + 1, which is odd.
+Hence if a² is even, a is not odd, so a is even. ∎</p>
+<p><strong>P.6 (Lowest-terms form).</strong> Every rational number r can be written as a/b
+with a, b integers, b &gt; 0, and gcd(a, b) = 1. If r &gt; 0 then a &gt; 0.</p>
+<p><em>Proof.</em> Write r = p/q with p, q integers and q ≠ 0; multiplying numerator
+and denominator by −1 if necessary, assume q &gt; 0. Let g = gcd(|p|, |q|) ≥ 1
+and set a = p/g, b = q/g. Then a, b are integers, b &gt; 0, ab = pq, and by the
+definition of the greatest common divisor, gcd(|a|, |b|) = 1. If r &gt; 0 then
+p and q have the same sign, so a &gt; 0. ∎</p>
+<hr />
+<h2 id="1-there-are-infinitely-many-primes-congruent-to-3-modulo-4">1. There are infinitely many primes congruent to 3 modulo 4</h2>
+<p><strong>Lemma 1.1 (Squares mod 4).</strong> For every integer m, m² ≡ 0 (mod 4) or
+m² ≡ 1 (mod 4).</p>
+<p><em>Proof.</em> Every integer m is even or odd. If m = 2k, then m² = 4k² ≡ 0 (mod 4).
+If m = 2k + 1, then m² = 4k² + 4k + 1 = 4(k² + k) + 1 ≡ 1 (mod 4). No other
+case exists. ∎</p>
+<p><strong>Lemma 1.2 (A number ≡ 3 (mod 4) has a prime factor ≡ 3 (mod 4)).</strong> If N is
+an integer with N ≥ 2 and N ≡ 3 (mod 4), then N has a prime divisor q with
+q ≡ 3 (mod 4).</p>
+<p><em>Proof.</em> Step 1: N is odd. Indeed, every even integer is of the form 2k, so
+2k ≡ 0 or 2 (mod 4) (if k = 2l then 2k = 4l ≡ 0; if k = 2l + 1 then
+2k = 4l + 2 ≡ 2); neither is 3, so an integer ≡ 3 (mod 4) cannot be even.
+Hence every prime divisor of N is odd.</p>
+<p>Step 2: every odd prime divisor q of N satisfies q ≡ 1 (mod 4) or
+q ≡ 3 (mod 4). Write q = 4k + r with r ∈ {0, 1, 2, 3}; since q is odd,
+r ∉ {0, 2}, so r ∈ {1, 3}.</p>
+<p>Step 3: not all prime divisors of N can be ≡ 1 (mod 4). By P.2, N has a
+prime factorization N = q₁^a₁ … q_t^a_t with t ≥ 1 and primes qᵢ (we may
+list repeated primes with exponents). Suppose for contradiction that every
+qᵢ ≡ 1 (mod 4). By P.1 (powers), qᵢ^aᵢ ≡ 1^aᵢ ≡ 1 (mod 4) for each i, and
+by P.1 (multiplication, applied repeatedly) the product N = q₁^a₁ … q_t^a_t
+satisfies N ≡ 1 (mod 4). This contradicts N ≡ 3 (mod 4). Therefore at least
+one prime divisor qᵢ of N satisfies qᵢ ≡ 3 (mod 4). ∎</p>
+<p><strong>Theorem 1.3.</strong> There are infinitely many primes p with p ≡ 3 (mod 4).</p>
+<p><em>Proof.</em> Suppose, for contradiction, that the set of primes congruent to
+3 (mod 4) is finite. We split into cases.</p>
+<p><em>Case 1: the set is empty.</em> But 3 is a prime (its only positive divisors are
+1 and 3), and 3 ≡ 3 (mod 4) since 3 − 3 = 0 is divisible by 4. So the set is
+not empty. Contradiction.</p>
+<p><em>Case 2: the set is {p₁, …, p_k} with k ≥ 1.</em> Put M = p₁p₂…p_k. Note each
+pⱼ is an odd prime, so each pⱼ ≥ 3, hence M ≥ 3. Consider the integer</p>
+<pre><code>N = 4M² − 1.
+</code></pre>
+<p>We claim N has a prime divisor q with q ≡ 3 (mod 4) that is none of the
+pⱼ. Three steps.</p>
+<p>Step 1 (shape of N mod 4). By P.1 (multiplication), 4M² ≡ 0 (mod 4) since
+4M² − 0 = 4M² is divisible by 4. Hence N = 4M² − 1 ≡ −1 ≡ 3 (mod 4).
+Also N = 4M² − 1 ≥ 4·9 − 1 = 35 &gt; 1 (using M ≥ 3), so P.2 applies to N.
+(Incidentally N is odd: N = 4M² − 1 is one less than an even number.)</p>
+<p>Step 2 (a prime factor ≡ 3 (mod 4) exists). Apply Lemma 1.2 to N: N ≥ 2 and
+N ≡ 3 (mod 4), so N has a prime divisor q with q ≡ 3 (mod 4).</p>
+<p>Step 3 (q is not among p₁, …, p_k). Fix any j ∈ {1, …, k}. Since pⱼ | M,
+there is an integer s with M = pⱼs. Then M² = pⱼ²s², so 4M² = 4pⱼ²s² is
+divisible by pⱼ, and N = 4M² − 1 ≡ −1 (mod pⱼ). Because pⱼ ≥ 3 &gt; 1, the
+congruence X ≡ −1 (mod pⱼ) is not the same as X ≡ 0 (mod pⱼ) (if −1 ≡ 0
+(mod pⱼ) then pⱼ | 1, contradicting pⱼ ≥ 3). Hence pⱼ ∤ N for every j.
+Now q | N and q ≡ 3 (mod 4); by the assumption that {p₁, …, p_k} is <em>all</em>
+the primes congruent to 3 (mod 4), we have q = pⱼ for some j. But then
+pⱼ | N, contradicting pⱼ ∤ N from the previous sentence.</p>
+<p>Both cases give a contradiction. Therefore the set of primes ≡ 3 (mod 4) is
+not finite; it is infinite. ∎</p>
+<p><em>Remark (why the construction works).</em> The number 4M² − 1 is built so that
+(i) it is ≡ 3 (mod 4), which forces a prime factor ≡ 3 (mod 4) by Lemma 1.2,
+and (ii) it is ≡ −1 (mod pⱼ) for every pⱼ already known, so none of the
+known primes can be that factor. The naive Euclid number p₁…p_k + 1 does not
+work here: a product of primes ≡ 3 (mod 4) may itself be ≡ 1 or 3 (mod 4)
+depending on the number of factors, and one cannot guarantee the required
+residue class from it.</p>
+<hr />
+<h2 id="2-2-3-is-irrational">2. √2 + √3 is irrational</h2>
+<p><strong>Lemma 2.1 (√6 is irrational).</strong></p>
+<p><em>Proof.</em> Suppose, for contradiction, that √6 is rational. By P.6, since
+√6 &gt; 0, we may write √6 = a/b with a, b integers, b &gt; 0, a &gt; 0, and
+gcd(a, b) = 1.</p>
+<p>Squaring both sides: (a/b)² = 6. Since b² &gt; 0, multiplying through by b²
+gives a² = 6b².</p>
+<p>Step 1: 2 | a. From a² = 6b² = 2(3b²) we see a² is even. By P.5, 2 | a.
+Write a = 2c.</p>
+<p>Step 2: 2 | b. Substituting a = 2c into a² = 6b² gives (2c)² = 6b², i.e.
+4c² = 6b², i.e. 2c² = 3b². Thus 3b² is even. If b were odd, then b² would be
+odd (odd × odd is odd) and 3b² would be odd (3 is odd, odd × odd is odd),
+contradicting that 3b² is even. Hence b is even; write b = 2d.</p>
+<p>Step 3: contradiction. Step 1 gave a = 2c and Step 2 gave b = 2d, so 2
+divides both a and b. Therefore gcd(a, b) ≥ 2, contradicting gcd(a, b) = 1.
+Hence √6 is irrational. ∎</p>
+<p><strong>Theorem 2.2.</strong> √2 + √3 is irrational.</p>
+<p><em>Proof.</em> Let α = √2 + √3. Suppose, for contradiction, that α is rational.</p>
+<p>Step 1 (compute α²). By the definition of √2 (P.4), (√2)² = 2; by the same
+definition, (√3)² = 3. For the middle term: the number √2·√3 is positive
+(positive × positive), and (√2·√3)² = (√2)²·(√3)² = 2·3 = 6. By P.4, √6 is
+<em>the</em> positive number whose square is 6, so by the corollary of P.4,
+√2·√3 = √6. Therefore</p>
+<pre><code>α² = (√2 + √3)² = (√2)² + 2·√2·√3 + (√3)² = 2 + 2√6 + 3 = 5 + 2√6.
+</code></pre>
+<p>Step 2 (isolate √6). Rearranging the identity from Step 1 (subtract 5 from
+both sides, then divide both sides by 2 — both legitimate operations on
+equal real numbers): 2√6 = α² − 5, so</p>
+<pre><code>√6 = (α² − 5)/2.
+</code></pre>
+<p>Step 3 (derive a contradiction). Since α is rational by assumption: α² is
+rational (P.3: α² = α·α is a product of rationals); α² − 5 is rational
+(P.3: difference of rationals, 5 = 5/1); and (α² − 5)/2 is rational (P.3:
+rational divided by nonzero integer). By Step 2, √6 is therefore rational.
+This contradicts Lemma 2.1.</p>
+<p>Hence α = √2 + √3 is irrational. ∎</p>
+<p><em>Remark (algebraic viewpoint).</em> The same identity gives a polynomial that
+α satisfies: from α² = 5 + 2√6, we get α² − 5 = 2√6, and squaring,
+(α² − 5)² = 24, i.e. α⁴ − 10α² + 25 − 24 = 0, so α is a root of
+x⁴ − 10x² + 1. The numerical check in Section 5 shows that no polynomial of
+degree &lt; 4 with small integer coefficients comes anywhere near vanishing at
+α, consistent with x⁴ − 10x² + 1 being the minimal polynomial of α.</p>
+<hr />
+<h2 id="3-every-finite-tournament-has-a-hamiltonian-path">3. Every finite tournament has a Hamiltonian path</h2>
+<p><strong>Definitions.</strong></p>
+<ul>
+<li>A <strong>tournament</strong> is a directed graph on a finite vertex set V with the
+  property that for every unordered pair {u, v} of <em>distinct</em> vertices of V,
+  exactly one of the directed edges u → v and v → u is present (and no
+  vertex has an edge to itself).</li>
+<li>A <strong>Hamiltonian path</strong> in a tournament on n vertices is a sequence
+  (v₁, …, vₙ) such that all vᵢ are distinct, {v₁, …, vₙ} = V, and for each
+  i = 1, …, n − 1 the directed edge vᵢ → vᵢ₊₁ is present.</li>
+</ul>
+<p><strong>Theorem 3.1 (Rédei).</strong> Every tournament on n ≥ 1 vertices has a Hamiltonian
+path.</p>
+<p><em>Proof.</em> By induction on n.</p>
+<p><em>Base cases.</em>
+- n = 1: V = {v}. The one-vertex sequence (v) uses all vertices (there is
+  only one) and requires no edges. It is a Hamiltonian path.
+- n = 2: V = {u, w}. By the tournament property, exactly one of u → w and
+  w → u is present. If u → w, then (u, w) is a Hamiltonian path; if w → u,
+  then (w, u) is a Hamiltonian path. Either way a Hamiltonian path exists.</p>
+<p><em>Inductive step.</em> Let n ≥ 3 and assume the induction hypothesis: every
+tournament on n − 1 vertices has a Hamiltonian path. Let T be a tournament on
+n vertices V.</p>
+<p>Step 1 (remove a vertex). Choose any vertex v ∈ V, put V' = V \ {v}, and let
+T' be T restricted to V' (the same directed edges as T, between the vertices
+of V'). Then T' is a tournament on n − 1 vertices: take any two distinct
+u, w ∈ V'; the pair {u, w} is a pair of distinct vertices of V, so by the
+tournament property of T exactly one of u → w and w → u is present in T,
+hence in T'.</p>
+<p>Step 2 (induction hypothesis). By the induction hypothesis, T' has a
+Hamiltonian path</p>
+<pre><code>v₁ → v₂ → … → vₙ₋₁,
+</code></pre>
+<p>meaning the edge vᵢ → vᵢ₊₁ is present in T (hence in T') for each
+i = 1, …, n − 2, and {v₁, …, vₙ₋₁} = V'.</p>
+<p>Step 3 (insert v). Define the index set</p>
+<pre><code>S = { i ∈ {1, …, n − 1} : the edge v → vᵢ is present }.
+</code></pre>
+<p>For each i, exactly one of the two alternatives "i ∈ S" and "the edge
+vᵢ → v is present" holds: for the pair {v, vᵢ} of distinct vertices of V,
+the tournament property says exactly one of v → vᵢ and vᵢ → v is present.
+We split into cases.</p>
+<p><em>Case A: S = ∅.</em> Then for every i = 1, …, n − 1 the edge vᵢ → v is present
+(the other alternative of the previous paragraph). Consider the sequence</p>
+<pre><code>v₁, v₂, …, vₙ₋₁, v.
+</code></pre>
+<p>It contains all n vertices exactly once: v₁, …, vₙ₋₁ are distinct and equal
+V', and v ∉ V' by construction of V'. Its consecutive edges are
+vᵢ → vᵢ₊₁ for i = 1, …, n − 2 (present by Step 2) and vₙ₋₁ → v (present by
+this case). Hence it is a Hamiltonian path of T.</p>
+<p><em>Case B: S ≠ ∅.</em> Let i* = min S (the minimum exists because S is a
+nonempty subset of the finite set {1, …, n − 1}).</p>
+<p>Claim: if i<em> ≥ 2, then the edge vᵢ</em>₋₁ → v is present. Justification:
+i<em> − 1 &lt; i</em>, and i<em> is the smallest element of S, so i</em> − 1 ∉ S; by the
+paragraph defining S, the edge vᵢ*₋₁ → v is then present.</p>
+<p>Now consider the sequence</p>
+<pre><code>v₁, v₂, …, vᵢ*₋₁, v, vᵢ*, vᵢ*₊₁, …, vₙ₋₁.
+</code></pre>
+<p>(If i<em> = 1, the initial segment v₁, …, vᵢ</em>₋₁ is empty, so the sequence is
+v, v₁, v₂, …, vₙ₋₁.)</p>
+<ul>
+<li>It contains all n vertices exactly once: the vᵢ are distinct and cover V',
+  and v ∉ V'.</li>
+<li>Every consecutive pair is joined by a directed edge:</li>
+<li>For 1 ≤ i ≤ i<em> − 2, the edge vᵢ → vᵢ₊₁ is present by Step 2. (If i</em> = 1
+    or i* = 2 this list of pairs is empty, so nothing is to check.)</li>
+<li>If i<em> ≥ 2, the edge vᵢ</em>₋₁ → v is present by the claim.</li>
+<li>The edge v → vᵢ<em> is present because i</em> ∈ S.</li>
+<li>For i<em> ≤ i ≤ n − 2, the edge vᵢ → vᵢ₊₁ is present by Step 2. (If
+    i</em> = n − 1 this list is empty.)</li>
+</ul>
+<p>Therefore the sequence is a Hamiltonian path of T.</p>
+<p>In both cases T has a Hamiltonian path, which completes the inductive step.
+By induction on n, every tournament on n ≥ 1 vertices has a Hamiltonian
+path. ∎</p>
+<hr />
+<h2 id="4-13-33-2n-13-n22n2-1">4. 1³ + 3³ + … + (2n − 1)³ = n²(2n² − 1)</h2>
+<p><strong>Theorem 4.1.</strong> For every integer n ≥ 1,</p>
+<pre><code>1³ + 3³ + … + (2n − 1)³ = n²(2n² − 1).
+</code></pre>
+<p><em>Proof.</em> By induction on n.</p>
+<p><em>Base case, n = 1.</em> Left side: the sum of the first 1 odd cubes is 1³ = 1.
+Right side: 1²(2·1² − 1) = 1·(2 − 1) = 1. The two sides are equal, so the
+formula holds for n = 1.</p>
+<p><em>Inductive step.</em> Let n ≥ 1 and assume the induction hypothesis (IH):</p>
+<pre><code>1³ + 3³ + … + (2n − 1)³ = n²(2n² − 1).            (IH)
+</code></pre>
+<p>We must prove the formula for n + 1, i.e.</p>
+<pre><code>1³ + 3³ + … + (2n + 1)³ = (n + 1)²(2(n + 1)² − 1).    (goal)
+</code></pre>
+<p>Left side of the goal: the (n + 1)-st odd cube is 2(n + 1) − 1 = 2n + 1, so</p>
+<pre><code>1³ + … + (2n + 1)³ = [1³ + … + (2n − 1)³] + (2n + 1)³
+                  = n²(2n² − 1) + (2n + 1)³          (by IH).
+</code></pre>
+<p>Now we expand both summands into ordinary polynomial form, showing each
+arithmetic step.</p>
+<p>Expansion of the first summand:</p>
+<pre><code>n²(2n² − 1) = n²·2n² − n²·1 = 2n⁴ − n².
+</code></pre>
+<p>Expansion of the second summand, using (a + b)³ = a³ + 3a²b + 3ab² + b³
+(which follows from expanding (a + b)(a + b)(a + b) term by term, or from
+the binomial theorem) with a = 2n and b = 1:</p>
+<pre><code>(2n + 1)³ = (2n)³ + 3(2n)²·1 + 3(2n)·1² + 1³
+          = 8n³ + 3·4n² + 6n + 1
+          = 8n³ + 12n² + 6n + 1.
+</code></pre>
+<p>Adding:</p>
+<pre><code>n²(2n² − 1) + (2n + 1)³ = (2n⁴ − n²) + (8n³ + 12n² + 6n + 1)
+                        = 2n⁴ + 8n³ + (−1 + 12)n² + 6n + 1
+                        = 2n⁴ + 8n³ + 11n² + 6n + 1.     (★)
+</code></pre>
+<p>Now expand the right side of the (goal). First the two factors:</p>
+<pre><code>(n + 1)² = n² + 2n + 1,
+2(n + 1)² − 1 = 2(n² + 2n + 1) − 1 = 2n² + 4n + 2 − 1 = 2n² + 4n + 1.
+</code></pre>
+<p>Their product, distributed term by term:</p>
+<pre><code>(n² + 2n + 1)(2n² + 4n + 1)
+  = n²(2n² + 4n + 1) + 2n(2n² + 4n + 1) + 1(2n² + 4n + 1)
+  = (2n⁴ + 4n³ + n²) + (4n³ + 8n² + 2n) + (2n² + 4n + 1)
+  = 2n⁴ + (4 + 4)n³ + (1 + 8 + 2)n² + (2 + 4)n + 1
+  = 2n⁴ + 8n³ + 11n² + 6n + 1.                      (★★)
+</code></pre>
+<p>By (★) and (★★) the left side of the (goal) equals the right side of the
+(goal). The inductive step is proved.</p>
+<p>By induction, 1³ + 3³ + … + (2n − 1)³ = n²(2n² − 1) for every integer
+n ≥ 1. ∎</p>
+<p><em>Remark (consistency with the sum of all cubes).</em> It is standard that
+1³ + 2³ + … + m³ = (m(m+1)/2)². Taking m = 2n and subtracting the even
+cubes 2³ + 4³ + … + (2n)³ = 8(1³ + … + n³) = 8·(n(n+1)/2)² = 2n²(n+1)²
+from (2n(2n+1)/2)² = n²(2n+1)² gives
+n²(2n+1)² − 2n²(n+1)² = n²[(2n+1)² − 2(n+1)²] = n²[4n² + 4n + 1 − 2n² − 4n − 2]
+= n²(2n² − 1), agreeing with Theorem 4.1.</p>
+<hr />
+<h2 id="5-numerical-verification-see-checkpy">5. Numerical verification (see <code>check.py</code>)</h2>
+<p><code>check.py</code> (Python 3, standard library only) verifies each statement on
+small cases:</p>
+<ol>
+<li><strong>Primes 3 (mod 4).</strong> Sieve of Eratosthenes up to 10⁶. The script
+   reports the total number of primes (cross-checked against the known value
+   π(10⁶) = 78498), the counts of primes in the residue classes 1 and 3
+   mod 4, the first and last such primes, the count of primes 3 (mod 4) in
+   each block of 100 000 (each block is nonzero — they "keep appearing"),
+   and the largest gap between consecutive primes 3 (mod 4).</li>
+<li><strong>√2 + √3.</strong> Computes α = √2 + √3 with 80-digit precision
+   (decimal module), then evaluates <em>every</em> polynomial of exact degree
+   0, 1, 2, or 3 with integer coefficients in {−2, −1, 0, 1, 2} (leading
+   coefficient nonzero) at α, and reports the minimum of |P(α)| over all
+   of them; the minimum is far above 10⁻⁴⁰, so none of these polynomials
+   vanishes at α to the numerical precision available. As a sanity check
+   that the precision machinery is correct, the script also evaluates the
+   true minimal polynomial x⁴ − 10x² + 1 at α (value &lt; 10⁻⁶⁰) and
+   (α² − 5)² − 24 (value &lt; 10⁻⁶⁰), both of which vanish exactly in the
+   reals.</li>
+<li><strong>Tournaments.</strong> For every n = 1, …, 6 it enumerates <em>all</em>
+   2^(n(n−1)/2) labeled tournaments (33 867 in total) and, for each, runs
+   an exact dynamic program over vertex subsets (Held–Karp style,
+   dp[mask][last] = "a directed path visiting exactly the vertices in mask,
+   ending at last, exists") to decide whether a Hamiltonian path exists.
+   Every one of the 33 867 tournaments has a Hamiltonian path; the script
+   also prints one example path found on 6 vertices.</li>
+<li><strong>Odd cubes.</strong> Computes the partial sums S(n) = 1³ + … + (2n−1)³ for
+   n = 1, …, 1000 using exact integer arithmetic and asserts
+   S(n) = n²(2n² − 1) at every single n; it prints spot values for
+   n = 1, 2, 3, 4, 10 and n = 1000.</li>
+</ol>
+<p>Expected output ends with <code>ALL FOUR CHECKS PASSED</code> (exit code 0).</p></main>

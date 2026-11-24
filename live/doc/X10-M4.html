@@ -1,0 +1,252 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M4 · X10 · PROOFS.md <span>M4-qwen3.8-flash-next-orca-uncensored-nvfp4-gptq</span></div><main><h1 id="proofs">Proofs</h1>
+<p>Four complete proofs. Each is written as a sequence of numbered steps, each step
+justified by a named earlier result or by a standard fact recorded below.</p>
+<h2 id="background-facts-used">Background facts used</h2>
+<p>These are the only external tools the proofs appeal to. Each is a standard result
+from an introductory proof course / number theory course.</p>
+<ul>
+<li><strong>F1 (Induction).</strong> If a statement P(n) holds for n = 1, and P(n) implies P(n+1)
+  for every n &gt;= 1, then P(n) holds for every n &gt;= 1.</li>
+<li><strong>F2 (Well-ordering).</strong> Every nonempty set of nonnegative integers has a least
+  element. Equivalently, every nonempty <em>finite</em> set of integers has a largest
+  element (apply well-ordering to the set of negatives).</li>
+<li><strong>F3 (Fundamental theorem of arithmetic).</strong> Every integer N &gt; 1 can be written
+  as a product of primes, uniquely up to reordering.</li>
+<li><strong>F4 (Divisibility is linear).</strong> If d | A and d | B then d | (A - B). Also,
+  d | A means A = dq for some integer q, and a prime p satisfies p &gt;= 2, so
+  p does not divide 1.</li>
+<li><strong>F5 (Parity).</strong> An integer is even iff it is divisible by 2; odd integers are
+  closed under multiplication (an odd number is 2m+1, and (2m+1)(2k+1) =
+  2(2mk+m+k)+1 is odd).</li>
+<li><strong>F6 (Rationals are closed under arithmetic).</strong> Sums, differences, products,
+  and quotients (with nonzero denominator) of rational numbers are rational.</li>
+<li><strong>F7 (Unique nonnegative square roots).</strong> For every real t &gt;= 0 there is
+  exactly one real s &gt;= 0 with s^2 = t; it is denoted sqrt(t). Uniqueness
+  holds because x^2 is strictly increasing on [0, infinity): if 0 &lt;= x &lt; y
+  then y^2 - x^2 = (y-x)(y+x) &gt; 0.</li>
+</ul>
+<hr />
+<h2 id="1-infinitely-many-primes-congruent-to-3-modulo-4">1. Infinitely many primes congruent to 3 modulo 4</h2>
+<p><strong>Theorem 1.</strong> There are infinitely many primes p with p = 3 (mod 4).</p>
+<p>We write a = b (mod 4) to mean 4 | (a - b), i.e. a = 4q + b for some integer q.
+Every integer has exactly one residue in {0, 1, 2, 3} modulo 4.</p>
+<p><strong>Lemma 1.1.</strong> If a = 1 (mod 4) and b = 1 (mod 4), then ab = 1 (mod 4). More
+generally, any finite product of integers that are each 1 (mod 4) is 1 (mod 4).</p>
+<p><em>Proof.</em> a = 1 (mod 4) means a = 4j + 1, and b = 1 (mod 4) means b = 4k + 1, by
+definition. Then</p>
+<pre><code>ab = (4j + 1)(4k + 1) = 16jk + 4j + 4k + 1 = 4(4jk + j + k) + 1,
+</code></pre>
+<p>so ab - 1 = 4(4jk + j + k) is divisible by 4, i.e. ab = 1 (mod 4). The general
+claim follows by induction on the number of factors (F1): the case of one factor
+is trivial, and the two-factor case just proved turns a product of n factors
+into a product of n-1 factors that is 1 (mod 4) times one more factor 1 (mod 4).</p>
+<p><strong>Lemma 1.2.</strong> Every integer N with N = 3 (mod 4) and N &gt; 1 has a prime divisor
+q with q = 3 (mod 4).</p>
+<p><em>Proof.</em> Step 1: N is odd. If N were even, N = 2t, then N mod 4 is 0 (if t is
+even) or 2 (if t is odd), never 3; contradiction with N = 3 (mod 4).</p>
+<p>Step 2: by F3, N = p_1 p_2 ... p_r for some primes p_i (r &gt;= 1 because N &gt; 1).
+Each p_i is odd, because if some p_i were even then 2 | p_i forces p_i = 2, and
+then 2 | N, contradicting Step 1.</p>
+<p>Step 3: each odd prime p_i satisfies p_i = 1 or 3 (mod 4), because its residue
+mod 4 cannot be 0 or 2 (those residues are even numbers, but p_i is odd).</p>
+<p>Step 4: suppose for contradiction that no p_i is 3 (mod 4). Then by Step 3 every
+p_i is 1 (mod 4), so by Lemma 1.1 (iterated) N = p_1...p_r = 1 (mod 4). But
+N = 3 (mod 4) and an integer has exactly one residue mod 4, contradiction.
+Hence some prime divisor q = p_i satisfies q = 3 (mod 4).</p>
+<p><em>Proof of Theorem 1.</em> Suppose, for contradiction, that only finitely many primes
+are 3 (mod 4). The set is nonempty (3 is prime and 3 = 3 (mod 4)), so list them
+as p_1, ..., p_k, with p_1 = 3 among them. Define</p>
+<pre><code>N = 4 * p_1 * p_2 * ... * p_k - 1.
+</code></pre>
+<p>Step 1: N &gt; 1. Since 3 is one of the p_i, the product p_1...p_k &gt;= 3, so
+N &gt;= 4*3 - 1 = 11 &gt; 1.</p>
+<p>Step 2: N = 3 (mod 4). N = 4M - 1 where M = p_1...p_k, and 4M - 1 = 4(M-1) + 3,
+so N - 3 = 4(M-1) is divisible by 4.</p>
+<p>Step 3: by Lemma 1.2 (applicable by Steps 1-2), N has a prime divisor q with
+q = 3 (mod 4).</p>
+<p>Step 4: by the listing assumption, q = p_i for some i in {1,...,k}. Then q
+divides the product p_1...p_k (it is one of the factors), hence q divides
+4 * p_1 * ... * p_k. We also have q | N by Step 3. By F4,</p>
+<pre><code>q | (4 * p_1 * ... * p_k) - N = 1.
+</code></pre>
+<p>Step 5: but q is prime, so q &gt;= 2, and no integer &gt;= 2 divides 1. Contradiction.</p>
+<p>The contradiction shows the list could not have contained all primes 3 (mod 4);
+hence there are infinitely many.</p>
+<hr />
+<h2 id="2-the-number-sqrt2-sqrt3-is-irrational">2. The number sqrt(2) + sqrt(3) is irrational</h2>
+<p><strong>Theorem 2.</strong> sqrt(2) + sqrt(3) is irrational.</p>
+<p><strong>Lemma 2.0.</strong> For all a, b &gt;= 0, sqrt(a) * sqrt(b) = sqrt(ab).</p>
+<p><em>Proof.</em> Both sqrt(a) and sqrt(b) are nonnegative by definition of sqrt, so
+their product is nonnegative. Its square is
+(sqrt(a) sqrt(b))^2 = (sqrt a)^2 (sqrt b)^2 = a * b, using commutativity and
+associativity of multiplication of reals. So sqrt(a) sqrt(b) is a nonnegative
+number whose square is ab. By F7 there is exactly one such number, namely
+sqrt(ab). Hence sqrt(a) sqrt(b) = sqrt(ab).</p>
+<p><strong>Lemma 2.1.</strong> If a is an integer and a^2 is even, then a is even.</p>
+<p><em>Proof.</em> We prove the contrapositive: if a is odd then a^2 is odd. If a is odd,
+a = 2m + 1, so a^2 = 4m^2 + 4m + 1 = 2(2m^2 + 2m) + 1, which is odd (F5).</p>
+<p><strong>Lemma 2.2.</strong> sqrt(6) is irrational.</p>
+<p><em>Proof.</em> Suppose, for contradiction, sqrt(6) = a/b with integers a, b, b &gt; 0.
+Dividing a and b by their greatest common divisor (which exists and can be
+computed by the Euclidean algorithm) does not change the value of a/b, so we may
+assume gcd(a, b) = 1.</p>
+<p>Step 1: squaring, 6 = a^2 / b^2, so a^2 = 6 b^2. Hence a^2 = 2 * (3b^2) is
+even, so a is even by Lemma 2.1. Write a = 2c.</p>
+<p>Step 2: substituting, 4c^2 = 6b^2, and dividing both sides by 2 gives
+2c^2 = 3b^2.</p>
+<p>Step 3: the left side 2c^2 is even, so 3b^2 is even. If b^2 were odd, then
+3b^2 = 3 * b^2 would be a product of two odd numbers, hence odd (F5),
+contradiction. So b^2 is even, and then b is even by Lemma 2.1.</p>
+<p>Step 4: now 2 | a and 2 | b, so gcd(a, b) &gt;= 2, contradicting gcd(a, b) = 1.
+Hence sqrt(6) is irrational.</p>
+<p><em>Proof of Theorem 2.</em> Let alpha = sqrt(2) + sqrt(3). Suppose, for contradiction,
+that alpha is rational.</p>
+<p>Step 1: alpha^2 is rational, by F6 (a product of rationals is rational).</p>
+<p>Step 2: expand alpha^2 using (x + y)^2 = x^2 + 2xy + y^2 with x = sqrt 2,
+y = sqrt 3:</p>
+<pre><code>alpha^2 = (sqrt 2)^2 + 2 sqrt 2 sqrt 3 + (sqrt 3)^2
+        = 2 + 2 sqrt 6 + 3          (by definition of sqrt, and Lemma 2.0)
+        = 5 + 2 sqrt 6.
+</code></pre>
+<p>Step 3: rearranging, sqrt 6 = (alpha^2 - 5) / 2. Since alpha^2 is rational
+(Step 1) and 5 is rational, alpha^2 - 5 is rational by F6; dividing by the
+nonzero integer 2 keeps it rational by F6. So sqrt 6 is rational.</p>
+<p>Step 4: this contradicts Lemma 2.2. Hence alpha = sqrt 2 + sqrt 3 is irrational.</p>
+<p><em>Remark.</em> The same argument shows alpha has degree exactly 4 over the rationals:
+with the basis computations of the companion script, alpha^2 = 5 + 2 sqrt 6 and
+alpha^4 = 49 + 20 sqrt 6, so alpha^4 - 10 alpha^2 + 1 = (49 - 50 + 1) +
+(20 - 20) sqrt 6 = 0; alpha is a root of x^4 - 10x^2 + 1, and Step 3 above shows
+no polynomial of degree 1, 2, or 3 with rational coefficients can vanish at it.</p>
+<hr />
+<h2 id="3-every-finite-tournament-has-a-hamiltonian-path">3. Every finite tournament has a Hamiltonian path</h2>
+<p><strong>Definitions.</strong> A <em>tournament</em> T on a finite vertex set V is an orientation of
+the complete graph: for every unordered pair {u, v} of distinct vertices,
+exactly one of the directed edges u -&gt; v and v -&gt; u is present (we call this
+property <strong>exclusivity</strong>). A <em>Hamiltonian path</em> is a listing of all vertices
+w_1, w_2, ..., w_m (each exactly once) such that w_i -&gt; w_{i+1} is an edge for
+every i = 1, ..., m-1.</p>
+<p><strong>Theorem 3.</strong> Every tournament on n &gt;= 1 vertices has a Hamiltonian path.</p>
+<p><em>Proof.</em> Induction on n (F1).</p>
+<p><strong>Base case, n = 1.</strong> The single vertex, listed alone, is a Hamiltonian path:
+there are no consecutive pairs to check, so the path condition holds
+vacuously.</p>
+<p><strong>Inductive hypothesis.</strong> Fix n &gt;= 1 and assume every tournament on n vertices
+has a Hamiltonian path.</p>
+<p><strong>Inductive step.</strong> Let T be a tournament on n + 1 vertices.</p>
+<p>Step 1: pick any vertex v, and form T' by deleting v and every edge touching v.
+T' is a tournament on n vertices: for any two remaining vertices {u, w}, the
+edge between them was not deleted, and by exclusivity for T it has exactly one
+direction, which is also the only direction it has in T'.</p>
+<p>Step 2: by the inductive hypothesis, T' has a Hamiltonian path</p>
+<pre><code>v_1 -&gt; v_2 -&gt; ... -&gt; v_n.
+</code></pre>
+<p>Every edge of this path is also an edge of T (T only adds edges incident to v),
+and {v_1, ..., v_n} is all of V \ {v}.</p>
+<p>Step 3: for each i, consider the pair {v_i, v}. By exclusivity in T, exactly
+one of the following holds: (A_i) v_i -&gt; v, or (B_i) v -&gt; v_i.</p>
+<p>We now insert v into the path. Exactly one of three cases holds.</p>
+<p><strong>Case 1: B_1 holds</strong>, i.e. v -&gt; v_1. Then
+v -&gt; v_1 -&gt; v_2 -&gt; ... -&gt; v_n
+is a Hamiltonian path of T: it lists all n + 1 vertices exactly once, its
+consecutive edges are v -&gt; v_1 (which holds in this case) and the edges of the
+path from Step 2 (present in T by Step 2).</p>
+<p><strong>Case 2: A_n holds</strong>, i.e. v_n -&gt; v. Then
+v_1 -&gt; ... -&gt; v_n -&gt; v
+is a Hamiltonian path by the same verification.</p>
+<p><strong>Case 3: neither Case 1 nor Case 2 holds.</strong> Then B_1 is false, so A_1 holds
+(exclusivity, Step 3): v_1 -&gt; v. And A_n is false, so B_n holds: v -&gt; v_n.
+Define the set S = { i in {1, ..., n} : A_i holds } = { i : v_i -&gt; v }.
+S is nonempty because 1 is in S, and S is finite, so by F2 it has a largest
+element m. Since A_n fails, n is not in S, so m &lt;= n - 1, and m + 1 is a valid
+index. By maximality of m, m + 1 is not in S, so A_{m+1} fails, hence B_{m+1}
+holds (exclusivity again): v -&gt; v_{m+1}. Now insert v between v_m and v_{m+1}:</p>
+<pre><code>v_1 -&gt; ... -&gt; v_m -&gt; v -&gt; v_{m+1} -&gt; ... -&gt; v_n.
+</code></pre>
+<p>Verification: the listing contains each of v_1, ..., v_n exactly once (they
+appear in their original order) and contains v exactly once, so it lists all
+n + 1 vertices exactly once. Its consecutive edges are: edges of the Step 2
+path (present in T), the edge v_m -&gt; v (true because m is in S), and the edge
+v -&gt; v_{m+1} (true because m + 1 is not in S, as just shown). So it is a
+Hamiltonian path.</p>
+<p>Step 4: the three cases are exhaustive: either B_1 or A_1 holds, and either
+A_n or B_n holds; if neither Case 1 nor Case 2 applies we are in Case 3. (When
+n = 1, Case 3 cannot occur: it would require A_1 and B_1 simultaneously,
+forbidden by exclusivity; Cases 1 and 2 already cover n = 1.)</p>
+<p>In every case T has a Hamiltonian path. By induction (F1), the theorem holds
+for all n &gt;= 1.</p>
+<hr />
+<h2 id="4-sum-of-the-first-n-odd-cubes">4. Sum of the first n odd cubes</h2>
+<p><strong>Theorem 4.</strong> For every integer n &gt;= 1,</p>
+<pre><code>1^3 + 3^3 + 5^3 + ... + (2n-1)^3  =  n^2 (2n^2 - 1).
+</code></pre>
+<p><strong>First proof (induction).</strong> Write S_n for the left side.</p>
+<p><strong>Base case, n = 1.</strong> S_1 = 1^3 = 1, and the right side is
+1^2 * (2*1^2 - 1) = 1 * 1 = 1. Equal.</p>
+<p><strong>Inductive step.</strong> Assume for some n &gt;= 1 that S_n = n^2 (2n^2 - 1)
+(inductive hypothesis). Then, since S_{n+1} is S_n plus the next term
+(2(n+1)-1)^3 = (2n+1)^3,</p>
+<pre><code>S_{n+1} = n^2 (2n^2 - 1) + (2n+1)^3        (by the inductive hypothesis).
+</code></pre>
+<p>Expand each piece using only distributivity:</p>
+<pre><code>n^2 (2n^2 - 1) = 2n^4 - n^2,
+(2n+1)^2 = 4n^2 + 4n + 1,
+(2n+1)^3 = (4n^2 + 4n + 1)(2n + 1)
+         = 8n^3 + 4n^2 + 8n^2 + 4n + 2n + 1
+         = 8n^3 + 12n^2 + 6n + 1.
+</code></pre>
+<p>Adding (collecting coefficients of like powers):</p>
+<pre><code>S_{n+1} = 2n^4 + 8n^3 + (-1 + 12) n^2 + 6n + 1
+        = 2n^4 + 8n^3 + 11n^2 + 6n + 1.                        (*)
+</code></pre>
+<p>Now expand the claimed right side at n + 1:</p>
+<pre><code>(n+1)^2 = n^2 + 2n + 1,
+2(n+1)^2 - 1 = 2n^2 + 4n + 2 - 1 = 2n^2 + 4n + 1,
+
+(n+1)^2 (2(n+1)^2 - 1) = (n^2 + 2n + 1)(2n^2 + 4n + 1)
+    = n^2 (2n^2 + 4n + 1) + 2n (2n^2 + 4n + 1) + 1 (2n^2 + 4n + 1)
+    = (2n^4 + 4n^3 + n^2) + (4n^3 + 8n^2 + 2n) + (2n^2 + 4n + 1)
+    = 2n^4 + 8n^3 + 11n^2 + 6n + 1.                            (**)
+</code></pre>
+<p>The expressions (<em>) and (</em>*) are identical, so S_{n+1} = (n+1)^2 (2(n+1)^2 - 1).
+By induction (F1), the identity holds for all n &gt;= 1.</p>
+<p><strong>Second proof (direct computation).</strong> We use the classical cube-sum formula as
+a lemma.</p>
+<p><strong>Lemma 4.1.</strong> For every m &gt;= 1, sum_{j=1}^{m} j^3 = (m(m+1)/2)^2.</p>
+<p><em>Proof.</em> Induction on m (F1). Base m = 1: 1^3 = 1 = (1*2/2)^2. Step: assume the
+formula for m. Then</p>
+<pre><code>sum_{j=1}^{m+1} j^3 = (m(m+1)/2)^2 + (m+1)^3
+    = (m+1)^2 [ m^2/4 + (m+1) ]          (factoring out (m+1)^2)
+    = (m+1)^2 (m^2 + 4m + 4) / 4
+    = (m+1)^2 (m+2)^2 / 4                 (since m^2 + 4m + 4 = (m+2)^2)
+    = ( (m+1)(m+2) / 2 )^2,
+</code></pre>
+<p>which is the formula at m + 1. Each equality is algebra: distribute, factor,
+and recognize the perfect square.</p>
+<p><em>Proof of Theorem 4 (second way).</em> The set {1, 2, ..., 2n} splits uniquely into
+the n odd numbers {2k-1 : 1 &lt;= k &lt;= n} and the n even numbers {2k : 1 &lt;= k &lt;= n}
+(every integer is exactly one of odd/even, by parity). Hence</p>
+<pre><code>sum_{k=1}^{n} (2k-1)^3  =  sum_{j=1}^{2n} j^3  -  sum_{k=1}^{n} (2k)^3.
+</code></pre>
+<p>Apply Lemma 4.1 to the first sum with m = 2n, and to the second sum after
+pulling out the constant (2k)^3 = 8k^3:</p>
+<pre><code>sum_{j=1}^{2n} j^3 = ( 2n(2n+1)/2 )^2 = n^2 (2n+1)^2,
+sum_{k=1}^{n} (2k)^3 = 8 * ( n(n+1)/2 )^2 = 2 n^2 (n+1)^2.
+</code></pre>
+<p>Subtracting and factoring n^2:</p>
+<pre><code>S_n = n^2 [ (2n+1)^2 - 2(n+1)^2 ]
+    = n^2 [ (4n^2 + 4n + 1) - (2n^2 + 4n + 2) ]
+    = n^2 (2n^2 - 1).
+</code></pre>
+<p>This is the claimed formula, with no induction on n beyond the one inside
+Lemma 4.1.</p></main>

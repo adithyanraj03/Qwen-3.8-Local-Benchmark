@@ -1,0 +1,262 @@
+<!doctype html><meta charset=utf-8><title>ARCHITECTURE.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M3 · N14 · ARCHITECTURE.md <span>M3-qwen3.8-27b-thinkingcap-heretic-nvfp4</span></div><main><h1 id="typer-architecture-notes">Typer — Architecture Notes</h1>
+<p>This repository is the <strong>Typer</strong> CLI framework (v0.27.x): a thin, type-hint-driven
+API on top of a <strong>vendored copy of Click</strong> (<code>typer/_click/</code>, forked from Click
+8.3.1 — see <code>typer/_click/__init__.py:1-3</code>).</p>
+<h2 id="1-main-modules-and-dependencies">1. Main modules and dependencies</h2>
+<p>The code is organized in three layers. Dependencies point strictly downward
+(no module imports from a layer above it):</p>
+<pre><code>  public API        typer/__init__.py  (re-exports only)
+                      |
+  Typer layer       main.py  params.py  models.py  utils.py  completion.py
+                      |                 |
+  Typer core        core.py  exceptions.py  rich_utils.py  testing.py  cli.py
+                      |
+  vendored Click    typer/_click/  (core, parser, types, termui, ...)
+                      |
+  third-party       annotated_doc, rich (optional), shellingham, colorama
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Role</th>
+<th>Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>typer/__init__.py</code></td>
+<td>Public API surface; re-exports <code>Typer</code>, <code>Option</code>, <code>Argument</code>, <code>echo</code>, <code>Context</code>, …</td>
+<td><code>main</code>, <code>params</code>, <code>models</code>, <code>exceptions</code>, <code>_click</code> (<code>typer/__init__.py:23-33</code>)</td>
+</tr>
+<tr>
+<td><code>typer/params.py</code></td>
+<td><code>Option()</code> / <code>Argument()</code> factories. Pure data constructors returning <code>OptionInfo</code> / <code>ArgumentInfo</code> (<code>typer/params.py:948-1002</code>); heavily <code>Doc</code>-annotated for API docs.</td>
+<td><code>models</code>, <code>_click</code> (types)</td>
+</tr>
+<tr>
+<td><code>typer/models.py</code></td>
+<td>All the <em>information</em> dataclasses: <code>CommandInfo</code> (<code>:200</code>), <code>TyperInfo</code> (<code>:235</code>), <code>ParameterInfo</code>/<code>OptionInfo</code>/<code>ArgumentInfo</code> (<code>:280</code>), <code>ParamMeta</code> (<code>:620</code>), plus <code>Context</code>, <code>File*</code>, <code>TyperPath</code> (a <code>click</code> <code>ParamType</code>), and the <code>Default()</code>/<code>DefaultPlaceholder</code> sentinel (<code>:170-197</code>).</td>
+<td><code>_click</code> (types, <code>Context</code>)</td>
+</tr>
+<tr>
+<td><code>typer/utils.py</code></td>
+<td>Signature introspection: <code>get_params_from_function()</code> (<code>:107</code>) resolves <code>Annotated[str, typer.Option()]</code> hints into <code>ParamMeta</code> records, moving <code>=</code>-defaults and <code>param_decls</code> into the <code>ParameterInfo</code>; raises the four user-facing config errors (<code>:22-92</code>).</td>
+<td><code>models</code>, <code>_typing</code></td>
+</tr>
+<tr>
+<td><code>typer/main.py</code></td>
+<td>The heart of the Typer layer. <code>Typer</code> class (registration only), the builder functions that convert registration data into a Click command tree, the Python-type → Click-type mapping, and the callback wrappers.</td>
+<td><code>models</code>, <code>core</code>, <code>utils</code>, <code>_click</code></td>
+</tr>
+<tr>
+<td><code>typer/core.py</code></td>
+<td>Typer's Click subclasses: <code>TyperCommand</code> (<code>:903</code>), <code>TyperGroup</code> (<code>:991</code>), <code>TyperOption</code> (<code>:435</code>), <code>TyperArgument</code> (<code>:245</code>), plus the <code>_main()</code> entrypoint (<code>:158</code>) that adds rich error rendering, and help-record helpers shared with <code>rich_utils</code>.</td>
+<td><code>_click</code>, <code>exceptions</code>, <code>utils</code></td>
+</tr>
+<tr>
+<td><code>typer/exceptions.py</code></td>
+<td><code>TyperException</code>, <code>Abort</code>, <code>Exit</code> (<code>typer/exceptions.py:1-29</code>).</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>typer/rich_utils.py</code></td>
+<td>Rich-based help rendering and pretty tracebacks; imported lazily (banned at module level elsewhere by <code>pyproject.toml:202</code>).</td>
+<td><code>core</code>, <code>models</code>, <code>_click</code></td>
+</tr>
+<tr>
+<td><code>typer/completion.py</code></td>
+<td><code>--install-completion</code> / <code>--show-completion</code> plumbing.</td>
+<td><code>_click</code>, <code>_completion_*</code></td>
+</tr>
+<tr>
+<td><code>typer/testing.py</code></td>
+<td><code>CliRunner</code> / <code>Result</code> for tests; rebuilds the Click command per call via <code>typer.main.get_command</code> (<code>typer/testing.py:285</code>).</td>
+<td><code>main</code>, <code>_click</code></td>
+</tr>
+<tr>
+<td><code>typer/cli.py</code></td>
+<td>The <code>typer</code> console script itself (<code>[project.scripts]</code>, <code>pyproject.toml:51</code>) — a dogfooded Typer app that runs arbitrary Typer scripts; has its own hand-rolled <code>--version</code> (<code>typer/cli.py:153-172</code>).</td>
+<td><code>typer</code> (whole package), <code>core</code></td>
+</tr>
+<tr>
+<td><code>typer/_typing.py</code>, <code>typer/_types.py</code></td>
+<td>Typing helpers (<code>get_origin</code>, <code>get_args</code>, <code>Annotated</code> fallbacks) and <code>TyperChoice</code>.</td>
+<td>stdlib</td>
+</tr>
+<tr>
+<td><code>typer/_click/*</code></td>
+<td>Vendored Click: <code>core.py</code> (<code>Context</code> <code>:118</code>, <code>Command</code> <code>:503</code>, <code>Parameter</code> <code>:805</code>), <code>parser.py</code> (<code>_OptionParser</code> <code>:207</code>, token-level <code>parse_args</code> <code>:275</code>), <code>types.py</code> (<code>ParamType</code> <code>:30</code>), <code>termui.py</code>, <code>formatting.py</code>, <code>utils.py</code>, <code>exceptions.py</code>, <code>shell_completion.py</code>, <code>decorators.py</code>.</td>
+<td>stdlib</td>
+</tr>
+</tbody>
+</table>
+<p>Key dependency properties:</p>
+<ul>
+<li><code>Typer</code> instances never import <code>core</code> at runtime for building — building is
+  done by free functions in <code>main.py</code> (<code>get_command</code>, <code>main.py:1173</code>).</li>
+<li><code>models.py</code> and <code>params.py</code> know nothing about <code>main.py</code>; the public
+  decorators only <em>record</em> data.</li>
+<li><code>rich_utils</code> is deliberately isolated behind lazy imports so Rich can stay
+  optional (<code>core.py:27</code> reads <code>TYPER_USE_RICH</code>).</li>
+</ul>
+<h2 id="2-request-flow-decorated-function-parsed-command-line">2. Request flow: decorated function → parsed command line</h2>
+<p>Using this app as the example:</p>
+<pre><code class="language-python">import typer
+app = typer.Typer()
+
+@app.command()
+def deploy(name: str, env: str = typer.Option(&quot;dev&quot;)):
+    ...
+
+app()
+</code></pre>
+<h3 id="phase-a-decorator-time-pure-registration-no-parsing">Phase A — Decorator time (pure registration, no parsing)</h3>
+<ol>
+<li><code>typer.Option("dev")</code> returns an <code>OptionInfo</code> dataclass
+   (<code>typer/params.py:948</code>).</li>
+<li><code>@app.command()</code> appends a <code>CommandInfo(callback=deploy, ...)</code> to
+   <code>app.registered_commands</code> and returns the function untouched
+   (<code>typer/main.py:890-911</code>). Nothing about signatures is inspected yet.</li>
+</ol>
+<h3 id="phase-b-app-registration-data-click-command-tree">Phase B — <code>app()</code>: registration data → Click command tree</h3>
+<ol start="3">
+<li><code>Typer.__call__</code> (<code>typer/main.py:1133</code>) installs the pretty-except hook and
+   calls <code>get_command(self)</code> (<code>typer/main.py:1173</code>).</li>
+<li><code>get_command</code> decides the shape of the CLI: with one command and no
+   callback/groups it builds a single command; otherwise a <code>TyperGroup</code>
+   (<code>typer/main.py:1176-1205</code>). App-level <code>--install-completion</code> /
+   <code>--show-completion</code> params are appended here (<code>typer/main.py:1184-1186</code>).</li>
+<li><code>get_group_from_info</code> (<code>typer/main.py:1283</code>) recurses over
+   <code>registered_commands</code> and <code>registered_groups</code> (nested Typer apps via
+   <code>add_typer</code>, <code>typer/main.py:1108</code>), resolving inherited settings with the
+   <code>DefaultPlaceholder</code> priority chain (<code>solve_typer_info_defaults</code>,
+   <code>typer/main.py:1248</code>), then constructs a <code>TyperGroup</code>
+   (<code>typer/core.py:991</code>).</li>
+<li>For each command, <code>get_command_from_info</code> (<code>typer/main.py:1392</code>):
+   - derives the command name (<code>get_command_name</code>, <code>:1360</code>) and help text
+     (explicit <code>help</code> → callback docstring, <code>:1400-1404</code>);
+   - calls <code>get_params_convertors_ctx_param_name_from_function</code> (<code>:1373</code>),
+     which for every function parameter runs
+     <code>get_params_from_function</code> (<code>typer/utils.py:107</code>) — this is where
+     <code>Annotated[...]</code> is split from the real annotation — and
+     <code>get_click_param</code> (<code>typer/main.py:1632</code>).</li>
+<li><code>get_click_param</code> decides option-vs-argument from the presence of
+   <code>OptionInfo</code>/<code>ArgumentInfo</code>, maps the annotation to a Click <code>ParamType</code> via
+   <code>get_click_type</code> (<code>typer/main.py:1530</code>: <code>str</code>→<code>STRING</code>, <code>int</code>→<code>INT</code>/
+   <code>IntRange</code>, <code>Path</code>→<code>TyperPath</code>, <code>Enum</code>→<code>TyperChoice</code>, …), picks the Python
+   value <em>convertor</em> via <code>determine_type_convertor</code> (<code>:1437</code>, for <code>Path</code>,
+   <code>Enum</code>, <code>list</code>, <code>tuple</code>), and emits a <code>TyperOption</code> / <code>TyperArgument</code>
+   (<code>typer/core.py:435</code> / <code>:245</code>) carrying the <code>OptionInfo</code> settings (help,
+   envvar, callback, …).</li>
+<li><code>get_callback</code> (<code>typer/main.py:1496</code>) wraps the user function: it builds a
+   <code>use_params</code> dict keyed by the function's real parameter names, and at call
+   time applies the convertors and injects <code>click.Context</code> if annotated
+   (<code>typer/main.py:1515-1524</code>).</li>
+</ol>
+<p>At the end of this phase there is an ordinary Click tree: a <code>TyperGroup</code> or
+<code>TyperCommand</code> whose <code>params</code> are <code>TyperOption</code>/<code>TyperArgument</code> objects.</p>
+<h3 id="phase-c-sysargv-typed-python-values">Phase C — <code>sys.argv</code> → typed Python values</h3>
+<ol start="9">
+<li>The command's <code>main()</code> — <code>TyperCommand.main</code> (<code>typer/core.py:955</code>) — delegates
+   to <code>_main</code> (<code>typer/core.py:158</code>), a Typer fork of <code>click.main()</code> that adds
+   rich error output and <code>typer.Exit</code>/<code>Abort</code> handling (<code>typer/core.py:203-242</code>).</li>
+<li><code>make_context</code> (<code>typer/_click/core.py:687</code>) creates the <code>Context</code>, merges
+    <code>context_settings</code>, and calls <code>parse_args</code>.</li>
+<li><code>Command.parse_args</code> (<code>typer/_click/core.py:711</code>) calls <code>make_parser</code>
+    (<code>:611</code>), which asks each <code>TyperOption.add_to_parser</code>
+    (<code>typer/core.py:588</code>) / <code>TyperArgument.add_to_parser</code> (<code>typer/core.py:431</code>)
+    to register itself on Click's <code>_OptionParser</code>
+    (<code>typer/_click/parser.py:207</code>).</li>
+<li><code>_OptionParser.parse_args</code> (<code>typer/_click/parser.py:275</code>) tokenizes
+    <code>sys.argv[1:]</code>, matches long/short options and positional arguments, and
+    returns raw option values.</li>
+<li>Back in <code>parse_args</code>, every parameter runs <code>handle_parse_result</code>
+    (<code>typer/_click/core.py:1051</code>) — ordered by
+    <code>iter_params_for_processing</code> (<code>typer/_click/core.py:74</code>) so <code>is_eager</code>
+    params (e.g. <code>--version</code>, <code>--help</code>) are processed first.</li>
+<li><code>consume_value</code> (<code>typer/_click/core.py:920</code>) resolves the value with a
+    fixed precedence: <strong>command line → environment variable → default map →
+    declared default</strong> (Typer extends the env layer with auto-envvar prefixes,
+    <code>typer/core.py:686-703</code>, and prompts, <code>typer/core.py:705-728</code>).</li>
+<li><code>process_value</code> (<code>typer/_click/core.py:988</code>) runs
+    <code>type_cast_value</code> (<code>:940</code>) → the Click <code>ParamType.convert()</code> (e.g.
+    <code>TyperPath.convert</code>, <code>typer/models.py:696</code> — this is where <code>exists=True</code>
+    validation and <code>BadParameter</code> errors happen), then the Typer param
+    callback (wrapped by <code>get_param_callback</code>, <code>typer/main.py:1797</code>). The
+    typed value lands in <code>ctx.params[name]</code>.</li>
+<li>A <code>TyperGroup</code> then resolves the subcommand: <code>TyperGroup.invoke</code>
+    (<code>typer/core.py:1088</code>) → <code>resolve_command</code> (<code>typer/core.py:1171</code>, which
+    adds "Did you mean …?" suggestions, <code>:1176-1186</code>) →
+    <code>sub_ctx = cmd.make_context(...)</code> (<code>typer/core.py:1117</code>) → the subcommand's
+    <code>parse_args</code> runs again on the remaining tokens.</li>
+<li>Finally <code>Command.invoke</code> (<code>typer/_click/core.py:729</code>) does
+    <code>ctx.invoke(self.callback, **ctx.params)</code> — the callback is the wrapper
+    from step 8, which applies Path/Enum/list convertors
+    (<code>typer/main.py:1515-1524</code>) and calls the original decorated function with
+    fully typed arguments.</li>
+</ol>
+<p>Errors unwind as <code>ClickException</code> subclasses (<code>typer/_click/exceptions.py:20</code>),
+are pretty-printed by <code>_main</code> (<code>typer/core.py:203-212</code>), and user code
+exceptions are filtered of Typer/Click frames by <code>except_hook</code>
+(<code>typer/main.py:61-109</code>).</p>
+<h2 id="3-design-review">3. Design review</h2>
+<h3 id="good-decisions">Good decisions</h3>
+<ol>
+<li><strong>Registration and construction are fully separated.</strong> The <code>Typer</code> class
+   only stores plain data — <code>registered_commands</code>, <code>registered_groups</code>,
+   <code>registered_callback</code> (<code>typer/main.py:545-547</code>) — and the Click tree is
+   built on demand by <code>get_command</code> (<code>typer/main.py:1173</code>). Consequences:
+   sub-apps compose declaratively (<code>add_typer</code>, <code>typer/main.py:1108</code>); the
+   test runner can rebuild a fresh tree per <code>invoke</code>
+   (<code>typer/testing.py:285</code>); and root-level extras (completion options,
+   <code>typer/main.py:1184-1186</code>) can be attached imperatively without touching
+   the user's functions.</li>
+<li><strong>The <code>Default</code>/<code>DefaultPlaceholder</code> sentinel + explicit resolution chain.</strong>
+   Because <code>None</code> is a legitimate value, <code>TyperInfo</code> defaults are wrapped in
+   <code>DefaultPlaceholder</code> (<code>typer/models.py:170-197</code>), and
+   <code>solve_typer_info_defaults</code> (<code>typer/main.py:1248-1280</code>) documents the
+   inheritance priority (app-level &gt; <code>add_typer</code> &gt; sub-app callback &gt;
+   sub-app constructor) in one place. This makes nested-app configuration
+   predictable instead of implicit.</li>
+<li><strong>Subclassing a vendored Click, not wrapping it.</strong> Typer subclasses
+   <code>_click.Command</code>/<code>_click.Parameter</code> (<code>TyperCommand</code> <code>typer/core.py:903</code>,
+   <code>TyperOption</code> <code>typer/core.py:435</code>) and keeps the token-level
+   <code>_OptionParser</code> untouched. That gives battle-tested parsing for free while
+   letting Typer override exactly its differentiators: rich help, flag help
+   text, command-name suggestions (<code>typer/core.py:1171-1186</code>), and the
+   <code>is_bool_flag</code>/<code>--flag/--no-flag</code> dual-declaration parsing
+   (<code>typer/core.py:547-586</code>). Vendoring (rather than pinning a dependency)
+   keeps this override surface stable across releases.</li>
+</ol>
+<h3 id="decisions-i-would-change">Decisions I would change</h3>
+<ol>
+<li><strong>Copy-pasted parameter surfaces in <code>main.py</code>.</strong> <code>Typer.__init__</code>,
+   <code>Typer.callback</code>, <code>Typer.command</code> and <code>Typer.add_typer</code> each redeclare the
+   same ~20 settings with hand-written <code>Doc</code> strings — roughly 1,000 lines of
+   near-duplication (<code>typer/main.py:135-519</code>, <code>:549-751</code>, <code>:753-913</code>,
+   <code>:915-1131</code>), plus the repeated
+   <code>options_metavar or self._info_val_str("options_metavar")</code> idiom
+   (<code>typer/main.py:900-902</code>, <code>:1123-1125</code>). A shared parameter-spec dataclass
+   (or building the decorators from <code>TyperInfo</code>'s own defaults) would shrink
+   this dramatically and keep the four surfaces in sync.</li>
+<li><strong><code>TyperOption.get_help_record</code> duplicates Click's implementation "to
+   modify a single line"</strong> (the comment says so — <code>typer/core.py:752-754</code>),
+   and <code>TyperGroup</code> subclasses <code>_click.Command</code> instead of
+   <code>_click.Group</code>, re-implementing <code>parse_args</code>/<code>invoke</code>
+   (<code>typer/core.py:1077-1119</code>). These wholesale copies will silently drift
+   from upstream Click; I would either contribute the needed behavior
+   upstream, or override the narrow hooks (the secondary-opts join for bool
+   flags, and <code>collect_usage_pieces</code>) instead of the whole methods.</li>
+</ol></main>

@@ -1,0 +1,630 @@
+<!doctype html><meta charset=utf-8><title>DESIGN.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M4 · N24 · DESIGN.md <span>M4-qwen3.8-flash-next-orca-uncensored-nvfp4-gptq</span></div><main><h1 id="design-global-url-shortener-service-shrt">Design: Global URL-Shortener Service ("sh.rt")</h1>
+<p>Status: draft v1. Owner: infra/platform. Reviewers: SRE, security, data.</p>
+<p>A URL-shortener that resolves <code>https://sh.rt/&lt;code&gt;</code> to a target URL, designed for a sustained peak of <strong>50,000 writes/s</strong> and <strong>1,000,000 reads/s</strong> worldwide, with per-link click analytics.</p>
+<hr />
+<h2 id="1-requirements">1. Requirements</h2>
+<h3 id="functional">Functional</h3>
+<ul>
+<li><code>F1</code> Create a short link from a long URL; optional custom alias, expiry, and per-customer domain.</li>
+<li><code>F2</code> Resolve a short code with an HTTP redirect (301 when safe and cacheable, 302 when click accounting or unscanned).</li>
+<li><code>F3</code> Delete/deactivate a link (resolution returns 410).</li>
+<li><code>F4</code> Per-link click analytics: counts by time bucket, country, referrer class, device class; queryable via API and dashboard.</li>
+<li><code>F5</code> Duplicate-URL dedup: same long URL + same owner returns the same code (best-effort).</li>
+<li><code>F6</code> Bulk creation (up to 1,000 links per request).</li>
+</ul>
+<h3 id="non-functional">Non-functional</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Requirement</th>
+<th>Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N1</td>
+<td>Write throughput</td>
+<td>50,000 <code>POST /shorten</code>/s sustained peak</td>
+</tr>
+<tr>
+<td>N2</td>
+<td>Read throughput</td>
+<td>1,000,000 redirects/s sustained peak</td>
+</tr>
+<tr>
+<td>N3</td>
+<td>Redirect latency</td>
+<td>p50 &lt; 30 ms, p99 &lt; 150 ms (edge hit); p99 &lt; 300 ms (origin)</td>
+</tr>
+<tr>
+<td>N4</td>
+<td>Write latency</td>
+<td>p99 &lt; 150 ms</td>
+</tr>
+<tr>
+<td>N5</td>
+<td>Availability (redirect path)</td>
+<td>99.99% (~52 min/year error budget)</td>
+</tr>
+<tr>
+<td>N6</td>
+<td>Availability (write path)</td>
+<td>99.9%</td>
+</tr>
+<tr>
+<td>N7</td>
+<td>Durability</td>
+<td>11 nines; RPO &lt; 1 s for link data</td>
+</tr>
+<tr>
+<td>N8</td>
+<td>Analytics freshness</td>
+<td>p95 &lt; 60 s from click to dashboard</td>
+</tr>
+<tr>
+<td>N9</td>
+<td>Consistency</td>
+<td>Read-your-write for creator within its region (&lt; 1 s); global convergence &lt; 5 s</td>
+</tr>
+<tr>
+<td>N10</td>
+<td>Security</td>
+<td>Codes unguessable; links malware-scanned; abuse rate-limited</td>
+</tr>
+</tbody>
+</table>
+<h3 id="non-goals">Non-goals</h3>
+<ul>
+<li>No interstitial pages or JS-based redirects (hurts latency and cacheability).</li>
+<li>No full content proxying/archiving of target pages.</li>
+<li>No real-time personalization of the redirect target (A/B routing is a future phase).</li>
+<li>Input URLs capped at 4 KB; no FTP/gopher schemes.</li>
+</ul>
+<hr />
+<h2 id="2-high-level-architecture">2. High-Level Architecture</h2>
+<p>Three regions (<code>us-east</code>, <code>eu-west</code>, <code>ap-southeast</code>), each with edge PoPs, a stateless app fleet, a distributed cache, and a shard of the global key-value store. Writes are geo-partitioned; reads are served from the nearest region. Kafka + stream processing carry click and change events to an analytics store; nothing on the redirect path depends on analytics.</p>
+<pre class="mermaid">flowchart LR
+  subgraph clients["Clients"]
+    BR["Browsers"]
+    AP["API clients"]
+  end
+  DNS["DNS anycast + geo routing"]
+
+  subgraph NA["Region us-east"]
+    CDN1["Edge redirect cache"]
+    RL1["Rate limiter + WAF"]
+    GW1["API gateway"]
+    APP1["Redirect + API fleet"]
+    CA1["Distributed cache"]
+    DB1["Sharded KV - primary for AMER"]
+  end
+
+  subgraph EU["Region eu-west"]
+    CDN2["Edge redirect cache"]
+    APP2["Redirect + API fleet"]
+    CA2["Distributed cache"]
+    DB2["Sharded KV - primary for EMEA"]
+  end
+
+  subgraph APAC["Region ap-southeast"]
+    APP3["Redirect + API fleet"]
+    CA3["Distributed cache"]
+    DB3["Sharded KV - primary for APAC"]
+  end
+
+  KAFKA[("Kafka - CDC + click events")]
+  FLINK["Stream processors"]
+  CH[("ClickHouse")]
+  S3[("Object storage - archive + raw sample")]
+  SCAN["URL safety scanner"]
+  STATS["Stats API + dashboards"]
+
+  BR --> DNS
+  AP --> DNS
+  DNS --> CDN1
+  DNS --> CDN2
+  DNS --> APP3
+  CDN1 --> RL1 --> GW1 --> APP1
+  CDN2 --> APP2
+  APP1 --> CA1 --> DB1
+  APP2 --> CA2 --> DB2
+  APP3 --> CA3 --> DB3
+  DB1 -. "cross-region replication" .-> DB2
+  DB2 -. "cross-region replication" .-> DB3
+  DB3 -. "cross-region replication" .-> DB1
+  APP1 --> KAFKA
+  APP2 --> KAFKA
+  APP3 --> KAFKA
+  KAFKA --> FLINK --> CH --> STATS
+  FLINK --> S3
+  KAFKA --> SCAN
+  SCAN --> DB1
+</pre>
+<p>Key properties:</p>
+<ul>
+<li>The redirect path is <code>edge cache -&gt; regional cache -&gt; local KV replica</code>. It depends on at most one datastore and no synchronous RPCs to other regions.</li>
+<li>Analytics is fully asynchronous (Kafka). An analytics outage never affects redirects.</li>
+<li>Each KV shard has exactly one write leader (in the owner's region); other regions apply the change log asynchronously.</li>
+</ul>
+<hr />
+<h2 id="3-api">3. API</h2>
+<p>JSON over HTTPS, versioned path prefix, API key auth for writes (<code>Authorization: Bearer &lt;key&gt;</code>). Reads are unauthenticated.</p>
+<h3 id="create-a-short-link">Create a short link</h3>
+<pre><code>POST /v1/shorten
+Idempotency-Key: &lt;uuid&gt;            (required for retries; 24 h window)
+{
+  &quot;url&quot;: &quot;https://example.com/very/long/path?a=1&quot;,
+  &quot;alias&quot;: &quot;spring-sale&quot;,           (optional; 3-32 chars, [a-zA-Z0-9-])
+  &quot;expires_at&quot;: &quot;2027-01-01T00:00:00Z&quot;,  (optional)
+  &quot;domain&quot;: &quot;sh.rt&quot;,                (optional; customer domain)
+  &quot;metadata&quot;: {&quot;campaign&quot;: &quot;q4&quot;}    (optional; opaque, &lt;= 2 KB)
+}
+
+201 Created
+{ &quot;code&quot;: &quot;aB3xZ9kQ&quot;, &quot;short_url&quot;: &quot;https://sh.rt/aB3xZ9kQ&quot;,
+  &quot;status&quot;: &quot;pending_scan&quot;, &quot;created_at&quot;: &quot;...&quot; }
+
+400 invalid url | 403 domain not verified | 409 alias taken
+413 url too long | 422 url on blocklist | 429 rate limited (Retry-After)
+</code></pre>
+<h3 id="resolve-hot-path">Resolve (hot path)</h3>
+<pre><code>GET https://sh.rt/{code}
+
+301 Moved Permanently   (scanned-clean link; Cache-Control: public, max-age=31536000)
+302 Found               (unscanned, expiring, or accounting-required; no-store)
+  Location: &lt;target&gt;
+404 Not Found           (never existed; cached negatively 60 s)
+410 Gone                (deleted or expired)
+</code></pre>
+<h3 id="management-and-stats">Management and stats</h3>
+<pre><code>GET    /v1/links/{code}                 -&gt; metadata + status
+DELETE /v1/links/{code}                 -&gt; tombstone (idempotent)
+GET    /v1/links/{code}/stats?from=&amp;to=&amp;granularity=minute|hour|day
+                        -&gt; [{bucket, clicks, by_country{...}, by_referrer{...}}]
+POST   /v1/shorten/bulk                 -&gt; up to 1,000 links, per-item results
+</code></pre>
+<p>All mutating endpoints return <code>X-RateLimit-Limit/Remaining/Reset</code>. Idempotency keys make client retries safe against at-least-once delivery.</p>
+<hr />
+<h2 id="4-data-model">4. Data Model</h2>
+<pre class="mermaid">erDiagram
+  ACCOUNT ||--o{ LINK : "owns"
+  LINK ||--o{ CLICK_MIN : "counted by"
+  LINK ||--o{ CLICK_DAY : "counted by"
+  URL_HASH ||--|| LINK : "dedup index"
+
+  LINK {
+    string short_code PK "8-char base62"
+    string url "target, <= 4 KB"
+    string owner_id
+    string domain
+    int status "pending|active|blocked|deleted|expired"
+    timestamp created_at
+    timestamp expires_at "nullable"
+    string url_hash "sha256(url+owner), dedup key"
+    string region "write leader region"
+  }
+  URL_HASH {
+    string url_hash PK
+    string short_code
+  }
+  CLICK_MIN {
+    string short_code PK
+    timestamp minute PK
+    long clicks
+  }
+  CLICK_DAY {
+    string short_code PK
+    date day PK
+    string country PK
+    string referrer_class PK
+    long clicks
+  }
+</pre>
+<p>Storage layout:</p>
+<ul>
+<li><strong><code>links</code></strong> - the hot key-value store, sharded by <code>hash(short_code)</code> into 1,024 shards. Row is ~1 KB with overhead. Immutable after creation except <code>status</code>/<code>expires_at</code> transitions (small, idempotent, last-writer-wins).</li>
+<li><strong><code>url_dedup</code></strong> - secondary table sharded by <code>hash(url_hash)</code>; conditional put ("insert if absent, else return existing"). Because it lives on a different shard than <code>links</code>, dedup is best-effort: a rare race yields two codes for one URL, which is acceptable.</li>
+<li><strong>Cold tier</strong> - links inactive for 18 months move to object storage; a cache miss that finds nothing locally consults an object-storage-backed resolver before returning 404 (negative cache absorbs the cost).</li>
+<li><strong>Accounts/API keys</strong> - separate small service (PostgreSQL); not on the redirect path.</li>
+<li><strong>Analytics</strong> - lives only in ClickHouse (see section 9), never in the KV store.</li>
+</ul>
+<hr />
+<h2 id="5-id-generation-options-and-trade-offs">5. ID Generation - Options and Trade-offs</h2>
+<p>The code must be short, globally unique, unguessable, and cheap to mint at 50k/s.</p>
+<p>Space arithmetic (base62 alphabet):</p>
+<pre><code>62^7  = 3.52e12 codes   -&gt; exhausted in 3.52e12 / 4.32e9 = 815 days at peak
+62^8  = 2.18e14 codes   -&gt; 138 years at peak writes
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Coordination</th>
+<th>Code length</th>
+<th>Collisions</th>
+<th>Enumerable by scrapers</th>
+<th>Dedup</th>
+<th>Ops complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Random base62 + unique check</td>
+<td>none</td>
+<td>8</td>
+<td>probabilistic, retry loop</td>
+<td>no</td>
+<td>separate hash index</td>
+<td>low</td>
+</tr>
+<tr>
+<td>B. Central counter, base62-encoded</td>
+<td>1 DB row, batched</td>
+<td>6-8</td>
+<td>none</td>
+<td><strong>yes</strong> - leaks volume</td>
+<td>hash index</td>
+<td>low</td>
+</tr>
+<tr>
+<td>C. Segment-allocated counter + format-preserving encryption (FPE)</td>
+<td>batched segments (0.5 txn/s global)</td>
+<td>8</td>
+<td>none</td>
+<td>no (permuted)</td>
+<td>hash index</td>
+<td>medium (key mgmt)</td>
+</tr>
+<tr>
+<td>D. Snowflake-style 64-bit (ts+worker+seq)</td>
+<td>worker lease</td>
+<td>11</td>
+<td>none</td>
+<td>semi (time-ordered)</td>
+<td>hash index</td>
+<td>medium (clock risk)</td>
+</tr>
+<tr>
+<td>E. Truncated hash of URL</td>
+<td>none</td>
+<td>7</td>
+<td>birthday collisions</td>
+<td>deterministic</td>
+<td>free</td>
+<td>medium (collision handling)</td>
+</tr>
+</tbody>
+</table>
+<p>Notes on the arithmetic behind the weaknesses:</p>
+<ul>
+<li><strong>A</strong>: with 4.75e12 codes issued (5 years at average rate), collision probability per insert is <code>4.75e12 / 2.18e14 = 2.2%</code> at 8 chars - tolerable retries, but at 7 chars the space itself dies in ~2-4 years. Also needs a conditional-write path anyway.</li>
+<li><strong>B</strong>: a plain counter hands scrapers a free enumeration of every link (<code>/000001</code>, <code>/000002</code>, ...) and leaks business volume.</li>
+<li><strong>D</strong>: 41-bit ms timestamp + 10-bit worker + 12-bit sequence = 4,096 IDs/ms/worker = 4.1M/s per worker (ample), but 2^63 needs 11 base62 chars - 40% longer URLs - and NTP jumps need monotonic guards.</li>
+<li><strong>E</strong>: dedup is free, but truncated hashes collide (birthday math as in A) and give up custom aliases' symmetry; scanning a hash of a known URL lets anyone re-mint your code.</li>
+</ul>
+<p><strong>Recommendation: Option C.</strong> App servers lease segments of 100,000 sequential IDs from a DB counter (<code>UPDATE ... SET next = next + 100000 RETURNING</code>), then encode <code>FPE(counter)</code> in base62 with AES-FF1 over the base62 alphabet.</p>
+<pre><code>Counter fetch rate = 50,000/s / 100,000 per lease = 0.5 txns/s globally  (trivial)
+Local buffer at peak = 100,000 / 5,000 per-node-s = 20 s of write outage tolerated
+                       (prefetch at 50% -&gt; effectively invisible)
+FPE cost             = ~100k encryptions/s per core -&gt; &lt; 1 core per write node
+</code></pre>
+<p>FPE turns the sequential counter into an unguessable-looking 8-char code with zero collisions. On total segment exhaustion (138+ years, or a key rotation), fall back to random-8 with conditional put. Custom aliases occupy the same namespace and are checked against the counter space with a conditional write.</p>
+<hr />
+<h2 id="6-read-path-and-caching">6. Read Path and Caching</h2>
+<pre class="mermaid">sequenceDiagram
+  autonumber
+  participant B as Browser
+  participant E as Edge PoP cache
+  participant C as Regional cache
+  participant K as Local KV replica
+  participant Q as Kafka
+
+  B->>E: GET https://sh.rt/aB3xZ9kQ
+  alt Edge hit, code pinned and 301 cached
+    E-->>B: 301 + Location (p50 ~10 ms)
+  else Edge miss
+    E->>C: lookup code (singleflight-coalesced)
+    alt Cache hit (~96%)
+      C-->>E: mapping
+    else Cache miss
+      E->>K: quorum read (1 of 3)
+      K-->>E: mapping
+      E->>C: SET mapping, TTL 6 h +/- 25% jitter
+    end
+    E-->>B: 301 if scanned-clean, else 302 no-store
+  end
+  E--)Q: click event (async, local disk buffer on error)
+  Note over Q: CDC + click events feed analytics, never the redirect path
+</pre>
+<p>Four tiers, each absorbing most of the traffic of the next:</p>
+<ol>
+<li><strong>Browser/CDN cache</strong>: scanned-clean links answer with <code>301</code> + 1-year <code>Cache-Control</code>; repeat clicks from the same client never reach us.</li>
+<li><strong>Edge PoP cache</strong> (our own, in ~40 PoPs): local LRU of the hottest codes, <code>301</code> served at the PoP. Viral "hot key" codes are pinned here with a cluster-wide broadcast so a single trending URL never concentrates on one shard.</li>
+<li><strong>Regional distributed cache</strong> (Memcached-style, consistent hashing, ~24 TB RAM total): target 96% hit rate for traffic that misses the edge.</li>
+<li><strong>Local KV replica</strong>: the remaining ~4% (peak 40k reads/s) hits the in-region replica, p99 &lt; 15 ms.</li>
+</ol>
+<p>Stampede and hot-key defenses:</p>
+<ul>
+<li><strong>Singleflight</strong> request coalescing at every tier: concurrent misses for one code trigger exactly one downstream read.</li>
+<li><strong>Probabilistic early expiration</strong>: refresh a entry slightly before TTL with probability rising as TTL approaches, instead of a synchronized expiry thundering herd.</li>
+<li><strong>Jittered TTLs</strong> (base 6 h for active links, +/- 25%).</li>
+<li><strong>Negative caching</strong>: 404s cached 60 s at edge; scanner-style enumeration attacks are absorbed by negative cache + per-IP rate limits (section 8).</li>
+</ul>
+<p>Invalidation: link create/status-change events flow through CDC to Kafka; a consumer proactively warms or evicts regional caches within ~1 s. Deletes evict all tiers; edge entries carry a 60 s max staleness bound via short edge TTLs on <code>pending_scan</code> links (they resolve as <code>302 no-store</code> until scanned, then flip to cacheable <code>301</code>).</p>
+<hr />
+<h2 id="7-replication-and-multi-region">7. Replication and Multi-Region</h2>
+<p><strong>Within a region:</strong> every KV shard has 3 replicas (same region, 3 AZs). Writes commit at quorum (2/3); reads at local quorum 1/3 for redirect (with read-repair).</p>
+<p><strong>Across regions:</strong> geo-partitioned write leadership.</p>
+<ul>
+<li>Each shard's write leader lives in the owner's home region (by account registration region). Cross-region traffic for writes is proxied to the leader region (rare on the redirect path; writes only).</li>
+<li>The change log (CDC) replicates asynchronously to the other regions: steady-state lag &lt; 500 ms, RPO &lt; 1 s.</li>
+<li>Conflicts are structurally avoided: link rows are immutable; only <code>status</code>/<code>expires_at</code> mutate, those operations are idempotent and commutative, resolved last-writer-wins with per-region fencing tokens. The dedup index is per-region with async merge; a duplicate code pair after a partition heals by keeping the older and tombstoning the newer.</li>
+</ul>
+<p><strong>Why not strongly-consistent single-leader writes?</strong> A single global leader for 50k writes/s is feasible throughput-wise, but every write pays 90-250 ms cross-region RTT and the leader is a global blast radius. Geo-partitioning keeps writes local, and the workload tolerates eventual global reads (a link created in <code>us-east</code> is usually clicked first in <code>us-east</code>).</p>
+<p><strong>Read routing:</strong> DNS anycast/geo-DNS sends resolvers to the nearest region; a region serves reads entirely from its own replicas and caches, so cross-region dependency on the read path is zero in steady state.</p>
+<p><strong>Region failure:</strong> health-checked DNS fails traffic over in 60-120 s. Surviving regions absorb +50% load (fleet sized at 1.5x peak, section 10). Cache cold-start is mitigated by warming from the still-current change log and by origin rate-limits that ramp (see failure modes).</p>
+<hr />
+<h2 id="8-abuse-prevention">8. Abuse Prevention</h2>
+<p>Redirect path (reads):</p>
+<ul>
+<li><strong>Per-IP token bucket</strong> at the edge: 600 reads/min generous for NATs; burst 100. Exceed -&gt; <code>429</code> + <code>Retry-After</code>, served at the edge without touching origin.</li>
+<li><strong>Per-code hot-key guard</strong>: a single code exceeding 50k reads/s at one PoP is pinned and served from memory; abusive repeat-clicking of one code is throttled per IP.</li>
+<li><strong>Random-code scanning</strong>: 404-heavy IPs ( &gt; 100 misses/min) get a 5-minute shadow ban; negative cache already absorbs the storage cost.</li>
+<li><strong>Bot tagging for analytics</strong>: UA lists + heuristics mark bot clicks; they still redirect, but are excluded from stats.</li>
+</ul>
+<p>Create path (writes):</p>
+<ul>
+<li><strong>Per-API-key tiers</strong>: free 10 writes/min, paid per plan; anonymous 5/min with CAPTCHA escalation. Enforced at the gateway with a distributed token bucket (Redis, per-key sharded).</li>
+<li><strong>Quotas and budgets</strong>: daily caps per account; hard per-tenant concurrency limits so one tenant cannot exhaust the write fleet.</li>
+<li><strong>Payload validation</strong>: URL scheme/host validation, 4 KB cap, IDN normalization, blocklist of known-malicious registrable domains (checked at write time, updated via config push).</li>
+</ul>
+<p>Content safety (async, off the hot path):</p>
+<ul>
+<li>New links from untrusted senders resolve as <code>302 no-store</code> and are queued to the <strong>safety scanner</strong> (reputation + third-party malware feeds). <code>blocked</code> status propagates via CDC and evicts caches within ~1 s. Clean links flip to cacheable <code>301</code>.</li>
+<li>Reported/abused links enter a review queue; shortlinks to redirect chains &gt; 3 hops are flagged.</li>
+</ul>
+<hr />
+<h2 id="9-analytics-pipeline">9. Analytics Pipeline</h2>
+<p>Every edge resolution emits a click event (fire-and-forget, local disk buffer on Kafka unavailability) - the redirect never waits on it.</p>
+<pre class="mermaid">flowchart LR
+  EDGE["Edge PoPs"] -- "click events ~600k/s avg" --> K[("Kafka")]
+  CDC["KV change stream"] -- "link events" --> K
+  K --> FL["Flink jobs - dedupe, bot filter, geo, sessionize"]
+  FL -- "rollups" --> CH[("ClickHouse")]
+  FL -- "1% raw sample" --> S3[("Object storage - 400 d")]
+  K --> SC["Safety scanner"]
+  SC -- "status updates" --> KV[("Sharded KV")]
+  CH --> SAPI["Stats API"]
+  CH --> DASH["Dashboards"]
+  S3 -. "reprocessing / backfill" .-> FL
+</pre>
+<ul>
+<li><strong>Event schema</strong> (~300 B): <code>code, ts, ip_hash, country, referrer_class, device_class, status, edge_id, link_status</code>. <code>ip_hash</code> is salted daily (privacy).</li>
+<li><strong>Stream jobs (Flink)</strong>: dedupe by <code>(edge_id, code, ip_hash, 10 s window)</code>, bot filter, GeoIP enrichment, then aggregate to <code>clicks_min(code, minute)</code> and <code>clicks_hour(code, hour, country, referrer_class)</code>. Exactly-once via Kafka transactions; event-time watermarks tolerate 5 min edge buffering.</li>
+<li><strong>Storage (ClickHouse)</strong>: <code>clicks_min</code> retained 14 days, <code>clicks_hour</code> 90 days, <code>clicks_day(code, day, country, referrer_class)</code> 3 years. 1% raw-event sample kept 400 days in object storage for reprocessing and schema evolution (Kappa-style replay from Kafka for the last 7 days, Lambda-style sample beyond).</li>
+<li><strong>Serving</strong>: Stats API queries ClickHouse; dashboards read the same tables. Freshness p95 &lt; 60 s (Kafka lag alarm at 30 s).</li>
+</ul>
+<hr />
+<h2 id="10-capacity-estimates-arithmetic-shown">10. Capacity Estimates (arithmetic shown)</h2>
+<p>Assumptions: peak figures are the design ceiling; average = 60% of peak (diurnal); record ~1 KB (code + URL + metadata + index overhead); redirect response ~500 B; click event ~300 B; cache hit rate 96% end-to-end.</p>
+<p><strong>Traffic volume</strong></p>
+<pre><code>Writes : 50,000/s x 86,400 s          = 4.32e9 links/day at peak
+       : avg 30,000/s                 = 2.59e9/day = 0.95e12/year
+Reads  : 1,000,000/s x 86,400         = 86.4e9/day at peak
+       : avg 600,000/s                = 51.8e9/day
+Ratio  : 1,000,000 / 50,000           = 20 reads per write
+</code></pre>
+<p><strong>Storage</strong></p>
+<pre><code>New data   : 0.95e12 links/yr x 1 KB  = 0.95 PB/yr raw
+Replicas   : x 3 in-region            = 2.84 PB/yr
+Compression: / 2 (LZ4/ZSTD)           = 1.42 PB/yr effective
+5-year     : ~7 PB effective, before 18-month cold-tier offload
+</code></pre>
+<p><strong>Read bandwidth and origin load</strong></p>
+<pre><code>Cache-tier read volume : 1e6/s x 1 KB  = 1 GB/s (8 Gbps) aggregate
+Origin reads @ 96% hit : 1e6 x 0.04    = 40k/s peak (24k/s avg) = 40 MB/s
+</code></pre>
+<p><strong>KV cluster</strong></p>
+<pre><code>Write ops  : 30k/s avg x RF3          = 90k/s + CDC
+Total ops  : ~150k/s cluster over 1,024 shards = ~150 ops/s/shard (trivial)
+Hot rows   : 18-month hot set = 1.43e12 rows / 1,024 shards
+           = 1.4e9 rows/shard x 1 KB   = ~1.4 TB/shard  (target &lt;= 2 TB)
+</code></pre>
+<p><strong>Cache tier</strong></p>
+<pre><code>Hot set    : assume 10e9 distinct links carry 96% of traffic (Zipf head)
+RAM needed : 10e9 x 1.2 KB             = 12 TB
+Provision  : 24 TB (2x headroom)       = ~21 nodes/region x 384 GB
+</code></pre>
+<p><strong>API fleet</strong></p>
+<pre><code>Per node   : 10k redirects/s or 5k writes/s sustained (16 vCPU, TLS, keep-alive)
+Reads      : 1e6 / 10k                 = 100 nodes at peak
+Headroom   : x1.5 (region-loss absorption + deploy capacity) = 150 nodes
+Split 45/30/25 by traffic: us-east 72, eu-west 48, ap-southeast 36
+</code></pre>
+<p><strong>Network egress</strong></p>
+<pre><code>Peak  : 1e6/s x 500 B = 500 MB/s = 4 Gbps
+Avg   : 300 MB/s      = 25.9 TB/day
+CDN-style egress cost: 25,900 GB/day x $0.05/GB = ~$1.3k/day (~$470k/yr)
+  -&gt; owning edge caches in our own PoPs cuts this ~60-80%
+</code></pre>
+<p><strong>Kafka</strong></p>
+<pre><code>Clicks : 600k/s x 300 B = 180 MB/s avg (300 MB/s peak)
+CDC    : 30k/s x 1 KB   = 30 MB/s
+Broker load @ RF3 : ~660 MB/s peak out -&gt; 6 brokers on 10 GbE (each ~110 MB/s out)
+Partitions: 128 clicks + 64 CDC (&gt;= 10 MB/s/partition headroom)
+</code></pre>
+<p><strong>Analytics storage</strong></p>
+<pre><code>Raw events : 180 MB/s avg = 15.5 TB/day -&gt; 7 d full retention x RF3 = ~325 TB
+1% sample  : 155 GB/day x 400 d x RF3    = ~186 TB
+clicks_min : ~100M active codes/min x 64 B = 107 MB/s -&gt; 14 d x RF3 ~ 387 TB
+clicks_day : ~1e9 active/day x 128 B      = 128 GB/day -&gt; 3 yr x RF3 ~ 140 TB
+ClickHouse : ~1 PB usable -&gt; 12 nodes x 96 TB
+</code></pre>
+<p><strong>ID space check</strong> (from section 5): 8-char base62 = 2.18e14; at 0.95e12/yr that is 230 years. Retry rate from FPE means collisions are structurally zero.</p>
+<hr />
+<h2 id="11-failure-modes">11. Failure Modes</h2>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Blast radius</th>
+<th>Detection</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cache cluster degraded / cold</td>
+<td>Origin sees up to 1M/s vs 40k/s</td>
+<td>Origin QPS alarm</td>
+<td>Per-shard admission control sheds to 40k/s; serve <code>503 Retry-After</code> beyond; edge LRU + browser 301s still absorb most traffic; cache warmers ramp by Zipf rank</td>
+</tr>
+<tr>
+<td>KV shard quorum loss</td>
+<td>~1/1024 of codes</td>
+<td>Replica health, p99</td>
+<td>Auto-promote replica (&lt; 30 s); reads fall back to other-region replica; writes to leader queue with backpressure</td>
+</tr>
+<tr>
+<td>Region down</td>
+<td>25-45% of traffic</td>
+<td>Synthetic probes + DNS health</td>
+<td>DNS failover 60-120 s; surviving regions at 1.5x headroom; write leaders in failed region promoted from replicas (fencing tokens prevent split-brain double-apply)</td>
+</tr>
+<tr>
+<td>Split-brain / partition between regions</td>
+<td>Stale reads, dup dedup entries</td>
+<td>Replication-lag metric</td>
+<td>Immutable rows + commutative status ops make LWW safe; dedup heal job tombstones newer duplicate</td>
+</tr>
+<tr>
+<td>Kafka outage</td>
+<td>Analytics delayed only</td>
+<td>Producer errors</td>
+<td>Edge buffers events to local disk (4 h); at-least-once replay; redirects unaffected</td>
+</tr>
+<tr>
+<td>ID segment store down</td>
+<td>New writes only</td>
+<td>Lease-fetch errors</td>
+<td>20 s local buffer per node; on exhaustion, mint random-8 with conditional put; alarm</td>
+</tr>
+<tr>
+<td>Viral hot key</td>
+<td>One code at 100k+/s</td>
+<td>Per-code rate metric</td>
+<td>Pin at all PoPs, singleflight, local LRU; shard hash is per-code so no shard skew by design</td>
+</tr>
+<tr>
+<td>Expiry storm (bulk TTL lapse)</td>
+<td>Negative-cache churn</td>
+<td>410 spike</td>
+<td>Jittered expiry evaluation, negative cache 60 s</td>
+</tr>
+<tr>
+<td>Bad deploy / config push</td>
+<td>Latency or wrong redirects</td>
+<td>Canary dashboards, synthetic canary codes</td>
+<td>1% -&gt; 10% -&gt; 100% canary with auto-rollback on p99 or 4xx/5xx delta</td>
+</tr>
+<tr>
+<td>Scanner enumeration attack</td>
+<td>Origin 404 load</td>
+<td>Miss-rate per IP</td>
+<td>Negative cache + shadow bans + edge 429s</td>
+</tr>
+<tr>
+<td>ClickHouse / stats down</td>
+<td>Analytics only</td>
+<td>SLO probe</td>
+<td>Stats API returns last rollup with <code>staleness</code> header; pipeline replays from Kafka (7 d retention)</td>
+</tr>
+<tr>
+<td>Clock skew (if snowflake variant used)</td>
+<td>Duplicate-ID risk</td>
+<td>NTP monitor</td>
+<td>FPE-counter design has no clock dependency - chosen partly for this</td>
+</tr>
+<tr>
+<td>DNS/BGP hijack</td>
+<td>Region unreachable</td>
+<td>RPKI + third-party DNS monitors</td>
+<td>Multi-registrar + anycast with pre-approved failover runbook</td>
+</tr>
+</tbody>
+</table>
+<p>Error budget: 99.99% = 52.6 min/year for redirects. Any burn &gt; 10% of the monthly budget triggers a reliability review and feature freeze on the redirect path.</p>
+<hr />
+<h2 id="12-rollout-plan">12. Rollout Plan</h2>
+<p>Deployment topology: three regions, each with 3 AZs; stateless fleets behind NLBs; KV shards spread 1 replica per AZ.</p>
+<pre class="mermaid">flowchart TB
+  ROUTE["DNS anycast + geo-DNS"]
+
+  subgraph US["us-east - write leader AMER"]
+    subgraph US1["AZ us-east-1a"]
+      NLB1["NLB"]
+      APPU1["app fleet"]
+      KAU1["cache + KV replicas"]
+    end
+    subgraph US2["AZ us-east-1b"]
+      KAU2["cache + KV replicas"]
+    end
+    subgraph US3["AZ us-east-1c"]
+      KAU3["cache + KV replicas"]
+    end
+    KAFKAU[("Kafka x6")]
+  end
+
+  subgraph EUW["eu-west - write leader EMEA"]
+    APPE["app fleet"]
+    KAE["cache + KV replicas x3 AZ"]
+    KAFKAE[("Kafka x6")]
+  end
+
+  subgraph APCS["ap-southeast - write leader APAC"]
+    APPA["app fleet"]
+    KAA["cache + KV replicas x3 AZ"]
+    KAFKAA[("Kafka x3")]
+  end
+
+  CTRL["Deploy control plane - canary + auto-rollback"]
+  ROUTE --> US
+  ROUTE --> EUW
+  ROUTE --> APCS
+  NLB1 --> APPU1 --> KAU1
+  US -. "CDC replication" .-> EUW
+  EUW -. "CDC replication" .-> APCS
+  APCS -. "CDC replication" .-> US
+  CTRL -. "rollout orchestration" .-> US
+  CTRL -. "rollout orchestration" .-> EUW
+  CTRL -. "rollout orchestration" .-> APCS
+</pre>
+<p>Phases (each with entry/exit gates; no phase starts with open P0s from the previous one):</p>
+<ol>
+<li><strong>P0 - Single region, correct-not-fast (weeks 1-6).</strong> 8 KV shards, one region, Redis cache, synchronous scan, no analytics. Gate: functional API complete; chaos test kills a replica without errors; 1k writes/s sustained.</li>
+<li><strong>P1 - Scale the write path (weeks 6-14).</strong> Shard to 1,024; segment+FPE ID service; Kafka CDC; idempotency keys. Gate: load test 15k writes/s, 300k reads/s at SLO; shard rebalancing drill with zero dropped redirects.</li>
+<li><strong>P2 - Multi-region reads (quarter 2).</strong> Stand up <code>eu-west</code>, <code>ap-southeast</code> with replicas + caches; geo-DNS; edge PoP caches with hot-key pinning. Gate: 600k reads/s with 96% hit rate; region-drain drill passes with &lt; 2% error spike.</li>
+<li><strong>P3 - Active-active writes (quarter 3).</strong> Regional write leaders, fencing tokens, dedup heal job, cross-region proxied writes. Gate: 50k writes/s mixed-region load; partition-injection test shows convergence &lt; 5 s and zero lost links.</li>
+<li><strong>P4 - Analytics v2 + full ceiling (quarter 4).</strong> Flink exactly-once, ClickHouse rollups, stats API GA; sustained 50k/1M soak test; game days (cache burn-down, region loss, Kafka kill) each quarter. Gate: analytics freshness p95 &lt; 60 s under full load; error budget burn &lt; 20%/month.</li>
+</ol>
+<p>Release mechanics throughout: stateless services deploy canary 1% -&gt; 10% -&gt; 100% per region with auto-rollback on p99/5xx deltas; schema changes are expand-migrate-contract; KV shard topology changes run behind a dual-read shadow for one week; every phase ships with a written rollback (config flag or DNS) exercised in staging before promotion.</p>
+<hr />
+<h2 id="13-open-questions">13. Open Questions</h2>
+<ul>
+<li>Do we offer customer domains at GA (TLS automation cost) or start with <code>sh.rt</code> only?</li>
+<li>Should <code>301</code> be default even for unscanned links (faster, but a blocked link can linger in browser caches up to the edge TTL)? Current answer: no - <code>302</code> until scanned.</li>
+<li>Analytics retention beyond 3 years: object-storage Parquet export vs ClickHouse cold storage.</li>
+<li>GDPR/CCPA: is <code>ip_hash</code> salted-daily sufficient for "personal data", or do we need per-tenant opt-out of geo enrichment?</li>
+</ul><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";mermaid.initialize({startOnLoad:true,theme:"default"});</script></main>

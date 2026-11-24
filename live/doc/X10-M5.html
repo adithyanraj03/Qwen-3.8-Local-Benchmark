@@ -1,0 +1,241 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M5 · X10 · PROOFS.md <span>M5-qwen3.8-flash-next-orca-uncensored-nvfp4</span></div><main><h1 id="four-proofs">Four Proofs</h1>
+<p>Written so that a strong undergraduate can follow every step. Every invocation of a
+lemma, theorem, or arithmetic law is named. The companion script <code>check.py</code> verifies
+each statement numerically for small cases.</p>
+<h2 id="0-conventions-and-preliminaries">0. Conventions and preliminaries</h2>
+<p><strong>Conventions.</strong> $\mathbb{Z}$ denotes the integers, $\mathbb{Q}$ the rationals,
+$\mathbb{Z}_{&gt;0}$ the positive integers. "$a$ divides $b$", written $a \mid b$, means:
+there exists an integer $k$ with $b = ak$. A <strong>prime</strong> is an integer $p \ge 2$ whose only
+positive divisors are $1$ and $p$. We write $a \equiv b \pmod m$ to mean $m \mid (a-b)$.</p>
+<p>We collect the few external facts the proofs need.</p>
+<p><strong>Lemma 0.1 (Well-ordering principle).</strong> Every non-empty set of positive integers has a
+least element.
+<em>Use:</em> standard axiom of the integers (equivalent to induction); we cite it in the proof
+of Lemma 0.2.</p>
+<p><strong>Lemma 0.2 (Bézout's identity).</strong> For integers $a, b$, not both zero, there exist
+integers $x, y$ with $\gcd(a,b) = ax + by$.
+<em>Proof.</em> Let $S = \{ax + by : x, y \in \mathbb{Z}\} \cap \mathbb{Z}_{&gt;0}$. The set $S$ is
+non-empty: if $a \ne 0$, then $a\cdot 1 + b \cdot 0 = a \in S$ when $a &gt; 0$, and
+$a \cdot(-1) = -a \in S$ when $a&lt;0$; if $a = 0$ then $b \ne 0$ and the same argument
+applies to $b$. By Lemma 0.1, $S$ has a least element; call it $d = ax_0 + by_0$.</p>
+<p>We claim $d \mid a$. By the division algorithm, write $a = qd + r$ with integers
+$q, r$ and $0 \le r &lt; d$. Then
+$$ r = a - qd = a - q(ax_0 + by_0) = a(1 - qx_0) + b(-qy_0), $$
+so $r$ is an integer combination of $a$ and $b$. If $r &gt; 0$, then $r \in S$ and
+$r &lt; d$, contradicting the minimality of $d$. Hence $r = 0$, i.e. $d \mid a$. The same
+argument with the roles of $a$ and $b$ swapped gives $d \mid b$, so $d$ is a common
+divisor of $a$ and $b$.</p>
+<p>Finally, any common divisor $c$ of $a$ and $b$ divides every integer combination of $a$
+and $b$, in particular $d = ax_0 + by_0$; so $c \le d$. Thus $d$ is the <em>greatest</em> common
+divisor: $d = \gcd(a,b)$. $\square$</p>
+<p><strong>Lemma 0.3 (Euclid's lemma).</strong> If $p$ is prime and $p \mid ab$, then $p \mid a$ or
+$p \mid b$.
+<em>Proof.</em> Suppose $p \nmid a$. Then $\gcd(p, a) = 1$: indeed any common divisor of $p$ and
+$a$ divides $p$, so it is $1$ or $p$, and it is not $p$ because $p \nmid a$. By
+Lemma 0.2 there exist integers $x, y$ with $1 = px + ay$. Multiply by $b$:
+$$ b = bpx + aby. $$
+Now $p \mid bpx$ (as $p$ is a factor) and $p \mid aby$ (since $p \mid ab$ by hypothesis,
+and divisors divide multiples). A divisor of two integers divides their sum, so $p \mid b$.
+We have shown: if $p \nmid a$ then $p \mid b$, which is the claim. $\square$</p>
+<p><strong>Lemma 0.4 (Multiplicativity of congruences).</strong> If $a \equiv a&#x27; \pmod m$ and
+$b \equiv b&#x27; \pmod m$, then $ab \equiv a&#x27;b&#x27; \pmod m$.
+<em>Proof.</em> By hypothesis, $a - a&#x27; = mr$ and $b - b&#x27; = ms$ for some integers $r, s$. Then
+$$ ab - a&#x27;b&#x27; = ab - a&#x27;b + a&#x27;b - a&#x27;b&#x27; = (a-a&#x27;)b + a&#x27;(b-b&#x27;) = mr b + a&#x27; m s = m(rb + a&#x27;s), $$
+so $m \mid (ab - a&#x27;b&#x27;)$, i.e. $ab \equiv a&#x27; b&#x27; \pmod m$. $\square$</p>
+<p><strong>Corollary 0.5.</strong> Any product of integers each congruent to $1 \bmod 4$ is itself
+congruent to $1 \bmod 4$.
+<em>Proof.</em> By Lemma 0.4, if $u \equiv 1$ and $v \equiv 1 \pmod 4$ then $uv \equiv 1 \pmod 4$.
+An easy induction on the number of factors (pairing off one factor at a time) extends
+this to any finite product. $\square$</p>
+<p><strong>Lemma 0.6 (Existence of prime factors).</strong> Every integer $N \ge 2$ has a prime divisor.
+<em>Proof.</em> Suppose some integer $\ge 2$ has no prime divisor, and let $T$ be the set of
+these; by Lemma 0.1, $T$ has a least element $t$. Since $t$ has no prime divisor, $t$ is
+not prime, so $t = uv$ with integers $u, v$ satisfying $2 \le u &lt; t$ and $2 \le v &lt; t$.
+Neither $u$ nor $v$ lies in $T$ (minimality of $t$), so $u$ has a prime divisor $q$; then
+$q \mid u \mid t$, so $q \mid t$, contradicting that $t$ has no prime divisor. Hence $T$
+is empty. $\square$</p>
+<hr />
+<h2 id="1-infinitely-many-primes-m121">1. Infinitely many primes $p \equiv 3 \pmod 4$</h2>
+<p><strong>Theorem 1.1.</strong> There are infinitely many primes $p$ with $p \equiv 3 \pmod 4$.</p>
+<p><em>Proof.</em> Suppose, for a contradiction, that there are only finitely many such primes.
+List them as $p_1, p_2, \dots, p_k$ (the list is non-empty, since $3$ is prime and
+$3 \equiv 3 \pmod 4$). Define
+$$ N \;=\; 4\,p_1 p_2 \cdots p_k \;-\; 1. $$</p>
+<p><strong>Step 1: $N \ge 2$.</strong> Since $p_1 = 3$ is among the $p_i$, the product
+$p_1 \cdots p_k \ge 3$, so $N \ge 4 \cdot 3 - 1 = 11 \ge 2$.</p>
+<p><strong>Step 2: $N \equiv 3 \pmod 4$.</strong> Each $p_i$ divides $P := p_1 \cdots p_k$, so
+$4P \equiv 0 \pmod 4$, hence $N = 4P - 1 \equiv -1 \equiv 3 \pmod 4$.</p>
+<p><strong>Step 3: $N$ has a prime divisor $q$ with $q \equiv 3 \pmod 4$.</strong> By Step 1 and
+Lemma 0.6, $N$ has a prime divisor $q$; write $N = q \cdot M$ with $M \ge 1$.
+Since $N$ is odd (an even number is $\equiv 0$ or $2 \pmod 4$, but $N \equiv 3 \pmod 4$
+by Step 2), $q$ is odd. By the division algorithm every odd prime is $\equiv 1$ or
+$3 \pmod 4$. Suppose, for contradiction, that <em>every</em> prime divisor of $N$ is
+$\equiv 1 \pmod 4$. Then $N$, being a product of primes each $\equiv 1 \pmod 4$
+(namely the prime factorization of $N$, which exists by iterating Lemma 0.6), would be
+$\equiv 1 \pmod 4$ by Corollary 0.5, contradicting Step 2. Hence some prime divisor $q$
+of $N$ satisfies $q \equiv 3 \pmod 4$.</p>
+<p><strong>Step 4: $q$ is not on the list.</strong> If $q = p_i$ for some $i$, then $q \mid P$, so
+$q \mid 4P$. Together with $q \mid N$ this gives
+$$ q \;\mid\; \big(4P - N\big) \;=\; 1, $$
+because a common divisor of two integers divides their difference. But no prime divides
+$1$ (a prime is $\ge 2$), a contradiction. So $q \ne p_i$ for every $i$.</p>
+<p><strong>Conclusion.</strong> Step 3 produces a prime $q \equiv 3 \pmod 4$ and Step 4 shows it is not
+on the complete list $p_1, \dots, p_k$ — a contradiction. Therefore the list cannot be
+finite, and there are infinitely many primes $\equiv 3 \pmod 4$. $\square$</p>
+<p><em>Remark.</em> The same argument with $N = 4P+1$ fails: a number $\equiv 1 \pmod 4$ can have
+all prime factors $\equiv 3 \pmod 4$ (e.g. $9 = 3 \cdot 3$), which is exactly why we used
+the minus sign.</p>
+<hr />
+<h2 id="2-irrationality-of-m180">2. Irrationality of $\sqrt{2} + \sqrt{3}$</h2>
+<p>We first need a small lemma.</p>
+<p><strong>Lemma 2.1.</strong> $\sqrt{6}$ is irrational.</p>
+<p><em>Proof.</em> Suppose $\sqrt 6 = a/b$ with integers $a, b$, $b \ne 0$, and
+$\gcd(a, b) = 1$ (such a representation exists: start with any representation and cancel
+the common divisor $\gcd(a,b)$, which is legitimate because
+$\tfrac{a}{b} = \tfrac{a/\gcd(a,b)}{b/\gcd(a,b)}$). Squaring gives $6b^2 = a^2$.</p>
+<ul>
+<li>Since $a^2 = 6b^2 = 2 \cdot (3b^2)$, we have $2 \mid a^2$. As $2$ is prime, Euclid's
+  lemma (Lemma 0.3, applied to $a^2 = a \cdot a$) gives $2 \mid a$. Write $a = 2c$.</li>
+<li>Substituting: $6b^2 = (2c)^2 = 4c^2$, so $3b^2 = 2c^2$ after dividing both sides by
+  $2$ (valid since $\mathbb{Z}$ has no zero divisors: $2x = 2y \Rightarrow x = y$). The
+  right-hand side $2c^2$ is even, so $2 \mid 3b^2$; by Euclid's lemma, $2 \mid 3$ or
+  $2 \mid b^2$, and $2 \nmid 3$, so $2 \mid b^2$. Applying Euclid's lemma once more to
+  $b^2 = b \cdot b$ gives $2 \mid b$.</li>
+</ul>
+<p>But then $2$ is a common divisor of $a$ and $b$, contradicting $\gcd(a,b) = 1$. Hence
+$\sqrt 6$ is irrational. $\square$</p>
+<p><strong>Theorem 2.2.</strong> $\sqrt{2} + \sqrt{3}$ is irrational.</p>
+<p><em>Proof.</em> Suppose, for a contradiction, that $r := \sqrt{2} + \sqrt{3} \in \mathbb{Q}$.</p>
+<p><strong>Step 1.</strong> $r &gt; 0$: both $\sqrt 2$ and $\sqrt 3$ are positive (the square root of a
+positive number is defined to be the positive solution of $x^2 = n$, and $2, 3 &gt; 0$), and
+the sum of positive numbers is positive. In particular $r \ne 0$.</p>
+<p><strong>Step 2.</strong> Square both sides of $\sqrt 2 + \sqrt 3 = r$:
+$$ 5 + 2\sqrt{6} \;=\; 2 + 2\sqrt{2}\sqrt{3} + 3 \;=\; (\sqrt{2}+\sqrt{3})^2 \;=\; r^2, $$
+where we used the distributive law (FOIL) and $\sqrt{2}\sqrt{3} = \sqrt{6}$, which holds
+because both sides are positive and their squares are equal:
+$(\sqrt2\sqrt3)^2 = 2 \cdot 3 = 6 = (\sqrt6)^2$.</p>
+<p><strong>Step 3.</strong> Solve for $\sqrt 6$:
+$$ \sqrt{6} \;=\; \frac{r^2 - 5}{2}. $$
+Since $\mathbb{Q}$ is closed under multiplication, subtraction and division by a non-zero
+number ($2 \ne 0$), the right-hand side is rational. Hence $\sqrt 6 \in \mathbb{Q}$.</p>
+<p><strong>Conclusion.</strong> Step 3 contradicts Lemma 2.1. Therefore $\sqrt{2} + \sqrt{3}$ is
+irrational. $\square$</p>
+<p><em>Remark (the polynomial viewpoint, which <code>check.py</code> tests numerically).</em> Let
+$\alpha = \sqrt{2} + \sqrt{3}$. Unwinding Step 2 twice: $\alpha^2 = 5 + 2\sqrt 6$ gives
+$\alpha^2 - 5 = 2\sqrt 6$, and squaring again gives
+$(\alpha^2 - 5)^2 = 24$, i.e.
+$$ \alpha^4 - 10\alpha^2 + 1 = 0, $$
+so $\alpha$ is a root of $f(x) = x^4 - 10x^2 + 1 \in \mathbb{Z}[x]$ (exact check:
+$(5+2\sqrt6)^2 = 25 + 20\sqrt{6} + 24 = 49 + 20\sqrt 6 = 10(5 + 2\sqrt 6) - 1$).
+If $\alpha = a/b$ were rational in lowest terms, then $b^4 f(a/b) = a^4 - 10a^2b^2 + b^4 = 0$.
+Reducing modulo $3$ (where $10 \equiv 1$) gives $a^4 - a^2 b^2 + b^4 \equiv 0 \pmod 3$.
+Squares modulo $3$ are $0$ or $1$, so $a^2 \equiv A$ and $b^2 \equiv B$ with $A, B \in
+{0, 1}$, and the congruence reads $A^2 - AB + B^2 \equiv 0 \pmod 3$; checking the four
+cases $(A,B) \in \{0,1\}^2$, the value is $0$ only for $(A,B) = (0,0)$ (it equals $1$ in
+the other three cases). Hence $3 \mid a^2$ and $3 \mid b^2$, and Euclid's lemma (with the
+prime $3$) forces $3 \mid a$ and $3 \mid b$, contradicting lowest terms — a third route
+to the same conclusion. Equivalently, by Gauss's lemma (if a monic polynomial with integer
+coefficients has a rational root, that root is an integer dividing the constant term),
+any rational root of $f$ must be $\pm 1$, and $f(1) = f(-1) = -8 \ne 0$. So $\alpha$ has
+degree exactly $4$ over $\mathbb{Q}$: no polynomial of degree $1, 2$ or $3$ with integer
+coefficients vanishes at $\alpha$.</p>
+<hr />
+<h2 id="3-every-finite-tournament-has-a-hamiltonian-path">3. Every finite tournament has a Hamiltonian path</h2>
+<p><strong>Definitions.</strong> A <strong>tournament</strong> on a finite vertex set $V$ is a directed graph in which
+every pair of distinct vertices $u, v$ is joined by exactly one directed edge, either
+$u \to v$ or $v \to u$ (exactly one, by definition of a tournament). A <strong>Hamiltonian
+path</strong> is a sequence $v_1, v_2, \dots, v_m$ listing every vertex of $V$ exactly once
+($m = |V|$) with $v_i \to v_{i+1}$ for all $1 \le i &lt; m$.</p>
+<p><strong>Theorem 3.1.</strong> Every finite tournament has a Hamiltonian path.</p>
+<p><em>Proof.</em> We argue by induction on $n = |V|$, proving the statement for every $n \ge 1$.</p>
+<p><strong>Base case ($n = 1$).</strong> The single-vertex sequence $v_1$ lists every vertex exactly
+once, and there are no consecutive pairs to check, so it is a Hamiltonian path.</p>
+<p><strong>Inductive step.</strong> Assume the claim holds for all tournaments on $n$ vertices
+(induction hypothesis), and let $T$ be a tournament on $n+1$ vertices. Pick any vertex
+$v$ and let $T&#x27; = T - v$, the tournament obtained by deleting $v$ and all edges touching
+it: $T&#x27;$ has $n$ vertices, and any two of its vertices still span exactly one directed
+edge (deletion does not alter the remaining edges). By the induction hypothesis, $T&#x27;$
+has a Hamiltonian path
+$$ P = \big( u_1 \to u_2 \to \cdots \to u_n \big). $$
+We insert $v$ into $P$.</p>
+<p><strong>Case 1: $v \to u_1$.</strong> Then $v \to u_1 \to u_2 \to \cdots \to u_n$ is a Hamiltonian
+path of $T$: it lists all $n+1$ vertices exactly once, and every required edge either is
+the edge $v \to u_1$ or is an edge of $P$.</p>
+<p><strong>Case 2: $u_n \to v$.</strong> Then $u_1 \to \cdots \to u_n \to v$ is a Hamiltonian path, by
+the same verification.</p>
+<p><strong>Case 3: neither Case 1 nor Case 2 holds.</strong> Then $\neg(v \to u_1)$ and
+$\neg(u_n \to v)$. Because $T$ is a tournament, for each pair exactly one direction of
+the edge exists, so $\neg(v \to u_1)$ forces $u_1 \to v$, and $\neg(u_n \to v)$ forces
+$v \to u_n$. (Note $n \ge 2$ here: if $n = 1$, then $u_1 = u_n$, and $\neg(v \to u_1)$
+together with $\neg(u_n \to v)$ would leave the pair $\{v, u_1\}$ with no edge direction,
+violating the tournament property.) Define
+$$ S = \{\, i \in \{1, \dots, n-1\} : v \to u_{i+1}\,\}. $$
+By the previous sentence, $v \to u_n$ holds, i.e. $v \to u_{(n-1)+1}$, so $n - 1 \in S$;
+thus $S$ is non-empty. By the well-ordering principle (Lemma 0.1), $S$ has a least
+element $j$, with $1 \le j \le n-1$; in particular $u_{j+1}$ exists. We claim
+$\neg(v \to u_j)$: if $j \ge 2$, then $j - 1 \in \{1, \dots, n-1\}$ but $j - 1 \notin S$
+by minimality of $j$, so $\neg\big(v \to u_{(j-1)+1}\big)$, i.e. $\neg(v \to u_j)$; and
+if $j = 1$, then $\neg(v \to u_j)$ is $\neg(v \to u_1)$, known since Case 1 fails.
+The tournament property applied to the pair $\{v, u_j\}$ now forces
+$$ u_j \to v. $$
+Now form the sequence
+$$ P&#x27; = \big( u_1 \to \cdots \to u_j \to v \to u_{j+1} \to \cdots \to u_n \big). $$
+Verification, edge by edge:
+- $u_i \to u_{i+1}$ for $i &lt; j$: these are edges of $P$.
+- $u_j \to v$: just established.
+- $v \to u_{j+1}$: true because $j \in S$.
+- $u_i \to u_{i+1}$ for $i \ge j+1$: edges of $P$.</p>
+<p>$P&#x27;$ lists $u_1, \dots, u_n$ (each exactly once, as in $P$) together with $v$, so it
+lists all $n+1$ vertices exactly once. Hence $P&#x27;$ is a Hamiltonian path of $T$.</p>
+<p>In all three cases $T$ has a Hamiltonian path, completing the inductive step. By the
+principle of mathematical induction, every finite tournament on any number $n \ge 1$ of
+vertices has a Hamiltonian path. $\square$</p>
+<p><em>Remark.</em> The proof is constructive: inserting one vertex at a time yields an
+$O(n^2)$ algorithm, which is exactly what <code>check.py</code> runs on every tournament with at
+most $6$ vertices.</p>
+<hr />
+<h2 id="4-the-sum-of-the-first-m359-odd-cubes">4. The sum of the first $n$ odd cubes</h2>
+<p><strong>Theorem 4.1.</strong> For every integer $n \ge 1$,
+$$ 1^3 + 3^3 + \cdots + (2n-1)^3 \;=\; n^2 \big(2n^2 - 1\big). $$</p>
+<p><em>Proof.</em> Induction on $n$.</p>
+<p><strong>Base case ($n = 1$).</strong> The left side is the single term $1^3 = 1$; the right side is
+$1^2 \cdot (2 \cdot 1^2 - 1) = 1 \cdot 1 = 1$. Equal.</p>
+<p><strong>Inductive step.</strong> Assume the identity holds for some $k \ge 1$:
+$$ \sum_{i=1}^{k} (2i-1)^3 = k^2 (2k^2 - 1). \tag{IH} $$
+Then, splitting off the last term and using (IH):
+$$ \sum_{i=1}^{k+1} (2i-1)^3 \;=\; k^2 (2k^2 - 1) + (2k+1)^3. $$
+Expand both pieces using the binomial theorem
+$(a+b)^3 = a^3 + 3a^2 b + 3ab^2 + b^3$ with $a = 2k$, $b = 1$:
+$$ (2k+1)^3 = 8k^3 + 12k^2 + 6k + 1, \qquad k^2(2k^2 - 1) = 2k^4 - k^2. $$
+Adding (collecting like powers of $k$):
+$$ 2k^4 - k^2 + 8k^3 + 12k^2 + 6k + 1 \;=\; 2k^4 + 8k^3 + 11k^2 + 6k + 1. \tag{$*$}$$
+On the other hand, the claimed formula at $n = k+1$ is
+$$ (k+1)^2 \big( 2(k+1)^2 - 1 \big). $$
+Expand: $(k+1)^2 = k^2 + 2k + 1$ and $2(k+1)^2 - 1 = 2k^2 + 4k + 1$. Multiplying the two
+polynomials term by term:
+$$ (k^2 + 2k + 1)(2k^2 + 4k + 1) = 2k^4 + 4k^3 + k^2 + 4k^3 + 8k^2 + 2k + 2k^2 + 4k + 1, $$
+which collects to
+$$ 2k^4 + 8k^3 + 11k^2 + 6k + 1, $$
+identical to $(*)$. Hence
+$$ \sum_{i=1}^{k+1} (2i-1)^3 = (k+1)^2 \big( 2(k+1)^2 - 1 \big), $$
+completing the inductive step. By mathematical induction, the identity holds for all
+$n \ge 1$. $\square$</p>
+<p><em>Alternative (telescoping).</em> Define $F(n) = n^2(2n^2 - 1) = 2n^4 - n^2$. Expanding as
+above (with $a = m-1$, $b = 1$ for $(m-1)^2$, or directly) gives the exact difference
+identity
+$$ F(m) - F(m-1) \;=\; (2m-1)^3 \qquad \text{for all } m \ge 1, $$
+where $F(0) = 0$. Summing from $m = 1$ to $n$, the left side telescopes:
+$$ \sum_{m=1}^{n} \big( F(m) - F(m-1) \big) = F(n) - F(0) = F(n), $$
+since consecutive terms $+F(m)$ and $-F(m)$ cancel pairwise (a straightforward induction
+on $n$ formalizes this). Hence $\sum_{m=1}^n (2m-1)^3 = F(n) = n^2(2n^2-1)$. $\square$</p></main>

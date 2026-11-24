@@ -1,0 +1,270 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M7 · X10 · PROOFS.md <span>M8-qwen3.8-flash-next-orca-uncensored-nvfp4-gptq-384k</span></div><main><h1 id="proofs">Proofs</h1>
+<p>This file contains complete proofs of four statements. Each proof is written as a
+sequence of steps. Every step is justified either by a lemma proved in this file, or
+by a standard result that is named at the point of use. The standard facts we allow
+ourselves are:</p>
+<ul>
+<li><strong>Division algorithm.</strong> For every integer <code>a</code> and every positive integer <code>d</code> there
+  exist unique integers <code>q, r</code> with <code>a = dq + r</code> and <code>0 &lt;= r &lt; d</code>. The remainder <code>r</code>
+  is what we mean by "a mod d", and we write <code>a ≡ b (mod m)</code> for <code>m | (a − b)</code>.</li>
+<li><strong>Existence and uniqueness of prime factorisations.</strong> Every integer greater than 1
+  is a product of primes, uniquely up to the order of the factors.</li>
+<li><strong>Euclid's lemma.</strong> If a prime <code>p</code> divides a product <code>xy</code>, then <code>p | x</code> or <code>p | y</code>.</li>
+<li><strong>Arithmetic of congruences.</strong> If <code>a ≡ b (mod m)</code> and <code>c ≡ d (mod m)</code>, then
+  <code>a + c ≡ b + d (mod m)</code> and <code>ac ≡ bd (mod m)</code>. These follow by writing
+  <code>a = b + ms</code>, <code>c = d + mt</code> and expanding.</li>
+<li><strong>Square roots in the reals.</strong> Every positive real number has a unique positive
+  square root (this is a consequence of the completeness of R). The map <code>x ↦ x^2</code> is
+  strictly increasing on <code>[0, ∞)</code>: if <code>0 &lt;= x &lt; y</code> then <code>y^2 − x^2 = (y − x)(y + x) &gt; 0</code>.</li>
+<li><strong>Binomial expansions.</strong> <code>(x + y)^2 = x^2 + 2xy + y^2</code> and
+  <code>(x + y)^3 = x^3 + 3x^2 y + 3xy^2 + y^3</code>, both obtained by repeated use of the
+  distributive, commutative and associative laws.</li>
+<li><strong>Maximum principle for finite sets.</strong> Every non-empty finite set of integers has a
+  largest element.</li>
+</ul>
+<hr />
+<h2 id="1-there-are-infinitely-many-primes-congruent-to-3-modulo-4">1. There are infinitely many primes congruent to 3 modulo 4</h2>
+<p>We first isolate three small facts.</p>
+<p><strong>Lemma 1.1.</strong> <em>Every integer <code>m &gt; 1</code> has a prime divisor.</em></p>
+<p><em>Proof.</em> We argue by strong induction on <code>m</code>. For <code>m = 2</code>: 2 is prime and divides
+itself. Now let <code>m &gt; 2</code> and suppose the claim holds for all integers strictly between
+1 and <code>m</code>. If <code>m</code> is prime, then <code>m | m</code> and we are done. If <code>m</code> is not prime, then by
+definition of "composite" there exist integers <code>a, b</code> with <code>m = ab</code> and <code>1 &lt; a &lt; m</code>.
+By the induction hypothesis applied to <code>a</code>, there is a prime <code>p</code> with <code>p | a</code>, say
+<code>a = pt</code>. Then <code>m = ab = p(tb)</code>, so <code>p | m</code>. ∎</p>
+<p><strong>Lemma 1.2.</strong> <em>Every odd prime <code>p</code> satisfies <code>p ≡ 1 (mod 4)</code> or <code>p ≡ 3 (mod 4)</code>.</em></p>
+<p><em>Proof.</em> By the division algorithm with divisor 4, <code>p = 4q + r</code> with a unique
+<code>r ∈ {0, 1, 2, 3}</code>. If <code>r = 0</code>, then <code>p = 4q = 2 · (2q)</code>, so <code>2 | p</code>; since <code>p</code> is
+prime, its only positive divisors are 1 and <code>p</code>, so <code>p = 2</code>, contradicting that <code>p</code> is
+odd. If <code>r = 2</code>, then <code>p = 4q + 2 = 2(2q + 1)</code>, and the same argument gives <code>p = 2</code>,
+again a contradiction. Hence <code>r ∈ {1, 3}</code>. ∎</p>
+<p><strong>Lemma 1.3.</strong> <em>A product of integers each congruent to 1 modulo 4 is itself
+congruent to 1 modulo 4.</em></p>
+<p><em>Proof.</em> First the two-factor case: if <code>a = 4s + 1</code> and <code>b = 4t + 1</code>, then
+<code>ab = (4s+1)(4t+1) = 16st + 4s + 4t + 1 = 4(4st + s + t) + 1 ≡ 1 (mod 4)</code>.
+The general statement follows by induction on the number of factors: a product of one
+factor is congruent to 1 by assumption, and a product of <code>k + 1</code> factors is a product
+of <code>k</code> factors (congruent to 1 by the induction hypothesis) times one more factor
+congruent to 1, which by the two-factor case is congruent to 1. ∎</p>
+<p><strong>Theorem 1.4.</strong> <em>There are infinitely many primes congruent to 3 modulo 4.</em></p>
+<p><em>Proof.</em> Suppose, for a contradiction, that there are only finitely many, and list
+them all as <code>p_1, ..., p_k</code>.</p>
+<ol>
+<li>The list is non-empty: <code>3</code> is prime and <code>3 = 4 · 0 + 3</code>, so <code>3 ≡ 3 (mod 4)</code>; hence
+   <code>k &gt;= 1</code> and <code>p_1 p_2 ⋯ p_k &gt;= 3</code>.</li>
+<li>Define <code>N = 4 p_1 p_2 ⋯ p_k − 1</code>. Since the product is at least 3,
+   <code>N &gt;= 4 · 3 − 1 = 11 &gt; 1</code>.</li>
+<li><code>N ≡ 3 (mod 4)</code>: indeed <code>N = 4(p_1 ⋯ p_k − 1) + 3</code>, and <code>p_1 ⋯ p_k − 1 &gt;= 0</code>, so
+   by the division algorithm the remainder of <code>N</code> upon division by 4 is 3.</li>
+<li><code>N</code> is odd: <code>N = 2(2 p_1 ⋯ p_k − 1) + 1</code> is one more than an even number.</li>
+<li>By Lemma 1.1 (applied repeatedly, i.e. by existence of prime factorisations),
+   <code>N = q_1 q_2 ⋯ q_t</code> for some primes <code>q_1, ..., q_t</code>, with <code>t &gt;= 1</code> because <code>N &gt; 1</code>.</li>
+<li>Each <code>q_j</code> is odd: <code>q_j | N</code>, and if <code>q_j = 2</code> then <code>N = q_j · (N / q_j)</code> would be
+   even, contradicting step 4.</li>
+<li>By Lemma 1.2, each <code>q_j ≡ 1 (mod 4)</code> or <code>q_j ≡ 3 (mod 4)</code>.</li>
+<li>Some <code>q_j ≡ 3 (mod 4)</code>. For if every <code>q_j ≡ 1 (mod 4)</code>, then by Lemma 1.3 applied
+   to the product <code>q_1 ⋯ q_t</code> we would have <code>N ≡ 1 (mod 4)</code>, contradicting step 3:
+   by uniqueness of the remainder in the division algorithm, <code>N</code> cannot have both
+   remainder 1 and remainder 3 upon division by 4.</li>
+<li>Fix an index <code>j</code> with <code>q := q_j ≡ 3 (mod 4)</code>. By the exhaustiveness assumption,
+   <code>q</code> is one of <code>p_1, ..., p_k</code>. Then <code>q</code> divides the product <code>p_1 ⋯ p_k</code> (that
+   product is <code>q</code> times the product of the remaining <code>p_i</code>'s), so <code>q | 4 p_1 ⋯ p_k</code>.
+   But <code>4 p_1 ⋯ p_k = N + 1</code>, and also <code>q | N</code> (step 5). Hence
+   <code>q | (N + 1) − N = 1</code>.</li>
+<li>No prime divides 1: if <code>q | 1</code>, then <code>1 = qm</code> for some positive integer <code>m</code>, so
+    <code>q &lt;= qm = 1</code>, contradicting <code>q &gt;= 2</code>.</li>
+</ol>
+<p>Steps 9 and 10 contradict each other. Therefore the assumption that the list
+<code>p_1, ..., p_k</code> was complete is false, and there are infinitely many primes
+congruent to 3 modulo 4. ∎</p>
+<hr />
+<h2 id="2-the-number-sqrt2-sqrt3-is-irrational">2. The number sqrt(2) + sqrt(3) is irrational</h2>
+<p>A real number is <em>rational</em> if it equals <code>a / b</code> for integers <code>a, b</code> with <code>b ≠ 0</code>;
+otherwise it is <em>irrational</em>.</p>
+<p><strong>Lemma 2.1 (rational root test, monic case).</strong> <em>Let <code>n &gt;= 1</code> and let
+<code>f(x) = x^n + c_{n−1} x^{n−1} + ⋯ + c_1 x + c_0</code> have integer coefficients. If the
+rational number <code>r = a / b</code>, written in lowest terms with <code>b &gt; 0</code> and
+<code>gcd(a, b) = 1</code>, is a root of <code>f</code>, then <code>b = 1</code> and <code>a | c_0</code>. In particular every
+rational root of a monic integer polynomial is an integer dividing the constant term.</em></p>
+<p><em>Proof.</em> Assume <code>f(a/b) = 0</code>. Multiply the equation by <code>b^n</code> (legal since <code>b &gt;= 1</code>):</p>
+<pre><code>a^n + c_{n−1} a^{n−1} b + c_{n−2} a^{n−2} b^2 + ⋯ + c_1 a b^{n−1} + c_0 b^n = 0.
+</code></pre>
+<p>Every term except the first contains a factor <code>b</code>, so</p>
+<pre><code>a^n = −b · (c_{n−1} a^{n−1} + c_{n−2} a^{n−2} b + ⋯ + c_0 b^{n−1}),
+</code></pre>
+<p>and the bracket is an integer. Hence <code>b | a^n</code>. We claim <code>gcd(a^n, b) = 1</code>: if a
+prime <code>ℓ</code> divided both, then <code>ℓ | a^n</code>, so by Euclid's lemma (applied <code>n</code> times)
+<code>ℓ | a</code>; but then <code>ℓ</code> divides both <code>a</code> and <code>b</code>, contradicting <code>gcd(a, b) = 1</code>. Since
+<code>b | a^n</code> and <code>gcd(a^n, b) = 1</code>, <code>b</code> has no prime divisor, so <code>b = 1</code>.</p>
+<p>With <code>b = 1</code> the displayed identity becomes
+<code>a^n + c_{n−1} a^{n−1} + ⋯ + c_1 a + c_0 = 0</code>, so</p>
+<pre><code>c_0 = −a · (a^{n−1} + c_{n−1} a^{n−2} + ⋯ + c_1),
+</code></pre>
+<p>where the bracket is an integer; hence <code>a | c_0</code>. ∎</p>
+<p><strong>Lemma 2.2.</strong> <em>sqrt(2) · sqrt(3) = sqrt(6).</em></p>
+<p><em>Proof.</em> Both numbers are positive. Their squares are equal:
+<code>(√2 · √3)^2 = (√2)^2 (√3)^2 = 2 · 3 = 6</code> (using <code>(xy)^2 = x^2 y^2</code>, which is
+commutativity and associativity of multiplication), and <code>(√6)^2 = 6</code> by definition of
+the square root. If two positive reals <code>x, y</code> satisfy <code>x^2 = y^2</code>, then
+<code>0 = x^2 − y^2 = (x − y)(x + y)</code>; since <code>x + y &gt; 0</code> we must have <code>x − y = 0</code>, i.e.
+<code>x = y</code>. Applying this to <code>x = √2 · √3</code> and <code>y = √6</code> gives the claim. ∎</p>
+<p><strong>Proposition 2.3.</strong> <em>The number <code>α = √2 + √3</code> is a root of the polynomial
+<code>f(x) = x^4 − 10x^2 + 1</code>.</em></p>
+<p><em>Proof.</em> Compute, using the binomial expansion of <code>(x + y)^2</code> and Lemma 2.2:</p>
+<pre><code>α^2 = (√2 + √3)^2 = (√2)^2 + 2·√2·√3 + (√3)^2 = 2 + 2√6 + 3 = 5 + 2√6.
+</code></pre>
+<p>Squaring once more:</p>
+<pre><code>α^4 = (5 + 2√6)^2 = 25 + 2·5·2√6 + (2√6)^2 = 25 + 20√6 + 4·6 = 49 + 20√6,
+</code></pre>
+<p>where <code>(2√6)^2 = 4 · (√6)^2 = 4 · 6 = 24</code>. Also <code>10α^2 = 50 + 20√6</code>. Therefore</p>
+<pre><code>f(α) = α^4 − 10α^2 + 1 = (49 + 20√6) − (50 + 20√6) + 1 = (49 − 50 + 1) + (20 − 20)·√6 = 0.
+</code></pre>
+<p>∎</p>
+<p><strong>Theorem 2.4.</strong> <em>√2 + √3 is irrational.</em></p>
+<p><em>Proof.</em> Let <code>α = √2 + √3</code>.</p>
+<ol>
+<li><code>α &gt; 1</code>. First, <code>√2 &gt; 1</code>: if <code>√2 &lt;= 1</code>, then since both sides are non-negative,
+   monotonicity of squaring on <code>[0, ∞)</code> would give <code>2 = (√2)^2 &lt;= 1^2 = 1</code>, a
+   contradiction. Second, <code>√3 &gt; 0</code>: <code>√3 &gt;= 0</code> by definition, and <code>√3 = 0</code> would give
+   <code>3 = (√3)^2 = 0</code>. Adding: <code>α = √2 + √3 &gt; 1 + 0 = 1</code>.</li>
+<li>Suppose for a contradiction that <code>α</code> is rational, and write <code>α = a / b</code> in lowest
+   terms with <code>b &gt; 0</code>.</li>
+<li>By Proposition 2.3, <code>α</code> is a root of the monic polynomial <code>x^4 − 10x^2 + 1</code> with
+   integer coefficients. By Lemma 2.1, <code>b = 1</code> and <code>a | 1</code>. The only integers dividing
+   1 are <code>1</code> and <code>−1</code>, so <code>α = a ∈ {1, −1}</code>.</li>
+<li>But step 1 gives <code>α &gt; 1</code>, so <code>α ≠ 1</code> and <code>α ≠ −1</code>, a contradiction.</li>
+</ol>
+<p>Hence <code>α</code> is irrational. ∎</p>
+<p><em>Remark.</em> The proof actually shows more: the argument of Lemma 2.1 applied to any
+polynomial of degree at most 3 with integer coefficients that vanished at <code>α</code> would
+force <code>α</code> to be a root of <code>x^4 − 10x^2 + 1</code> as well, and one can check (as our script
+<code>check.py</code> does numerically, and as linear independence of <code>1, √2, √3, √6</code> over Q
+shows exactly) that no nonzero polynomial of degree below 4 with small integer
+coefficients vanishes at <code>α</code>. The polynomial <code>x^4 − 10x^2 + 1</code> is in fact the minimal
+polynomial of <code>α</code>.</p>
+<hr />
+<h2 id="3-every-finite-tournament-has-a-hamiltonian-path">3. Every finite tournament has a Hamiltonian path</h2>
+<p><strong>Definitions.</strong> A <em>tournament</em> <code>T = (V, E)</code> on a finite vertex set <code>V</code> is an
+orientation of the complete graph: for every unordered pair <code>{u, v}</code> of distinct
+vertices, exactly one of the directed edges <code>u → v</code> and <code>v → u</code> belongs to <code>E</code>.
+A <em>directed path</em> in <code>T</code> is a sequence of distinct vertices
+<code>x_1, x_2, ..., x_m</code> such that <code>x_i → x_{i+1}</code> belongs to <code>E</code> for every
+<code>i = 1, ..., m − 1</code>. A directed path is <em>Hamiltonian</em> if it contains every vertex of
+<code>V</code> exactly once, i.e. if <code>m = |V|</code> and <code>{x_1, ..., x_m} = V</code>.</p>
+<p><strong>Theorem 3.1.</strong> <em>Every finite tournament on <code>n &gt;= 1</code> vertices has a Hamiltonian path.</em></p>
+<p><em>Proof.</em> By induction on <code>n</code>.</p>
+<p><strong>Base case <code>n = 1</code>.</strong> Let <code>V = {v}</code>. The one-term sequence <code>(v)</code> is a directed path:
+the condition "x_i → x_{i+1} for every <code>i = 1, ..., 0</code>" quantifies over an empty set
+of indices, so it holds. The sequence contains the single vertex exactly once, so it
+is Hamiltonian.</p>
+<p><strong>Inductive step.</strong> Let <code>n &gt;= 2</code>, and assume that every tournament on <code>n − 1</code> vertices
+has a Hamiltonian path. Let <code>T = (V, E)</code> be a tournament with <code>|V| = n</code>.</p>
+<ol>
+<li><code>V</code> is non-empty (it has <code>n &gt;= 2</code> elements), so we may pick a vertex <code>v ∈ V</code>.</li>
+<li>Let <code>V' = V \ {v}</code> and let <code>T'</code> be the tournament obtained by deleting <code>v</code> and all
+   edges touching <code>v</code>. <code>T'</code> is a tournament: for any pair <code>{u, w}</code> of distinct
+   vertices of <code>V'</code>, the pair is also a pair of vertices of <code>T</code>, where exactly one of
+   <code>u → w</code>, <code>w → u</code> lies in <code>E</code>; that same unique edge lies in <code>T'</code>. Also
+   <code>|V'| = n − 1 &gt;= 1</code>.</li>
+<li>By the induction hypothesis, <code>T'</code> has a Hamiltonian path
+   <code>P : x_1 → x_2 → ⋯ → x_{n−1}</code>. Thus <code>{x_1, ..., x_{n−1}} = V'</code>, the <code>x_i</code> are
+   pairwise distinct, and <code>x_i → x_{i+1} ∈ E</code> for all <code>1 &lt;= i &lt;= n − 2</code>.</li>
+<li>We now insert <code>v</code> into this path. For each <code>i</code>, the pair <code>{v, x_i}</code> consists of two
+   distinct vertices of <code>T</code>, so by the definition of a tournament <strong>exactly one</strong> of
+   <code>v → x_i</code> and <code>x_i → v</code> holds. There are three cases.</li>
+</ol>
+<p><strong>Case 1: <code>v → x_1</code>.</strong> Then <code>(v, x_1, x_2, ..., x_{n−1})</code> is a directed path: its
+   consecutive pairs are <code>(v, x_1)</code>, an edge by assumption, and <code>(x_i, x_{i+1})</code>,
+   edges by step 3. Its vertices are pairwise distinct (v is not in <code>V'</code>, and the
+   <code>x_i</code> are distinct and exhaust <code>V'</code>), and there are <code>n</code> of them, so the path is
+   Hamiltonian.</p>
+<p><strong>Case 2: <code>x_{n−1} → v</code>.</strong> The same argument with <code>v</code> placed at the end shows that
+   <code>(x_1, ..., x_{n−1}, v)</code> is a Hamiltonian path.</p>
+<p><strong>Case 3: neither Case 1 nor Case 2 holds.</strong> By the "exactly one" property of
+   step 4, failure of <code>v → x_1</code> means <code>x_1 → v</code>, and failure of <code>x_{n−1} → v</code> means
+   <code>v → x_{n−1}</code>. (Note this case cannot occur when <code>n = 2</code>: then <code>x_1 = x_{n−1}</code>,
+   and <code>x_1 → v</code> together with <code>v → x_{n−1} = x_1</code> would put both directions of the
+   same pair in <code>E</code>, impossible.) Consider the set
+   <code>S = { i ∈ {1, ..., n−1} : x_i → v }</code>. We have <code>1 ∈ S</code> and <code>n − 1 ∉ S</code>, so <code>S</code> is
+   non-empty and not the whole index set. By the maximum principle for finite sets,
+   <code>S</code> has a largest element <code>i</code>. Since <code>n − 1 ∉ S</code>, this <code>i</code> satisfies <code>i &lt;= n − 2</code>,
+   so <code>i + 1 &lt;= n − 1</code> is a valid index. Because <code>i + 1 &gt; i = max S</code>, <code>i + 1 ∉ S</code>,
+   i.e. it is <strong>not</strong> the case that <code>x_{i+1} → v</code>; by the "exactly one" property
+   again, <code>v → x_{i+1}</code>. By definition of <code>S</code> we also have <code>x_i → v</code>. Now form</p>
+<p><code>(x_1, ..., x_i, v, x_{i+1}, ..., x_{n−1}).</code></p>
+<p>Check the consecutive pairs one by one: <code>(x_j, x_{j+1})</code> for <code>j &lt; i</code> and for
+   <code>i + 1 &lt;= j &lt;= n − 2</code> are edges by step 3; <code>(x_i, v)</code> is an edge because <code>x_i → v</code>;
+   <code>(v, x_{i+1})</code> is an edge because <code>v → x_{i+1}</code>. The sequence has <code>n</code> pairwise
+   distinct vertices and covers <code>V'</code> together with <code>v</code>, so it is a Hamiltonian path.</p>
+<ol start="5">
+<li>The three cases are exhaustive: either <code>v → x_1</code> (Case 1), or <code>x_1 → v</code> and then
+   either <code>x_{n−1} → v</code> (Case 2) or <code>v → x_{n−1}</code> (Case 3). In every case we produced
+   a Hamiltonian path of <code>T</code>.</li>
+</ol>
+<p>By the principle of induction, every tournament on <code>n &gt;= 1</code> vertices has a Hamiltonian
+path. ∎</p>
+<hr />
+<h2 id="4-the-sum-of-the-first-n-odd-cubes-is-n2-2n2-1">4. The sum of the first n odd cubes is n^2 (2n^2 − 1)</h2>
+<p><strong>Theorem 4.1.</strong> <em>For every integer <code>n &gt;= 1</code>,</em></p>
+<pre><code>1^3 + 3^3 + 5^3 + ⋯ + (2n − 1)^3 = n^2 (2n^2 − 1).
+</code></pre>
+<p><em>Proof.</em> Write <code>S(n)</code> for the claimed identity. We use induction on <code>n</code>.</p>
+<p><strong>Base case <code>n = 1</code>.</strong> The left side is the single term <code>(2·1 − 1)^3 = 1^3 = 1</code>. The
+right side is <code>1^2 · (2·1^2 − 1) = 1 · 1 = 1</code>. The two sides agree, so <code>S(1)</code> holds.</p>
+<p><strong>Inductive step.</strong> Assume <code>S(n)</code> holds for some <code>n &gt;= 1</code>; we prove <code>S(n + 1)</code>, i.e.</p>
+<pre><code>1^3 + 3^3 + ⋯ + (2n − 1)^3 + (2n + 1)^3 = (n + 1)^2 ( 2(n + 1)^2 − 1 ).
+</code></pre>
+<ol>
+<li>Split off the last term (the <code>(n+1)</code>-st odd number is <code>2(n+1) − 1 = 2n + 1</code>):</li>
+</ol>
+<p><code>Σ_{i=1}^{n+1} (2i − 1)^3 = [ Σ_{i=1}^{n} (2i − 1)^3 ] + (2n + 1)^3.</code></p>
+<ol start="2">
+<li>Replace the bracket by the induction hypothesis:</li>
+</ol>
+<p><code>Σ_{i=1}^{n+1} (2i − 1)^3 = n^2 (2n^2 − 1) + (2n + 1)^3.</code></p>
+<ol start="3">
+<li>Expand the first summand by distributivity:
+   <code>n^2 (2n^2 − 1) = 2n^4 − n^2</code>.</li>
+<li>Expand the second summand by the binomial theorem with <code>x = 2n</code>, <code>y = 1</code>:
+   <code>(2n + 1)^3 = (2n)^3 + 3(2n)^2 · 1 + 3(2n) · 1^2 + 1^3 = 8n^3 + 12n^2 + 6n + 1</code>.</li>
+<li>Add the results of steps 3 and 4, collecting equal powers of <code>n</code>:</li>
+</ol>
+<p><code>2n^4 − n^2 + 8n^3 + 12n^2 + 6n + 1 = 2n^4 + 8n^3 + 11n^2 + 6n + 1.</code></p>
+<p>So the left side of <code>S(n + 1)</code> equals <code>2n^4 + 8n^3 + 11n^2 + 6n + 1</code>.
+6. Now expand the right side of <code>S(n + 1)</code>. First
+   <code>(n + 1)^2 = n^2 + 2n + 1</code> and
+   <code>2(n + 1)^2 − 1 = 2n^2 + 4n + 2 − 1 = 2n^2 + 4n + 1</code>. Then, distributing the
+   product factor by factor,</p>
+<p><code>(n^2 + 2n + 1)(2n^2 + 4n + 1)
+     = n^2(2n^2 + 4n + 1) + 2n(2n^2 + 4n + 1) + 1·(2n^2 + 4n + 1)
+     = (2n^4 + 4n^3 + n^2) + (4n^3 + 8n^2 + 2n) + (2n^2 + 4n + 1)
+     = 2n^4 + (4 + 4)n^3 + (1 + 8 + 2)n^2 + (2 + 4)n + 1
+     = 2n^4 + 8n^3 + 11n^2 + 6n + 1.</code></p>
+<ol start="7">
+<li>The expressions in steps 5 and 6 are identical, so the left and right sides of
+   <code>S(n + 1)</code> are equal, and <code>S(n + 1)</code> holds.</li>
+</ol>
+<p>By the principle of induction, <code>S(n)</code> holds for every integer <code>n &gt;= 1</code>. ∎</p>
+<p><strong>Remark (a direct derivation).</strong> Let <code>T(m) = 1^3 + 2^3 + ⋯ + m^3 = (m(m + 1) / 2)^2</code>
+(the classical cube-sum identity, itself provable by induction exactly as above). The
+sum of the first <code>n</code> odd cubes is the sum of <em>all</em> cubes up to <code>2n</code> minus the sum of
+the even cubes <code>2^3 + 4^3 + ⋯ + (2n)^3 = 8 · T(n)</code>. Hence</p>
+<pre><code>Σ_{i=1}^{n} (2i − 1)^3 = T(2n) − 8 T(n)
+                       = (2n(2n + 1)/2)^2 − 8 (n(n + 1)/2)^2
+                       = n^2 (2n + 1)^2 − 2 n^2 (n + 1)^2
+                       = n^2 [ (4n^2 + 4n + 1) − (2n^2 + 4n + 2) ]
+                       = n^2 (2n^2 − 1).
+</code></pre>
+<p>Each equality is an expansion verified by the distributive law, in the same style as
+steps 3–6 of the induction above.</p></main>

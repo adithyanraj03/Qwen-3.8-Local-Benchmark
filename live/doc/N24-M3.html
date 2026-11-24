@@ -1,0 +1,907 @@
+<!doctype html><meta charset=utf-8><title>DESIGN.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M3 · N24 · DESIGN.md <span>M3-qwen3.8-27b-thinkingcap-heretic-nvfp4</span></div><main><h1 id="url-shortener-service-design-document">URL-Shortener Service — Design Document</h1>
+<p><strong>Service name:</strong> <code>shrt</code>
+<strong>Version:</strong> 1.0 (draft)
+<strong>Owner:</strong> Platform / Links Team
+<strong>Status:</strong> For review</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#1-requirements">Requirements</a></li>
+<li><a href="#2-api">API</a></li>
+<li><a href="#3-data-model">Data Model</a></li>
+<li><a href="#4-id-generation-options-and-trade-offs">ID Generation: Options and Trade-offs</a></li>
+<li><a href="#5-caching">Caching</a></li>
+<li><a href="#6-replication-and-multi-region-strategy">Replication and Multi-Region Strategy</a></li>
+<li><a href="#7-abuse-prevention">Abuse Prevention</a></li>
+<li><a href="#8-analytics-pipeline">Analytics Pipeline</a></li>
+<li><a href="#9-capacity-estimates">Capacity Estimates (with Arithmetic)</a></li>
+<li><a href="#10-failure-modes">Failure Modes</a></li>
+<li><a href="#11-rollout-plan">Rollout Plan</a></li>
+<li><a href="#12-appendix-diagrams">Appendix: Diagrams</a> (inline in relevant sections; index at end)</li>
+</ol>
+<hr />
+<h2 id="1-requirements">1. Requirements</h2>
+<h3 id="11-functional">1.1 Functional</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>Create a short link from a long URL; return the short code</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>Resolve a short code to the destination via HTTP redirect</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Support custom aliases (<code>acme.io/go/launch</code>) and auto-generated codes</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>Support TTL / expiry (410 Gone after expiry)</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Idempotent creates: same long URL + owner → same code (dedup)</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>Get link metadata + click stats; delete / soft-archive links</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>Per-owner analytics: clicks over time, geo, referrer, device/UA class</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>Webhooks on click (opt-in, sampled or full)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="12-non-functional">1.2 Non-functional</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N1</td>
+<td><strong>Throughput:</strong> 50,000 writes/s and 1,000,000 reads/s <strong>global, sustained</strong> (burst 2× for 5 min)</td>
+</tr>
+<tr>
+<td>N2</td>
+<td><strong>Latency (redirect):</strong> p50 &lt; 20 ms, p99 &lt; 100 ms, p99.9 &lt; 250 ms from nearest region</td>
+</tr>
+<tr>
+<td>N3</td>
+<td><strong>Availability:</strong> reads 99.99% (≤ 4.3 min downtime/month), writes 99.9%</td>
+</tr>
+<tr>
+<td>N4</td>
+<td><strong>Durability:</strong> no loss of committed writes (RPO = 0 within a region; ≤ 5 min cross-region)</td>
+</tr>
+<tr>
+<td>N5</td>
+<td><strong>Data:</strong> serve 30 days hot, 180 days warm, 2 years archive; reads served from hot/warm</td>
+</tr>
+<tr>
+<td>N6</td>
+<td><strong>Multi-region:</strong> reads served locally in ≥ 3 regions; writes accepted in any region</td>
+</tr>
+<tr>
+<td>N7</td>
+<td><strong>Abuse:</strong> a single malicious owner must not degrade p99 for the rest of the fleet</td>
+</tr>
+<tr>
+<td>N8</td>
+<td><strong>Analytics:</strong> no click event dropped from the stream under nominal load; detail retained 14 days, rollups 2 years</td>
+</tr>
+</tbody>
+</table>
+<h3 id="13-workload-assumptions-used-for-all-arithmetic">1.3 Workload assumptions (used for all arithmetic)</h3>
+<ul>
+<li>Read:write ratio ≈ 20:1 (1,000,000 / 50,000)</li>
+<li>Clicks follow a heavy Zipf distribution: ~80% of reads hit the most popular ~10M codes</li>
+<li>Average destination URL: 100 bytes; average row on disk ≈ 400 bytes (incl. index overhead)</li>
+<li>3 active regions, traffic split evenly (≈ 333,333 reads/s per region)</li>
+<li>Average click event: ~200 bytes serialized; ~120 bytes compressed in the warehouse</li>
+</ul>
+<hr />
+<h2 id="2-api">2. API</h2>
+<p>Base: <code>https://api.shrt.example/v1</code>. All endpoints JSON. Auth: <code>Authorization: Bearer &lt;api-key&gt;</code> (keys are scoped: <code>read</code>, <code>write</code>, <code>admin</code>). Writes accept <code>Idempotency-Key</code>.</p>
+<h3 id="21-create">2.1 Create</h3>
+<pre><code>POST /v1/urls
+{
+  &quot;long_url&quot;: &quot;https://example.com/very/long/path?x=1&quot;,
+  &quot;alias&quot;: &quot;launch&quot;,            // optional; validated against owner's namespace
+  &quot;ttl_seconds&quot;: 86400,         // optional; default = never
+  &quot;owner_id&quot;: &quot;acct_01H...&quot;,    // optional for self-owned API keys
+  &quot;tags&quot;: [&quot;marketing&quot;, &quot;q4&quot;]
+}
+</code></pre>
+<ul>
+<li><code>201 Created</code> → <code>{ "id": "abc1234", "short_url": "https://shrt.example/abc1234", "created_at_ms": 1761500000000, "dedup": false }</code></li>
+<li>Same <code>long_url</code> + <code>owner</code> already exists → <code>200</code> with existing code, <code>"dedup": true</code> (F5)</li>
+<li><code>409 Conflict</code> on alias taken; <code>422</code> invalid/expiring TTL; <code>429</code> with <code>Retry-After</code></li>
+</ul>
+<h3 id="22-read-update-delete">2.2 Read / update / delete</h3>
+<pre><code>GET    /v1/urls/{code}                  → metadata + counters (30d clicks, last_clicked)
+PATCH  /v1/urls/{code}                  → { &quot;ttl_seconds&quot;: ..., &quot;archived&quot;: true }
+DELETE /v1/urls/{code}                  → soft delete; code retained 90 days, then re-usable
+GET    /v1/urls/{code}/stats?window=24h → pre-aggregated rollups (not per-event)
+POST   /v1/urls/{code}/webhooks         → opt into click webhooks
+</code></pre>
+<h3 id="23-redirect-public-no-auth">2.3 Redirect (public, no auth)</h3>
+<pre><code>GET https://shrt.example/{code}
+→ 307 Temporary Redirect, Location: &lt;long_url&gt;
+</code></pre>
+<ul>
+<li><code>307</code> is the default (preserves method/body, lets us change destinations); <code>301</code> configurable per link for permanent moves</li>
+<li><code>404</code> unknown; <code>410 Gone</code> expired; <code>451</code>/<code>429</code> when the link is rate-limited or quarantined</li>
+<li><code>GET /{code}/info</code> (JSON, for clients that must resolve without following)</li>
+<li>Response headers: <code>X-Click-Id</code> (analytics correlation), standard <code>Cache-Control: no-store</code></li>
+</ul>
+<h3 id="24-rate-limits">2.4 Rate limits</h3>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per API key, writes</td>
+<td>1,000 req/s (token bucket in the cache tier)</td>
+</tr>
+<tr>
+<td>Per API key, reads</td>
+<td>10,000 req/s</td>
+</tr>
+<tr>
+<td>Per source IP, redirect</td>
+<td>200 req/s</td>
+</tr>
+<tr>
+<td>Per code, redirect</td>
+<td>5,000 req/s (above → 429 + quarantine flag)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="3-data-model">3. Data Model</h2>
+<p>Storage: sharded transactional KV/SQL store (Postgres-compatible wire protocol, custom operator; 32 shards, sharded by <code>code</code>).</p>
+<h3 id="31-tables">3.1 Tables</h3>
+<pre><code class="language-sql">-- Primary record. Sharding key: code (uniform base62 → uniform shard distribution).
+CREATE TABLE links (
+  code            VARCHAR(8)  PRIMARY KEY,   -- base62, 7-8 chars
+  long_url        VARCHAR(2048) NOT NULL,
+  url_sha256      CHAR(64)     NOT NULL,     -- sha256(long_url), for dedup
+  owner_id        VARCHAR(32)  NOT NULL,
+  status          SMALLINT     NOT NULL,     -- 0 active, 1 archived, 2 soft-deleted, 3 quarantined
+  created_at_ms   BIGINT       NOT NULL,
+  expires_at_ms   BIGINT       NULL,
+  redirect_type   SMALLINT     NOT NULL,     -- 307 / 301
+  version         BIGINT       NOT NULL      -- optimistic concurrency for PATCH
+);
+
+-- Unique dedup index: (owner_id, url_sha256) → code.
+-- Enforces F5: same owner + same long URL maps to exactly one live code.
+CREATE UNIQUE INDEX links_dedup ON links (owner_id, url_sha256) WHERE status = 0;
+
+-- Custom aliases are just links with code = alias (validated charset, owner-scoped check
+-- against a per-namespace set stored in the cache tier, not a global index).
+
+-- Low-cardinality rollups kept next to the row for /stats (updated async, never on the
+-- redirect hot path). Authoritative analytics live in the warehouse (§8).
+CREATE TABLE link_rollups (
+  code        VARCHAR(8) PRIMARY KEY,
+  clicks_24h  BIGINT NOT NULL,
+  clicks_30d  BIGINT NOT NULL,
+  last_click_ms BIGINT NULL,
+  updated_at_ms BIGINT NOT NULL
+);
+
+-- Code allocator bookkeeping (single small Raft group; see §4).
+CREATE TABLE code_blocks (
+  block_id    BIGINT PRIMARY KEY,      -- monotonic
+  node_id     VARCHAR(64) NOT NULL,
+  range_lo    BIGINT NOT NULL,
+  range_hi    BIGINT NOT NULL,
+  granted_at_ms BIGINT NOT NULL
+);
+</code></pre>
+<h3 id="32-storage-tiers">3.2 Storage tiers</h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Content</th>
+<th>Engine</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hot</td>
+<td>Last 30 days (≈ 52 TB raw, §9)</td>
+<td>NVMe-backed shard leaders + 2 followers each</td>
+<td>30 days</td>
+</tr>
+<tr>
+<td>Warm</td>
+<td>30–180 days</td>
+<td>Object store (S3-class) + point-lookup index in the same KV (index-only rows)</td>
+<td>180 days</td>
+</tr>
+<tr>
+<td>Cold</td>
+<td>180 days–2 years</td>
+<td>Object store, Parquet, queryable via warehouse</td>
+<td>2 years</td>
+</tr>
+</tbody>
+</table>
+<p>A redirect for a warm/cold code does an extra index lookup (~3 ms p99) and warms the cache on the way back. Expiry is evaluated at read time (<code>expires_at_ms &lt; now</code> → 410), so no mass-delete jobs are needed; a nightly compactor reclaims soft-deleted codes after 90 days.</p>
+<h3 id="33-what-is-not-in-the-oltp-store">3.3 What is <em>not</em> in the OLTP store</h3>
+<p>Per-click events. Clicks are appended to the event stream (§8) and folded into <code>link_rollups</code> and the warehouse asynchronously. The redirect path performs <strong>one cache get and, on miss, one row get</strong> — nothing else.</p>
+<hr />
+<h2 id="4-id-generation-options-and-trade-offs">4. ID Generation: Options and Trade-offs</h2>
+<h3 id="41-the-constraints-arithmetic-first">4.1 The constraints (arithmetic first)</h3>
+<p>Annual volume:</p>
+<pre><code>50,000 writes/s × 86,400 s/day = 4.32e9 codes/day
+4.32e9 × 365 days              = 1.58e12 codes/year
+</code></pre>
+<p>Code space sizes (base62, unreserved chars — no 0/O, 1/I):</p>
+<pre><code>62^7 = 3.52e12     → exhausted after 3.52e12 / 1.58e12 ≈ 2.2 years at our write rate
+62^8 = 2.18e14     → ≈ 138 years
+</code></pre>
+<p>And the classic birthday-bound check for <strong>sampling</strong> (random or hash) codes from a space <code>N</code>, drawing <code>n</code> codes: expected collisions ≈ <code>n² / 2N</code>. For <code>n = 1.58e12</code> codes/year:</p>
+<pre><code>N = 62^7 (3.52e12):  (1.58e12)² / (2 × 3.52e12) ≈ 3.5e11 collisions/year   ← hopeless
+N = 62^8 (2.18e14):  (1.58e12)² / (2 × 2.18e14) ≈ 5.7e9 collisions/year    ← hopeless
+N = 62^11 (5.2e19):  ≈ 2 collisions/year                                    ← finally safe
+</code></pre>
+<p><strong>Conclusion:</strong> at 50k writes/s you cannot <em>sample</em> short codes and rely on the space to absorb collisions. Either (a) <em>assign</em> codes from bookkeeping so collisions are impossible by construction, (b) accept 11+ char codes for hash/random generation, or (c) coordinate per-shard/per-region sub-spaces.</p>
+<h3 id="42-options">4.2 Options</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Option</th>
+<th>Code length</th>
+<th>Coordination cost</th>
+<th>Collision behavior</th>
+<th>Failure behavior</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td><strong>Central block allocator</strong> (chosen): a small global Raft group hands each writer node a block of 250k contiguous 8-char codes</td>
+<td>7–8 chars</td>
+<td>1 RPC per 250k writes → <code>50,000 / 250,000 = 0.2 allocs/s</code> globally</td>
+<td>None by construction (assignment, not sampling)</td>
+<td>Allocator down: each writer keeps writing from its reserved block; 8 writers × 250k = 2M codes ≈ 40 s of autonomy at peak, then writes queue</td>
+<td><strong>Recommended</strong></td>
+</tr>
+<tr>
+<td>B</td>
+<td>Pure random/base62, probe-and-insert</td>
+<td>11+ chars (see §4.1)</td>
+<td>None (collision = rare read+retry)</td>
+<td>~2/year at 11 chars; 3.5e11/year at 7</td>
+<td>Stateless; nothing fails, codes just get long</td>
+<td>Good fallback, ugly codes</td>
+</tr>
+<tr>
+<td>C</td>
+<td><strong>Deterministic hash of <code>long_url</code></strong> (truncated BLAKE3)</td>
+<td>11+ chars to be safe (7 chars → ~3.5e11 collisions/yr, §4.1)</td>
+<td>None; idempotent for free (same URL → same code, no dedup index needed)</td>
+<td>Birthday-collision dominated; needs lookup anyway to resolve</td>
+<td>Stateless</td>
+<td>Great for a <em>side-channel idempotency key</em>, not the public ID: guessable (attacker who knows your URL can brute-force your code) and collision math forces length</td>
+</tr>
+<tr>
+<td>D</td>
+<td>Snowflake (41-bit ms + 10-bit node + 12-bit seq) base62-encoded</td>
+<td>12 chars</td>
+<td>None per-write; needs clock</td>
+<td>None by construction</td>
+<td>Clock step-back → wait or fail (monotonic-tilt needed)</td>
+<td>Solid, but longest codes; encodes creation time and node → leaks traffic shape and volume</td>
+</tr>
+<tr>
+<td>E</td>
+<td>Per-region allocator with region-prefixed first char</td>
+<td>8 chars (7 + region)</td>
+<td>Zero cross-region coordination; each region owns ⅓ of the space</td>
+<td>None within region; prefixes partition the space</td>
+<td>A region's allocator failure only stalls that region's writes</td>
+<td>Best when you <em>want</em> region-of-record; slight info leak (region in code), space per region = 7.3e13 ≈ 46 yr headroom, fine</td>
+</tr>
+</tbody>
+</table>
+<h3 id="43-design-decision">4.3 Design decision</h3>
+<ul>
+<li><strong>Primary: Option A.</strong> Allocator = 3-node Raft group (one member per region; quorum exists as long as any 2 regions are up, so a single-region outage does not stall global writes). Blocks are non-overlapping ranges → grant is commutative; grants are replicated to all members so failover loses at most the in-flight grant.</li>
+<li>Codes are 8-char base62 (≈138 years of headroom, §4.1); a per-block <strong>permutation table</strong> (4-byte XOR-feistel on the low bits) is applied so codes within a block are not sequential — hides per-owner creation rate and approximate volume. Cost: one in-memory table per block, ~2 MB, discarded with the block.</li>
+<li><strong>Dedup (F5)</strong> uses Option C as a <em>key</em>, not an ID: <code>sha256(long_url)</code> is the dedup index (§3.1); a hit returns the existing code, no new ID is minted.</li>
+<li>Custom aliases bypass the allocator entirely (owner-scoped uniqueness enforced via the namespace set in the cache tier + unique index on commit).</li>
+<li>Expiry/retention: deleted codes are reusable after 90 days via the compactor (§3.2); re-use is safe because <code>version</code> and <code>created_at_ms</code> change, and the dedup index is status-scoped.</li>
+</ul>
+<hr />
+<h2 id="5-caching">5. Caching</h2>
+<h3 id="51-topology">5.1 Topology</h3>
+<ul>
+<li><strong>Read path is cache-first.</strong> Each region runs its own Redis Cluster (3 master shards × 1 replica, 16 GB each ≈ 48 GB usable per region). Cache is <strong>read-only from the store's perspective</strong>: populated by redirect misses (write-through of the fetched row) and invalidated by PATCH/DELETE via a per-region pub/sub channel. No cross-region cache of record — a write in region A invalidates region A immediately and regions B/C within ≤ 500 ms (pub/sub over the replication stream).</li>
+<li><strong>Why per-region and not shared:</strong> the redirect path must stay a single local memory get; a cross-region cache hop would break the p99 budget.</li>
+</ul>
+<h3 id="52-working-set-and-sizing-arithmetic">5.2 Working set and sizing (arithmetic)</h3>
+<pre><code>Cacheable working set ≈ top 10M codes (Zipf: ~80% of reads land here)
+Entry: 16 B key + ~200 B value + ~60 B overhead ≈ 280 B, call it 450 B w/ allocator overhead
+10e6 × 450 B = 4.5 GB  →  ≈ 8 GB with fragmentation/headroom, per region
+</code></pre>
+<p>Provision 48 GB/region → room for the 10M hot set <strong>plus</strong> a 20M-entry overflow at reduced TTL.</p>
+<h3 id="53-ttl-and-behavior">5.3 TTL and behavior</h3>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>TTL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Normal hit</td>
+<td>300 s</td>
+</tr>
+<tr>
+<td>Hot keys (top 1%)</td>
+<td>600 s, jittered ±20% (thundering-herd protection)</td>
+</tr>
+<tr>
+<td>Expired link (410)</td>
+<td><strong>negative cache 60 s</strong> (poison-URL defense, §10)</td>
+</tr>
+<tr>
+<td>Quarantined code</td>
+<td>30 s (fast re-check)</td>
+</tr>
+<tr>
+<td>After invalidation event</td>
+<td>key deleted in origin region; others ≤ 500 ms</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Single-flight: one miss per key per node in flight; concurrent misses coalesce (no cache stampede).</li>
+<li>Cache hit rate target ≥ 90% (see §9: 1M rps → 100k/s to the store, not 1M).</li>
+<li>Cache cluster failure: fail <strong>open</strong> to the store with per-shard read caps (store serves ~200k/s read headroom total) + serve the "top 100k codes" static snapshot for the hottest keys; shed analytics first, then cold reads. (§10, F1.)</li>
+</ul>
+<h3 id="54-write-side-caching">5.4 Write-side caching</h3>
+<ul>
+<li>Token-bucket rate-limit state (§2.4) lives in the same Redis (different key space, <code>NX</code> + Lua).</li>
+<li>Per-namespace alias sets live in Redis with a DB-authoritative rebuild job.</li>
+</ul>
+<hr />
+<h2 id="6-replication-and-multi-region-strategy">6. Replication and Multi-Region Strategy</h2>
+<h3 id="61-regions-and-roles">6.1 Regions and roles</h3>
+<ul>
+<li><strong>3 symmetric regions</strong> (e.g., <code>us-east</code>, <code>eu-west</code>, <code>ap-south</code>). All serve reads. All accept writes (N6) during steady state.</li>
+<li><strong>Region of record (RoR):</strong> the region that accepted a write is the RoR for that code; its shard leader is the write authority for the row.</li>
+<li><strong>Read locality:</strong> GSLB (GeoDNS + anycast edge) pins clients to the nearest healthy region; reads never cross regions in steady state.</li>
+</ul>
+<h3 id="62-replication">6.2 Replication</h3>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Mechanism</th>
+<th>RPO / lag</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Within region, shard leader → 2 followers</td>
+<td>Synchronous (semi-sync: commit waits for 1 follower)</td>
+<td>RPO 0</td>
+</tr>
+<tr>
+<td>RoR leader → followers in other regions</td>
+<td>Async logical replication via the store's log stream, ordered per shard</td>
+<td>≤ 500 ms p99</td>
+</tr>
+<tr>
+<td>Code allocator</td>
+<td>Raft (3 members, one per region); quorum = any 2 regions</td>
+<td>Blocks granted pre-outage survive the outage (§4.2)</td>
+</tr>
+<tr>
+<td>Invalidation events</td>
+<td>Piggyback on the replication log (no separate bus)</td>
+<td>≤ 500 ms p99</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Conflict policy:</strong> <code>version</code> column + last-writer-wins on <code>status</code> transitions only; <code>long_url</code> is immutable after create except an explicit <code>PATCH</code> which bumps <code>version</code>. Two regions PATCHing the same row concurrently → the RoR's log entry wins; the other is applied only if its <code>version</code> is newer.</li>
+<li><strong>Split brain / network partition between regions:</strong> writes continue in the partition holding the shard leader (and ≥1 in-region follower). A partitioned minority region serves reads (eventually consistent, ≤ lag) and <strong>queues writes</strong> (durable local queue, ≤ 5 min) rather than writing to a stale follower — protects RPO=0. The allocator keeps granting from blocks already held by writers in the partitioned region.</li>
+<li><strong>Store topology per region:</strong> 32 shards × (1 leader + 2 followers) = 96 nodes; non-RoR regions run all shards in <strong>read-replica mode</strong> (they hold full copies for read locality and can be promoted if the RoR region is lost).</li>
+<li><strong>Disaster recovery:</strong> full-region loss → traffic shifts to the other 2 regions (each ~500k reads/s, within 2× burst capacity, §9); write authority for affected shards promotes the freshest follower; RPO = replication lag (≤ 500 ms), RTO &lt; 5 min.</li>
+</ul>
+<h3 id="63-data-gravity">6.3 Data gravity</h3>
+<ul>
+<li>Analytics streams are regional (each region produces; one global consumer, §8).</li>
+<li>Raw event archive lands in a single global object store (multi-region replication built in).</li>
+</ul>
+<hr />
+<h2 id="7-abuse-prevention">7. Abuse Prevention</h2>
+<p>Threats: spam/short-link farms, phishing relays, SSRF via short link, click-fraud for pay-per-click owners, DoS via code-guessing.</p>
+<h3 id="71-at-create-time-write-path">7.1 At create time (write path)</h3>
+<ol>
+<li><strong>Per-key and per-owner quotas</strong> (links/day, open codes, concurrent TTLs) — enforced in the cache tier, hard caps in the store at commit.</li>
+<li><strong>Destination validation:</strong> resolve scheme (<code>https</code>/<code>http</code> only by default), block <code>file://</code>, <code>gopher://</code>, IPv6-mapped oddities; block private/link-local ranges (<code>10/8</code>, <code>172.16/12</code>, <code>192.168/16</code>, <code>169.254/16</code>, <code>::1</code>, <code>fc00::/7</code>) unless the owner has <code>allow_private_dest</code>; block the cloud IMDS IP <code>169.254.169.254</code> outright (<strong>SSRF</strong>).</li>
+<li><strong>Reputation screen:</strong> destination domain against a daily-updated blocklist (phishing/brand abuse); new-owner first 1k links are "probation" — their codes are rate-limited to 500 redirects/hour automatically.</li>
+<li><strong>Idempotency + dedup</strong> (§3.1) prevents farm-style re-creation storms.</li>
+<li><strong>Honeypot + CAPTCHA</strong> on the web console (not the API): a hidden form field + timing heuristics; API keys from datacenter ASNs on the web console get challenged.</li>
+</ol>
+<h3 id="72-at-redirect-time-read-path">7.2 At redirect time (read path)</h3>
+<ol>
+<li><strong>Rate limits</strong> (§2.4) per IP and per code — the per-code limit is the key anti-fraud control: 5,000 rps on one code is abnormal at our scale.</li>
+<li><strong>Click-velocity anomaly detection:</strong> Flink job (§8) computes per-code z-scores vs the owner's 7-day baseline; z &gt; 8 for 2 consecutive minutes → <code>status = quarantined</code> (redirects still work but return 429 to non-browser UAs and get flagged), owner notified.</li>
+<li><strong>Bot scoring:</strong> JA3/TLS fingerprint + ASN class (hosting ASN + headless-UA combination → challenged via <code>X-Click-Id</code> echo check).</li>
+<li><strong>Poison destinations:</strong> if a code's destination 5xx-fails &gt; 1% of the time, it's flagged for the owner and negative-cached for clients (§5.3).</li>
+<li><strong>Quarantine is reversible and automatic:</strong> median-velocity recovery over 10 min clears it; persistent abuse → human queue.</li>
+</ol>
+<h3 id="73-enforcement-layers-defense-in-depth">7.3 Enforcement layers (defense in depth)</h3>
+<pre><code>Edge rate limit (per IP, cheap)
+  → cache-tier token bucket (per key/IP/code, authoritative for limits)
+    → store commit-time hard caps (quotas, dedup)
+      → async anomaly detection (quarantine, flags)
+        → human abuse queue (suspend owner, purge namespace)
+</code></pre>
+<p>Every layer is independently testable; a failure of the async detector must never block legitimate traffic (detect-only, not gate).</p>
+<hr />
+<h2 id="8-analytics-pipeline">8. Analytics Pipeline</h2>
+<h3 id="81-design-goals">8.1 Design goals</h3>
+<ul>
+<li><strong>Never on the redirect critical path:</strong> the handler appends to a local in-memory buffer (64 KB ring) and moves on; flush is best-effort-with-retry.</li>
+<li><strong>1M events/s sustained</strong> (one event per redirect, plus create/update events ≪ 50k/s).</li>
+<li>Detail 14 days, rollups 2 years (N8).</li>
+</ul>
+<h3 id="82-pipeline">8.2 Pipeline</h3>
+<pre class="mermaid">flowchart LR
+  subgraph Region["Each region"]
+    H[Redirect handler] --> B[Local ring buffer<br/>64 KB, flush 100 ms / 4 KB]
+    B -->|async, retry w/ backoff| K[(Kafka<br/>topic: clicks, 100 partitions)]
+  end
+  K --> F[Flink job 1: validate + enrich<br/>geo-IP, ASN, UA class, referrer parse]
+  F --> D[Flink job 2: dedup<br/>fingerprint = hash(client_fp, code), 1 h window]
+  D -->|deduped events| CH[(ClickHouse<br/>detail: 14 days)]
+  D -->|raw archive, Parquet| S3[(Object store<br/>90 days)]
+  D --> R[Flink job 3: rollups<br/>1m / 1h / 1d × code × geo × ua]
+  R --> CH
+  R --> LR[link_rollups backfill<br/>async, per-code]
+  R --> Q[Scheduled jobs → S3 rollups<br/>retained 2 years]
+  CH --> BI[Dashboards: owner console,<br/>SRE, abuse]
+</pre>
+<h3 id="83-sizing-arithmetic">8.3 Sizing (arithmetic)</h3>
+<pre><code>Ingest:   1e6 events/s × 250 B (incl. Kafka framing) = 250 MB/s
+Kafka:    100 partitions → 10k events/s, 2.5 MB/s per partition (well under per-partition limits)
+          10 brokers, RF = 3 → internal replication traffic 250 MB/s × 3 = 750 MB/s
+Flink:    25 slots × (2 jobs parallel) ≈ 50k events/s per slot — 20× headroom over need
+Dedup state: active (client_fp, code) pairs in a 1 h window ≈ 10M × ~100 B ≈ 1 GB (RocksDB)
+ClickHouse: 1e6 rows/s × ~120 B compressed ≈ 120 MB/s ≈ 10.4 TB/day
+            14-day detail ≈ 146 TB on a 10-node cluster ≈ 14.6 TB/node + 2 replicas (provision 20)
+            2-year rollups ≈ 365 × 2 × (24 × 60 × 3600 × 1e6 × 40 B rollup-compressed)
+                           ≈ manageable single-digit TB/day; retained as Parquet in S3
+</code></pre>
+<h3 id="84-dedup-semantics">8.4 Dedup semantics</h3>
+<p>"Unique visitors" is computed as distinct <code>hash(client_fingerprint, code)</code> per (code, day), where <code>client_fingerprint</code> = stable browser ID if present, else IP+UA-class+ASN. This is <em>approximate</em> (cookie-less clients over-count) and documented as such; per-owner billing uses the same definition for fairness. Webhook fan-out (§2.2) consumes the <strong>deduped</strong> stream so fraud doesn't pay the owner twice.</p>
+<h3 id="85-failure-behavior">8.5 Failure behavior</h3>
+<ul>
+<li>Kafka down: local buffers retry with backoff (max 60 s retention → under sustained outage we <strong>sample</strong> to 10% rather than lose the pipeline; sampling flag recorded per batch). Redirects are unaffected (buffer overflow drops the <em>event</em>, never the redirect).</li>
+<li>Flink checkpoint loss: at-least-once delivery into ClickHouse with <code>ReplacingMergeTree</code> on event ID (idempotent upsert) → no double counting.</li>
+<li>Exactly-once for rollups is achieved by (a) idempotent upserts and (b) rollup windows computed from archived raw Parquet as a nightly reconciliation job (self-healing).</li>
+</ul>
+<hr />
+<h2 id="9-capacity-estimates">9. Capacity Estimates</h2>
+<p>All arithmetic shown. Assumptions from §1.3.</p>
+<h3 id="91-storage">9.1 Storage</h3>
+<pre><code>Writes/day:    50,000/s × 86,400 s = 4.32e9 rows/day
+Writes/year:   4.32e9 × 365        = 1.58e12 rows/year
+
+Hot (30 days): 4.32e9 rows/day × 400 B/row = 1.728e12 B/day ≈ 1.73 TB/day
+               30 × 1.73 TB ≈ 52 TB raw
+Per shard:     52 TB / 32 shards ≈ 1.6 TB per leader (≈ 4.8 TB with 2 followers)
+
+Warm (30–180 d): 150 × 1.73 TB ≈ 260 TB in object store (index-only rows + archived rows)
+</code></pre>
+<h3 id="92-read-path">9.2 Read path</h3>
+<pre><code>Global reads:   1e6/s → per region (3 regions): 1e6 / 3 ≈ 333,333/s
+Cache hit 90%:  misses = 1e6 × 0.10 = 100,000/s global
+Per shard:      100,000 / 32 ≈ 3,125 lookups/s   (target ≤ 20k/s/shard → 6× headroom)
+
+Cache memory:   10e6 entries × 450 B ≈ 4.5 GB ≈ 8 GB w/ headroom per region (§5.3)
+
+App instances:  333,333 rps / 10k rps per instance ≈ 34 → provision 40 per region (×3 = 120)
+
+Wire:           1e6 req/s × ~500 B (headers + TLS amortized, HTTP/2) = 500 MB/s
+                ≈ 4 Gb/s global ≈ 1.3 Gb/s per region edge
+</code></pre>
+<h3 id="93-write-path">9.3 Write path</h3>
+<pre><code>Per shard writes: 50,000 / 32 ≈ 1,563/s (≤ 5k/s target → 3× headroom)
+Writer instances: 50,000 / 8k/s per instance ≈ 6.25 → 10 (5 per write region, 2 regions)
+Allocator load:   50,000 / 250k per block = 0.2 block grants/s (§4.2)
+Write wire:       50,000 × ~300 B = 15 MB/s — negligible
+</code></pre>
+<h3 id="94-datastores-and-streams">9.4 Datastores and streams</h3>
+<pre><code>Store nodes:  32 shards × (1 leader + 2 followers) = 96 per RoR region
+Kafka:        10 brokers, 100 partitions, RF=3; 250 MB/s ingest (§8.3)
+Flink:        1 session cluster, 50 slots, 3 jobs
+ClickHouse:   10 shards × 2 replicas = 20 nodes, ~15 TB/node detail working set
+Object store: raw archive 10.4 TB/day + warm links 260 TB (growing) ≈ 45 TB/month
+</code></pre>
+<h3 id="95-burst-check-2-for-5-min">9.5 Burst check (2× for 5 min)</h3>
+<pre><code>2e6 reads/s: cache absorbs the delta only if working set is cached (it is, §5.3);
+store sees 200k/s → 6,250/s/shard, still &lt; 20k/s target.
+2× writes:   allocator 0.4/s; per-shard 3,125/s &lt; 5k/s target.
+Buffers:     5 min at 2× on Kafka down: 2e6 × 300 s × 250 B = 150 TB — impossible,
+hence the 10% sampling fallback (§8.5) keeps worst case ≈ 15 TB across regional buffers+Kafka.
+</code></pre>
+<h3 id="96-slos-and-error-budget">9.6 SLOs and error budget</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>SLO</th>
+<th>Error budget/month</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Read availability</td>
+<td>99.99%</td>
+<td>4.3 min</td>
+</tr>
+<tr>
+<td>Write availability</td>
+<td>99.9%</td>
+<td>43 min</td>
+</tr>
+<tr>
+<td>Redirect p99</td>
+<td>&lt; 100 ms</td>
+<td>1% of traffic slower</td>
+</tr>
+<tr>
+<td>Stream drop rate (nominal)</td>
+<td>&lt; 0.1%</td>
+<td>0.1% of clicks</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-failure-modes">10. Failure Modes</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Failure</th>
+<th>Symptom</th>
+<th>Mitigation</th>
+<th>Residual risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>F1</td>
+<td>Cache cluster lost in a region</td>
+<td>Miss rate → 100%; store reads jump 10× (1M/s vs ~200k/s headroom)</td>
+<td>Fail-open with per-shard read caps; top-100k static snapshot served from app memory; shed analytics, then cold reads; auto-rebuild cluster (≤ 3 min)</td>
+<td>Cold reads throttled during rebuild</td>
+</tr>
+<tr>
+<td>F2</td>
+<td>Shard leader crash</td>
+<td>Writes to that shard fail; reads shift to followers</td>
+<td>Semi-sync ensures committed data on followers; auto-promote (≤ 30 s); client retries with exponential backoff + jitter</td>
+<td>~30 s write gap for 1/32 of codes</td>
+</tr>
+<tr>
+<td>F3</td>
+<td>Full RoR region lost</td>
+<td>Writes + read leadership for all shards</td>
+<td>Traffic → other 2 regions (≤ 500k reads/s each, §9.5); promote freshest followers; RPO = replication lag ≤ 500 ms</td>
+<td>≤ 500 ms write loss (accepted; N4 cross-region RPO)</td>
+</tr>
+<tr>
+<td>F4</td>
+<td>Allocator (Raft) quorum lost</td>
+<td>New blocks ungrantable</td>
+<td>Writers drain reserved blocks: 8 writers × 250k ≈ 2M codes ≈ 40 s; then writes queue (durable)</td>
+<td>40 s → minutes of write stalls until quorum restored</td>
+</tr>
+<tr>
+<td>F5</td>
+<td>Region-to-region network partition</td>
+<td>Stale reads; write conflict risk</td>
+<td>Minority partition: reads yes (lagged), writes queued locally ≤ 5 min; version+RoR conflict policy (§6.2)</td>
+<td>Stale reads up to partition duration</td>
+</tr>
+<tr>
+<td>F6</td>
+<td>Poisoned destination (target site down / 5xx)</td>
+<td>Client sees failures "caused by us"</td>
+<td>Negative cache 60 s on 410; 5xx tracking flags the code; <code>Retry-After</code> hints</td>
+<td>Short window of passed-through errors</td>
+</tr>
+<tr>
+<td>F7</td>
+<td>Kafka down</td>
+<td>Analytics loss</td>
+<td>Buffer 60 s → 10% sampling; redirects unaffected (§8.5)</td>
+<td>≤ 10% of clicks sampled during outage</td>
+</tr>
+<tr>
+<td>F8</td>
+<td>ClickHouse down</td>
+<td>Owner dashboards stale</td>
+<td>Flink checkpoints retain 1 h of rollups; backfill from S3 raw Parquet (nightly reconciliation)</td>
+<td>Dashboards stale, no data loss</td>
+</tr>
+<tr>
+<td>F9</td>
+<td>Abuse flash (one code hammered / farm burst)</td>
+<td>p99 degradation fleet-wide</td>
+<td>Per-code 5k rps cap; probation caps (§7.1); async quarantine; autoscale app tier on queue depth</td>
+<td>Isolated owner sees 429s; fleet p99 protected</td>
+</tr>
+<tr>
+<td>F10</td>
+<td>Hot-key thundering herd on cache miss</td>
+<td>Single key amplifies store load 1000×</td>
+<td>Single-flight per node + jittered hot-key TTLs (§5.3) + top-100k pinned in app memory</td>
+<td>Bounded to 1 round-trip per node per TTL</td>
+</tr>
+<tr>
+<td>F11</td>
+<td>Bad deploy (regression in redirect path)</td>
+<td>Elevated 5xx / p99 globally</td>
+<td>Canary 1% → 10% → 50% with SLO-gated auto-promotion; instant rollback (stateless apps, version-pinned cache values)</td>
+<td>≤ minutes of partial exposure</td>
+</tr>
+<tr>
+<td>F12</td>
+<td>Clock skew (any time-derived logic, e.g., Snowflake fallback)</td>
+<td>Duplicate/rollback sequence IDs</td>
+<td>Primary scheme (blocks) is clock-free; fallback uses wait-forward with per-node sequence hold</td>
+<td>Only affects fallback mode</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Game days (monthly):</strong> kill a region (F3), kill a cache cluster (F1), partition regions (F5), fail the allocator (F4). Each has a written runbook and measured RTO.</p>
+<hr />
+<h2 id="11-rollout-plan">11. Rollout Plan</h2>
+<h3 id="110-gates">11.0 Gates</h3>
+<p>Every phase must pass: SLO dashboard green for 48 h, chaos runbook for that phase's failure modes executed, on-call handoff complete, rollback tested.</p>
+<h3 id="phase-0-single-region-internal-weeks-14">Phase 0 — Single region, internal (weeks 1–4)</h3>
+<ul>
+<li>1 region; 10 shards (re-shard to 32 at Phase 1 via code-hash migration — codes are content-addressed so re-sharding is a data move, not an ID change); 1 allocator (3-node Raft in one zone cluster)</li>
+<li>Internal dogfood team only; 1% of target load (500 writes/s, 10k reads/s)</li>
+<li>Analytics pipeline live end-to-end at 1% volume; verify dedup + rollup reconciliation against ground truth</li>
+<li>Exit: p99 redirect &lt; 100 ms at 10% scale; zero data-loss in 48 h of chaos (leader kills, cache kills)</li>
+</ul>
+<h3 id="phase-1-single-region-at-full-load-weeks-58">Phase 1 — Single region at full load (weeks 5–8)</h3>
+<ul>
+<li>Scale to 32 shards, full 50k/1M load via traffic-mirrored + real external beta (2 public partners)</li>
+<li>Abuse stack active in <strong>detection-only</strong> mode (no auto-quarantine yet); calibrate thresholds against real traffic</li>
+<li>Exit: 7 days SLO-green at full load; abuse false-positive rate &lt; 0.1% of owners</li>
+</ul>
+<h3 id="phase-2-multi-region-reads-weeks-912">Phase 2 — Multi-region reads (weeks 9–12)</h3>
+<ul>
+<li>Stand up regions B and C as <strong>read replicas</strong> (full shard copies, read-only mode, §6.2)</li>
+<li>Flip GSLB: reads served locally in all 3 regions; writes still single-region (RoR = region A)</li>
+<li>Replication lag p99 ≤ 500 ms verified; invalidation lag ≤ 500 ms verified</li>
+<li>Chaos: full-region-kill drill with reads shifting to 2 regions (§9.5 burst check)</li>
+<li>Exit: 7 days green; region-kill drill RTO &lt; 5 min</li>
+</ul>
+<h3 id="phase-3-multi-region-writes-weeks-1316">Phase 3 — Multi-region writes (weeks 13–16)</h3>
+<ul>
+<li>Enable write acceptance in regions B and C: allocator Raft members join B/C (quorum across any 2 regions)</li>
+<li>Canary: 1% of writes → region B, 10% → C, 50/50/50, gated on conflict-free log replay (zero version-conflict anomalies)</li>
+<li>Enable auto-quarantine (abuse stack moves from detection to enforcement)</li>
+<li>Exit: 2 consecutive weekly game days passed; conflict rate = 0; per-region write RPO=0 verified by checksum audit</li>
+</ul>
+<h3 id="phase-4-ga-hardening-weeks-1720">Phase 4 — GA + hardening (weeks 17–20)</h3>
+<ul>
+<li>Public launch (owned domain + custom aliases); webhooks GA</li>
+<li>Analytics GA: owner console dashboards, billing-grade unique-click reports, 2-year rollup backfill from Parquet complete</li>
+<li>Cost pass: warm-tier compaction verified (260 TB warm, §9.1), cache TTL optimization, app-tier right-sizing</li>
+<li>Steady state: monthly game days, quarterly capacity re-estimate (write growth re-checks the 138-year code headroom and shard count)</li>
+</ul>
+<h3 id="rollback">Rollback</h3>
+<ul>
+<li>Phases 2→1 and 3→2 are flag flips (GSLB + write-enable flag) executable in &lt; 10 min; no data is ever region-exclusive, so rollback loses no data (worst case: ≤ 500 ms replication lag reconciliation).</li>
+<li>Full service rollback path: pinned previous app version + previous schema version (all migrations forward-compatible for 2 release cycles).</li>
+</ul>
+<hr />
+<h2 id="12-appendix-diagrams">12. Appendix: Diagrams</h2>
+<h3 id="121-system-architecture">12.1 System architecture</h3>
+<pre class="mermaid">flowchart TB
+  subgraph Clients
+    U[Users / Browsers]
+    A[API Clients]
+  end
+
+  subgraph Edge
+    GSLB[GSLB / Anycast DNS]
+  end
+
+  subgraph RegionX["Region X (×3, symmetric)"]
+    direction TB
+    subgraph AppLayer
+      APP[Redirect + API app fleet<br/>stateless, 40/region]
+      LIMIT[Rate limits + token buckets<br/>Redis keyspace]
+    end
+    CACHE[(Read cache<br/>Redis, 48 GB/region)]
+    subgraph StoreLayer
+      SHARD[(KV/SQL store<br/>32 shards × 1 leader + 2 followers)]
+    end
+    subgraph AnalyticsLocal
+      BUF[Local event buffers]
+      KAFKA[(Regional Kafka<br/>100 partitions)]
+    end
+  end
+
+  subgraph GlobalServices
+    ALLOC[(Code allocator<br/>3-node Raft, one member/region)]
+    FLINK[Flink: enrich + dedup + rollups]
+    CH[(ClickHouse<br/>detail 14d + rollups)]
+    S3[(Object store<br/>raw archive + warm links)]
+  end
+
+  U --> GSLB
+  A --> GSLB
+  GSLB --> APP
+  APP --> LIMIT
+  APP --> CACHE
+  CACHE -. miss .-> SHARD
+  APP --> BUF --> KAFKA
+  APP -. block grants .-> ALLOC
+  ALLOC -. grants .-> APP
+  KAFKA --> FLINK
+  FLINK --> CH
+  FLINK --> S3
+  SHARD -. async replication .-> SHARD2[Peer-region shard replicas]
+</pre>
+<h3 id="122-sequence-a-redirect">12.2 Sequence: a redirect</h3>
+<pre class="mermaid">sequenceDiagram
+  autonumber
+  participant C as Client
+  participant E as Edge / App (nearest region)
+  participant R as Redis (read cache)
+  participant S as Store shard (code → shard)
+  participant K as Regional Kafka
+
+  C->>E: GET /abc1234
+  E->>R: GET code:abc1234
+  alt cache hit (≥90% of traffic)
+    R-->>E: {long_url, expires, status, redirect_type}
+  else cache miss
+    E->>S: GET code = 'abc1234' (single-flight)
+    S-->>E: row
+    E->>R: SET code:abc1234 (TTL 300s, jittered)
+  end
+  Note over E: expiry / quarantine / rate-limit checks (local, µs)
+  E-->>C: 307 Location: https://long.example/... (+ X-Click-Id)
+  par async, off critical path
+    E->>K: append click event (buffered, 100 ms flush)
+  end
+  Note over E,K: if store row was expired → 410 + negative cache 60 s
+</pre>
+<h3 id="123-analytics-data-flow">12.3 Analytics data flow</h3>
+<pre class="mermaid">flowchart LR
+  H[Redirect handler<br/>1M events/s] -->|local ring buffer| K[(Kafka<br/>topic clicks)]
+  K --> E1[Flink: validate + enrich<br/>geo / ASN / UA class]
+  E1 --> D[Flink: dedup<br/>1 h fingerprint window]
+  D -->|deduped| CH[(ClickHouse<br/>14-day detail)]
+  D -->|raw, Parquet| S3[(Object store<br/>90-day raw archive)]
+  D --> R[Flink: rollups<br/>1m / 1h / 1d]
+  R --> CH
+  R --> LR[link_rollups<br/>per-code backfill]
+  R --> Q[Scheduler: 2-year rollups<br/>→ S3]
+  S3 -->|nightly reconciliation| CH
+  CH --> DASH[Owner console / SRE / abuse dashboards]
+</pre>
+<h3 id="124-deployment-topology">12.4 Deployment topology</h3>
+<pre class="mermaid">flowchart TB
+  subgraph US["Region A (us-east) — RoR for its writes"]
+    A1[App fleet] --> A2[(Cache)]
+    A2 --> A3[(Shard leaders + followers<br/>32 × 3)]
+    A1 --> AK[(Kafka)]
+    AR1[Raft member 1]
+  end
+
+  subgraph EU["Region B (eu-west)"]
+    B1[App fleet] --> B2[(Cache)]
+    B2 --> B3[(Full shard read replicas)]
+    B1 --> BK[(Kafka)]
+    AR2[Raft member 2]
+  end
+
+  subgraph AP["Region C (ap-south)"]
+    C1[App fleet] --> C2[(Cache)]
+    C2 --> C3[(Full shard read replicas)]
+    C1 --> CK[(Kafka)]
+    AR3[Raft member 3]
+  end
+
+  AR1 --- AR2 --- AR3
+  AR2 -. quorum with any 2 members .- AR3
+
+  A3 ==>|async log replication ≤500 ms| B3
+  A3 ==>|async log replication ≤500 ms| C3
+  B3 -. RoR for B-origin writes .-> B3
+  C3 -. RoR for C-origin writes .-> C3
+
+  AK --> F[(Global Flink)]
+  BK --> F
+  CK --> F
+  F --> CHX[(Global ClickHouse)]
+  F --> OS[(Global object store<br/>raw + warm)]
+</pre>
+<h3 id="125-diagram-index">12.5 Diagram index</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Diagram</th>
+<th>Section</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>System architecture</td>
+<td>§12.1</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Redirect sequence</td>
+<td>§12.2</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Analytics data flow (also inline §8.2)</td>
+<td>§12.3</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>Deployment topology (3 regions + global services)</td>
+<td>§12.4</td>
+</tr>
+</tbody>
+</table><script type="module">import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs";mermaid.initialize({startOnLoad:true,theme:"default"});</script></main>
