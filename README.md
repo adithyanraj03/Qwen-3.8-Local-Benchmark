@@ -23,6 +23,21 @@ Seven Qwen3.8 builds, each run alone through the same 54 hands-on tasks: games a
 
 Each run is scored on five axes: Visual, Prompt following, Output, Creativity, and Code at half weight. Visual and Creativity are n/a for code-only tasks. Points come off for visual errors and bugs, and every deduction is written on the run's card.
 
+## Settings each build ran with
+
+From the Strata launch files on the host and the inference monitor's request history for the OpenCode runs
+(9 Oct – 2 Nov 2026).
+
+[![Settings each build ran with: engine and launch flags for M1 to M7; M6 is the only build with a speed-projection control vector](assets/readme/settings.png)](https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/#settings)
+
+- All builds: RTX 5090 + 64 GB RAM, KV cache int8, vision on.
+- **M2 ran with MTP, not DFlash2.** The 27B Orca's first DFlash2 run on this machine was on 3 Nov 2026, after the OpenCode runs.
+- **M6 is the only build that ran with a control vector** (a speed-projection steering vector on layers 4–44). Keep that in mind
+  when reading its speed and its results.
+- **Sampling** was not recorded by the server; it comes from the OpenCode config on the test machine: build agent temperature 0.6,
+  top_p 0.95, auto-compaction on with 32,768 tokens reserved. Context window given to OpenCode: 200K for the 27B builds,
+  250K for M4 and M5, 500K for M6 and for M7 at 512K, 380K for M7 at 384K.
+
 ## What's in the report
 
 - Leaderboard, score matrix, category and chart views
