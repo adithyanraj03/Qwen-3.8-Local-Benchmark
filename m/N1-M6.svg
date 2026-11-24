@@ -1,0 +1,390 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800" viewBox="0 0 1200 800">
+<defs>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#04060c"/>
+    <stop offset="0.4" stop-color="#0a1120"/>
+    <stop offset="0.72" stop-color="#101a2d"/>
+    <stop offset="1" stop-color="#182741"/>
+  </linearGradient>
+  <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#13223a"/>
+    <stop offset="0.18" stop-color="#0a1526"/>
+    <stop offset="0.55" stop-color="#070f1d"/>
+    <stop offset="1" stop-color="#03060c"/>
+  </linearGradient>
+  <linearGradient id="seaFg" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0d1a2c"/>
+    <stop offset="1" stop-color="#050a13"/>
+  </linearGradient>
+  <linearGradient id="cliffG" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#141b26"/>
+    <stop offset="0.5" stop-color="#0a0f16"/>
+    <stop offset="1" stop-color="#04060a"/>
+  </linearGradient>
+  <linearGradient id="rock" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#10151d"/>
+    <stop offset="1" stop-color="#04060a"/>
+  </linearGradient>
+  <linearGradient id="towerG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#26303d"/>
+    <stop offset="0.35" stop-color="#121822"/>
+    <stop offset="1" stop-color="#05070b"/>
+  </linearGradient>
+  <radialGradient id="glassG">
+    <stop offset="0" stop-color="#fffdf2"/>
+    <stop offset="0.5" stop-color="#ffe9ae"/>
+    <stop offset="1" stop-color="#f7c96a"/>
+  </radialGradient>
+  <radialGradient id="lampGlow">
+    <stop offset="0" stop-color="#fff4d0" stop-opacity="0.95"/>
+    <stop offset="0.25" stop-color="#ffe4a8" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="#ffcf6e" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="pollution">
+    <stop offset="0" stop-color="#ffd9a0" stop-opacity="0.22"/>
+    <stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="beamG" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#fff3cf" stop-opacity="0.55"/>
+    <stop offset="0.05" stop-color="#ffe7ad" stop-opacity="0.4"/>
+    <stop offset="0.35" stop-color="#ffd98f" stop-opacity="0.14"/>
+    <stop offset="1" stop-color="#ffd98f" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="beamCore" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#fff8e0" stop-opacity="0.5"/>
+    <stop offset="0.25" stop-color="#ffeec2" stop-opacity="0.28"/>
+    <stop offset="1" stop-color="#ffeec2" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="flashG" cx="0.28" cy="0.12" r="0.9">
+    <stop offset="0" stop-color="#eaf2ff" stop-opacity="0.9"/>
+    <stop offset="0.4" stop-color="#c3d4ef" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#c3d4ef" stop-opacity="0"/>
+  </radialGradient>
+  <linearGradient id="seaFlash" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#cfe0f5" stop-opacity="0.5"/>
+    <stop offset="1" stop-color="#cfe0f5" stop-opacity="0"/>
+  </linearGradient>
+  <radialGradient id="vig" cx="0.5" cy="0.46" r="0.72">
+    <stop offset="0" stop-color="#000000" stop-opacity="0"/>
+    <stop offset="0.55" stop-color="#000000" stop-opacity="0"/>
+    <stop offset="0.8" stop-color="#000000" stop-opacity="0.35"/>
+    <stop offset="1" stop-color="#000000" stop-opacity="0.8"/>
+  </radialGradient>
+
+  <filter id="cloudF" x="-40%" y="-40%" width="180%" height="180%">
+    <feTurbulence type="fractalNoise" baseFrequency="0.015 0.04" numOctaves="3" seed="7" result="t">
+      <animate attributeName="baseFrequency" values="0.015 0.04;0.018 0.045;0.015 0.04" dur="40s" repeatCount="indefinite"/>
+    </feTurbulence>
+    <feDisplacementMap in="SourceGraphic" in2="t" scale="45" xChannelSelector="R" yChannelSelector="G"/>
+    <feGaussianBlur stdDeviation="10"/>
+  </filter>
+  <filter id="blur1"><feGaussianBlur stdDeviation="1"/></filter>
+  <filter id="blur2"><feGaussianBlur stdDeviation="2"/></filter>
+  <filter id="blur5"><feGaussianBlur stdDeviation="5"/></filter>
+  <filter id="blur8"><feGaussianBlur stdDeviation="8"/></filter>
+  <filter id="blur12"><feGaussianBlur stdDeviation="12"/></filter>
+  <filter id="beamBlur"><feGaussianBlur stdDeviation="4"/></filter>
+  <filter id="boltGlow" x="-60%" y="-60%" width="220%" height="220%">
+    <feGaussianBlur stdDeviation="5" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+  <filter id="grain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" stitchTiles="stitch" result="n"/>
+    <feColorMatrix in="n" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0"/>
+  </filter>
+
+  <pattern id="rainNear" width="110" height="110" patternUnits="userSpaceOnUse">
+    <g stroke="#b6c8e0" stroke-width="1.2" stroke-linecap="round" opacity="0.45" fill="none">
+      <path d="M 14 10 l -5 15"/><path d="M 52 26 l -5 15"/><path d="M 88 8 l -5 15"/>
+      <path d="M 30 58 l -5 15"/><path d="M 70 44 l -5 15"/><path d="M 96 62 l -5 15"/>
+      <path d="M 8 80 l -5 15"/><path d="M 44 86 l -5 15"/><path d="M 80 78 l -5 15"/>
+      <path d="M 62 92 l -5 15"/>
+    </g>
+  </pattern>
+  <pattern id="rainFar" width="190" height="190" patternUnits="userSpaceOnUse">
+    <g stroke="#93a8c6" stroke-width="1" stroke-linecap="round" opacity="0.3" fill="none">
+      <path d="M 20 14 l -6 18"/><path d="M 70 30 l -6 18"/><path d="M 120 10 l -6 18"/>
+      <path d="M 160 40 l -6 18"/><path d="M 40 70 l -6 18"/><path d="M 95 55 l -6 18"/>
+      <path d="M 150 80 l -6 18"/><path d="M 180 20 l -6 18"/><path d="M 10 100 l -6 18"/>
+      <path d="M 60 120 l -6 18"/><path d="M 115 110 l -6 18"/><path d="M 165 140 l -6 18"/>
+    </g>
+  </pattern>
+
+  <clipPath id="frame"><rect width="1200" height="800"/></clipPath>
+
+  <style>
+    .blend{mix-blend-mode:screen}
+  </style>
+</defs>
+
+<g clip-path="url(#frame)">
+
+  <!-- sky -->
+  <rect width="1200" height="440" fill="url(#sky)"/>
+
+  <!-- storm clouds, three drifting layers -->
+  <g fill="#0d1524" opacity="0.85" filter="url(#cloudF)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;-45 0;0 0" dur="95s" repeatCount="indefinite"/>
+      <ellipse cx="180" cy="90" rx="220" ry="55"/><ellipse cx="430" cy="60" rx="260" ry="48"/>
+      <ellipse cx="720" cy="95" rx="240" ry="52"/><ellipse cx="1010" cy="55" rx="230" ry="50"/>
+      <ellipse cx="1220" cy="110" rx="200" ry="45"/><ellipse cx="560" cy="140" rx="180" ry="40"/>
+      <ellipse cx="900" cy="150" rx="160" ry="36"/>
+    </g>
+  </g>
+  <g fill="#101a2b" opacity="0.8" filter="url(#cloudF)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;55 0;0 0" dur="75s" repeatCount="indefinite"/>
+      <ellipse cx="120" cy="170" rx="240" ry="60"/><ellipse cx="400" cy="150" rx="280" ry="55"/>
+      <ellipse cx="700" cy="190" rx="260" ry="60"/><ellipse cx="980" cy="160" rx="250" ry="55"/>
+      <ellipse cx="1180" cy="200" rx="220" ry="50"/><ellipse cx="260" cy="230" rx="170" ry="40"/>
+      <ellipse cx="860" cy="240" rx="190" ry="42"/>
+    </g>
+  </g>
+  <g fill="#0a111d" opacity="0.9" filter="url(#cloudF)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;-75 0;0 0" dur="60s" repeatCount="indefinite"/>
+      <ellipse cx="150" cy="300" rx="260" ry="55"/><ellipse cx="480" cy="330" rx="300" ry="60"/>
+      <ellipse cx="820" cy="300" rx="280" ry="55"/><ellipse cx="1120" cy="340" rx="240" ry="50"/>
+      <ellipse cx="330" cy="380" rx="180" ry="35"/><ellipse cx="680" cy="385" rx="200" ry="38"/>
+    </g>
+  </g>
+
+  <!-- lightning: cloud illumination + bolt + full-frame flash, synced -->
+  <g class="blend" filter="url(#blur12)" fill="#a9bedd">
+    <g opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+        keyTimes="0;0.19;0.2;0.21;0.22;0.235;0.25;0.79;0.8;0.81;0.82;0.835;0.85;1"
+        values="0;0;0.7;0.1;0.5;0.05;0;0;0.75;0.1;0.45;0;0;0"/>
+      <ellipse cx="200" cy="120" rx="200" ry="45"/><ellipse cx="520" cy="140" rx="230" ry="50"/>
+      <ellipse cx="860" cy="115" rx="210" ry="45"/><ellipse cx="1120" cy="160" rx="180" ry="40"/>
+      <ellipse cx="350" cy="260" rx="240" ry="45"/><ellipse cx="760" cy="250" rx="260" ry="45"/>
+    </g>
+  </g>
+  <g class="blend" filter="url(#boltGlow)" stroke="#f2f7ff" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g opacity="0">
+      <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+        keyTimes="0;0.19;0.2;0.21;0.22;0.235;0.25;0.79;0.8;0.81;0.82;0.835;0.85;1"
+        values="0;0;1;0.2;0.7;0;0;0;1;0.25;0.6;0;0;0"/>
+      <path d="M 250 30 L 272 96 L 252 104 L 284 172 L 262 180 L 296 252 L 282 258 L 306 318" stroke-width="3.5"/>
+      <path d="M 284 172 L 322 206 L 310 214 L 344 262" stroke-width="2" opacity="0.7"/>
+    </g>
+  </g>
+  <!-- distant coast ridges -->
+  <path d="M 0 430 L 0 410 L 70 400 L 150 408 L 230 398 L 320 406 L 400 400 L 470 410 L 540 404 L 620 412 L 690 406 L 760 414 L 830 408 L 900 416 L 980 410 L 1060 418 L 1140 412 L 1200 418 L 1200 430 Z" fill="#0c1626" opacity="0.85"/>
+  <path d="M 0 430 L 0 420 L 90 414 L 180 420 L 280 412 L 360 420 L 450 416 L 540 422 L 640 418 L 720 424 L 800 420 L 900 426 L 1000 422 L 1100 428 L 1200 424 L 1200 430 Z" fill="#0a1322"/>
+
+  <!-- horizon mist -->
+  <rect x="0" y="424" width="1200" height="26" fill="#2c4667" opacity="0.15" filter="url(#blur8)">
+    <animate attributeName="opacity" values="0.12;0.18;0.12" dur="20s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- sea -->
+  <rect x="0" y="430" width="1200" height="370" fill="url(#sea)"/>
+  <rect class="blend" x="0" y="432" width="1200" height="24" fill="url(#seaFlash)" opacity="0">
+    <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+      keyTimes="0;0.19;0.2;0.21;0.22;0.235;0.25;0.79;0.8;0.81;0.82;0.835;0.85;1"
+      values="0;0;0.4;0;0.3;0;0;0;0.45;0;0.25;0;0;0"/>
+  </rect>
+
+  <!-- rolling wave bands -->
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-200 0" dur="13s" repeatCount="indefinite"/>
+    <path fill="none" stroke="#223a55" stroke-width="1" opacity="0.12" d="M -200 470 Q -150 467 -100 470 T 0 470 T 100 470 T 200 470 T 300 470 T 400 470 T 500 470 T 600 470 T 700 470 T 800 470 T 900 470 T 1000 470 T 1100 470 T 1200 470 T 1300 470 T 1400 470"/>
+  </g>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-200 0" dur="7s" repeatCount="indefinite"/>
+    <path fill="none" stroke="#2a4a70" stroke-width="1.5" opacity="0.22" d="M -200 560 Q -150 554 -100 560 T 0 560 T 100 560 T 200 560 T 300 560 T 400 560 T 500 560 T 600 560 T 700 560 T 800 560 T 900 560 T 1000 560 T 1100 560 T 1200 560 T 1300 560 T 1400 560"/>
+  </g>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-200 0" dur="5.5s" repeatCount="indefinite"/>
+    <path fill="none" stroke="#33587f" stroke-width="2" opacity="0.26" d="M -200 600 Q -150 592 -100 600 T 0 600 T 100 600 T 200 600 T 300 600 T 400 600 T 500 600 T 600 600 T 700 600 T 800 600 T 900 600 T 1000 600 T 1100 600 T 1200 600 T 1300 600 T 1400 600"/>
+  </g>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-200 0" dur="9s" repeatCount="indefinite"/>
+    <path fill="url(#seaFg)" d="M -200 690 Q -150 678 -100 690 T 0 690 T 100 690 T 200 690 T 300 690 T 400 690 T 500 690 T 600 690 T 700 690 T 800 690 T 900 690 T 1000 690 T 1100 690 T 1200 690 T 1300 690 T 1400 690 L 1400 800 L -200 800 Z"/>
+    <path fill="none" stroke="#3b6b98" stroke-width="2" opacity="0.3" filter="url(#blur1)" d="M -200 690 Q -150 678 -100 690 T 0 690 T 100 690 T 200 690 T 300 690 T 400 690 T 500 690 T 600 690 T 700 690 T 800 690 T 900 690 T 1000 690 T 1100 690 T 1200 690 T 1300 690 T 1400 690"/>
+  </g>
+  <g>
+    <animateTransform attributeName="transform" type="translate" values="0 0;-200 0" dur="6.5s" repeatCount="indefinite"/>
+    <path fill="#03060c" d="M -200 758 Q -150 748 -100 758 T 0 758 T 100 758 T 200 758 T 300 758 T 400 758 T 500 758 T 600 758 T 700 758 T 800 758 T 900 758 T 1000 758 T 1100 758 T 1200 758 T 1300 758 T 1400 758 L 1400 800 L -200 800 Z"/>
+  </g>
+
+  <!-- cliff, keeper's house, lighthouse -->
+  <g>
+    <path d="M 1200 800 L 1200 255 L 1168 288 L 1140 278 L 1112 322 L 1088 358 L 1066 388 L 1052 404 L 1000 406 L 952 405 L 920 425 L 894 458 L 868 496 L 842 532 L 818 566 L 800 596 L 786 632 L 772 664 L 758 702 L 742 758 L 736 800 Z" fill="url(#cliffG)"/>
+    <path d="M 1200 255 L 1168 288 L 1140 278 L 1112 322 L 1088 358 L 1066 388 L 1052 404 L 1000 406 L 952 405 L 920 425" fill="none" stroke="#8a7a5e" stroke-width="2" opacity="0.4" filter="url(#blur2)"/>
+    <g stroke="#020305" stroke-width="2" opacity="0.6" fill="none">
+      <path d="M 1150 300 L 1122 420 L 1140 560 L 1118 700"/>
+      <path d="M 1080 360 L 1058 480 L 1076 620 L 1050 760"/>
+      <path d="M 1010 420 L 990 540 L 1010 680 L 985 800"/>
+      <path d="M 940 440 L 918 560 L 936 700 L 910 800"/>
+      <path d="M 870 490 L 850 600 L 868 730"/>
+    </g>
+
+    <rect x="952" y="372" width="40" height="34" fill="#0b0f15"/>
+    <path d="M 948 372 L 972 352 L 996 372 Z" fill="#0d1218"/>
+    <rect x="962" y="382" width="8" height="8" fill="#ffd9a0">
+      <animate attributeName="opacity" values="0.9;0.7;0.95;0.8;0.9" dur="3.7s" repeatCount="indefinite"/>
+    </rect>
+    <circle class="blend" cx="966" cy="386" r="10" fill="url(#lampGlow)" opacity="0.3"/>
+
+    <path d="M 988 407 L 1002 198 L 1034 198 L 1048 407 Z" fill="url(#towerG)"/>
+    <path d="M 998 250 L 996 285 L 1040 285 L 1042 250 Z" fill="#3f2226" opacity="0.75"/>
+    <path d="M 993 330 L 991 365 L 1045 365 L 1043 330 Z" fill="#3f2226" opacity="0.75"/>
+    <rect x="1010" y="380" width="16" height="27" fill="#06080c"/>
+    <circle cx="1018" cy="240" r="3" fill="#ffe3b0">
+      <animate attributeName="opacity" values="0.9;0.65;0.95;0.8;0.9" dur="4.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1018" cy="310" r="3" fill="#ffe3b0">
+      <animate attributeName="opacity" values="0.8;0.95;0.65;0.9;0.8" dur="3.1s" repeatCount="indefinite"/>
+    </circle>
+
+    <rect x="992" y="190" width="52" height="8" fill="#1a212b"/>
+    <path d="M 996 190 v-7 M 1008 190 v-7 M 1020 190 v-7 M 1032 190 v-7 M 1042 190 v-7 M 994 183 h50" stroke="#202936" stroke-width="1.5" fill="none"/>
+    <path d="M 1000 190 L 1004 164 L 1032 164 L 1036 190 Z" fill="#0c1016"/>
+    <path d="M 1006 188 L 1009 166 L 1027 166 L 1030 188 Z" fill="url(#glassG)"/>
+    <path d="M 1018 166 V 188" stroke="#0c1016" stroke-width="1.5" opacity="0.8"/>
+    <path d="M 1001 164 Q 1018 140 1035 164 Z" fill="#1a222c"/>
+    <path d="M 1018 141 V 130" stroke="#1a222c" stroke-width="2"/>
+
+    <circle class="blend" cx="1018" cy="150" r="240" fill="url(#pollution)" opacity="0.5"/>
+    <circle class="blend" cx="1018" cy="177" r="70" fill="url(#lampGlow)" opacity="0.25"/>
+    <circle class="blend" cx="1018" cy="177" r="30" fill="url(#lampGlow)">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.3s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1018" cy="177" r="6" fill="#fffbe8"/>
+  </g>
+
+  <!-- rotating lighthouse beam -->
+  <g class="blend">
+    <g transform="translate(1018 176)">
+      <g>
+        <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite"/>
+        <polygon points="0 0 1500 -160 1500 160" fill="url(#beamG)" filter="url(#beamBlur)"/>
+        <polygon points="0 0 1500 -34 1500 34" fill="url(#beamCore)" opacity="0.45"/>
+        <g transform="rotate(180)" opacity="0.28">
+          <polygon points="0 0 1500 -160 1500 160" fill="url(#beamG)" filter="url(#beamBlur)"/>
+        </g>
+      </g>
+    </g>
+  </g>
+
+  <!-- small boat rocking on the swell -->
+  <g transform="translate(300 606)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0;0 6;0 0" keyTimes="0;0.25;0.5;0.75;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1;0.4 0 0.6 1" dur="3.1s" repeatCount="indefinite"/>
+      <g>
+        <animateTransform attributeName="transform" type="rotate" values="-7 0 8;7 0 8;-7 0 8" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" dur="3.7s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="26" rx="58" ry="7" fill="#0e1c2e" opacity="0.8"/>
+        <path d="M -52 -2 Q -46 22 0 26 Q 46 22 52 -2 L 40 -6 Q 0 8 -40 -6 Z" fill="#0a0f16"/>
+        <path d="M -52 -2 Q -46 22 0 26" fill="none" stroke="#4a6f96" stroke-width="2" opacity="0.55" filter="url(#blur1)"/>
+        <path d="M 6 -4 L 2 -64" stroke="#0a0f16" stroke-width="3"/>
+        <path d="M 4 -58 Q 26 -50 22 -12 L 6 -8 Z" fill="#131c28" opacity="0.9"/>
+        <circle class="blend" cx="-38" cy="-10" r="8" fill="url(#lampGlow)">
+          <animate attributeName="opacity" values="0.9;0.6;0.95;0.7;0.9" dur="1.7s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="-38" cy="-10" r="2.5" fill="#ffd9a0"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- foreground rocks -->
+  <g>
+    <path d="M 0 800 L 0 700 L 40 668 L 96 622 L 150 596 L 196 612 L 232 648 L 268 686 L 310 724 L 352 768 L 372 800 Z" fill="url(#rock)"/>
+    <path d="M 0 700 L 40 668 L 96 622 L 150 596 L 196 612" fill="none" stroke="#2c3d52" stroke-width="2" opacity="0.5" filter="url(#blur2)"/>
+    <path d="M 300 800 L 318 742 L 356 712 L 398 736 L 420 780 L 428 800 Z" fill="url(#rock)"/>
+    <path d="M 748 800 L 744 726 L 758 668 L 780 626 L 798 604 L 816 640 L 826 700 L 832 800 Z" fill="url(#cliffG)"/>
+    <path d="M 744 726 L 758 668 L 780 626 L 798 604" fill="none" stroke="#020305" stroke-width="2" opacity="0.7"/>
+    <ellipse cx="225" cy="662" rx="75" ry="8" fill="#b9cfe0" opacity="0.05" filter="url(#blur5)"/>
+    <ellipse cx="772" cy="648" rx="42" ry="6" fill="#b9cfe0" opacity="0.04" filter="url(#blur5)"/>
+  </g>
+
+  <!-- crashing foam + spray -->
+  <g transform="translate(205 648)">
+    <g>
+      <animateTransform attributeName="transform" type="scale" values="0.2 0.4;1 1;1.1 0.8;0.3 0.3;0.2 0.4" keyTimes="0;0.28;0.45;0.75;1" dur="2.8s" repeatCount="indefinite"/>
+      <g fill="#dfeaf4" filter="url(#blur5)" opacity="0">
+        <animate attributeName="opacity" values="0;0.32;0.2;0;0" keyTimes="0;0.25;0.5;0.85;1" dur="2.8s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="0" rx="70" ry="8"/>
+        <path d="M -55 -4 Q -30 -22 -8 -14 Q 10 -26 30 -12 Q 48 -18 58 -4 Q 30 -9 8 -6 Q -18 -10 -55 -4 Z"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(250 662)">
+    <g>
+      <animateTransform attributeName="transform" type="scale" values="0.2 0.4;1 1;1.1 0.8;0.3 0.3;0.2 0.4" keyTimes="0;0.28;0.45;0.75;1" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+      <g fill="#dfeaf4" filter="url(#blur5)" opacity="0">
+        <animate attributeName="opacity" values="0;0.28;0.18;0;0" keyTimes="0;0.25;0.5;0.85;1" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="0" rx="50" ry="6"/>
+        <path d="M -38 -3 Q -20 -16 -5 -10 Q 10 -18 22 -8 Q 32 -12 40 -3 Q 20 -6 5 -4 Q -15 -7 -38 -3 Z"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(768 642)">
+    <g>
+      <animateTransform attributeName="transform" type="scale" values="0.2 0.4;1 1;1.1 0.8;0.3 0.3;0.2 0.4" keyTimes="0;0.28;0.45;0.75;1" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+      <g fill="#dfeaf4" filter="url(#blur5)" opacity="0">
+        <animate attributeName="opacity" values="0;0.3;0.2;0;0" keyTimes="0;0.25;0.5;0.85;1" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+        <ellipse cx="0" cy="0" rx="55" ry="7"/>
+        <path d="M -42 -3 Q -22 -18 -6 -11 Q 8 -20 22 -9 Q 36 -14 44 -3 Q 22 -7 6 -5 Q -14 -8 -42 -3 Z"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(158 598)">
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;0.7;0.45;0.15;0" keyTimes="0;0.2;0.45;0.75;1" dur="2.8s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;-5 -34;-14 -62;-26 -32;-40 22" keyTimes="0;0.25;0.45;0.7;1" calcMode="spline" keySplines="0.2 0.6 0.4 1;0.3 0.7 0.5 1;0.4 0 0.9 0.2;0.3 0 0.7 0.4" dur="2.8s" repeatCount="indefinite"/>
+      <g fill="#e8f2fa" filter="url(#blur1)">
+        <circle cx="-10" cy="-6" r="2.2"/><circle cx="4" cy="-11" r="1.8"/><circle cx="14" cy="-5" r="1.5"/>
+        <circle cx="-1" cy="-2" r="2.6"/><circle cx="9" cy="-15" r="1.3"/><circle cx="-14" cy="-2" r="1.7"/>
+        <circle cx="2" cy="-8" r="1.4"/><circle cx="-6" cy="-13" r="1.2"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(172 604)">
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;0.65;0.4;0.12;0" keyTimes="0;0.2;0.45;0.75;1" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;6 -38;18 -66;34 -34;50 20" keyTimes="0;0.25;0.45;0.7;1" calcMode="spline" keySplines="0.2 0.6 0.4 1;0.3 0.7 0.5 1;0.4 0 0.9 0.2;0.3 0 0.7 0.4" dur="2.8s" begin="1.4s" repeatCount="indefinite"/>
+      <g fill="#e8f2fa" filter="url(#blur1)">
+        <circle cx="8" cy="-8" r="2"/><circle cx="-5" cy="-12" r="1.5"/><circle cx="16" cy="-3" r="1.8"/>
+        <circle cx="1" cy="-2" r="2.4"/><circle cx="11" cy="-16" r="1.2"/><circle cx="-10" cy="-4" r="1.6"/>
+        <circle cx="4" cy="-6" r="1.3"/><circle cx="-2" cy="-10" r="1.1"/>
+      </g>
+    </g>
+  </g>
+  <g transform="translate(792 606)">
+    <g opacity="0">
+      <animate attributeName="opacity" values="0;0.65;0.4;0.12;0" keyTimes="0;0.2;0.45;0.75;1" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="translate" values="0 0;-3 -36;-10 -64;-22 -30;-36 22" keyTimes="0;0.25;0.45;0.7;1" calcMode="spline" keySplines="0.2 0.6 0.4 1;0.3 0.7 0.5 1;0.4 0 0.9 0.2;0.3 0 0.7 0.4" dur="2.8s" begin="0.7s" repeatCount="indefinite"/>
+      <g fill="#e8f2fa" filter="url(#blur1)">
+        <circle cx="-6" cy="-6" r="2"/><circle cx="5" cy="-10" r="1.5"/><circle cx="12" cy="-3" r="1.4"/>
+        <circle cx="0" cy="-2" r="2.4"/><circle cx="8" cy="-14" r="1.2"/><circle cx="-11" cy="-2" r="1.6"/>
+        <circle cx="2" cy="-7" r="1.3"/><circle cx="-4" cy="-12" r="1.1"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- lightning flash lighting the whole scene -->
+  <rect class="blend" width="1200" height="800" fill="url(#flashG)" opacity="0">
+    <animate attributeName="opacity" dur="10s" repeatCount="indefinite"
+      keyTimes="0;0.19;0.2;0.21;0.22;0.235;0.25;0.79;0.8;0.81;0.82;0.835;0.85;1"
+      values="0;0;0.85;0.1;0.6;0.05;0;0;0.9;0.15;0.5;0;0;0"/>
+  </rect>
+
+  <!-- angled rain, two parallax layers -->
+  <g filter="url(#blur1)">
+    <rect x="-300" y="-300" width="1800" height="1400" fill="url(#rainFar)" opacity="0.8">
+      <animateTransform attributeName="transform" type="translate" values="0 0;-190 570" dur="0.62s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  <rect x="-300" y="-300" width="1800" height="1400" fill="url(#rainNear)">
+    <animateTransform attributeName="transform" type="translate" values="0 0;-110 330" dur="0.38s" repeatCount="indefinite"/>
+  </rect>
+
+  <!-- cinematic vignette + film grain -->
+  <rect width="1200" height="800" fill="url(#vig)"/>
+  <rect width="1200" height="800" filter="url(#grain)" opacity="0.55"/>
+
+</g>
+</svg>
