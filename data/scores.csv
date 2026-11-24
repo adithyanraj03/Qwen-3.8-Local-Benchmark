@@ -1,0 +1,379 @@
+task,title,group,build,visual,prompt,output,creativity,code,overall,owner_rated,deductions
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M1,5,8,10,6,8,7.33,True,crude cliff block
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M2,7,9,10,7,8,8.22,True,
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M3,7,8,10,7,8,8.0,True,beam wheels through the cliff
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M4,7,9,10,7,8,8.22,True,striped sky
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M5,7,8,10,6,8,7.78,True,no breaking waves
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M6,6,7,10,6,8,7.33,True,beam through the cliff
+N1,Animated SVG: lighthouse storm,"Graphics, SVG, shaders and renders",M7,7,9,10,7,8,8.22,True,cut-out spray
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M1,6,10,10,6,8,8.0,True,
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M2,6,10,10,7,9,8.33,True,
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M3,6,10,10,6,9,8.11,True,
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M4,6,10,9,7,7,7.89,True,mis-scaled timing readout
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M5,6,7,5,7,5,6.11,True,stacks collapse on their own
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M6,6,7,5,7,6,6.22,True,stacks collapse on their own
+N10,2D physics sandbox (canvas),"Graphics, SVG, shaders and renders",M7,7,10,10,7,7,8.33,True,
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M1,2,6,5,4,6,4.44,True,streak and slab artefacts
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M2,2,5,4,4,5,3.89,True,terrain holes; not real time
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M3,4,6,7,5,6,5.56,True,flat floor with holes
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M4,9,10,10,9,8,9.33,True,washed-out day
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M5,2,5,5,3,5,3.89,True,terrain holes; camera inside terrain
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M6,7,9,10,7,8,8.22,True,
+N11,Raymarched alien landscape (GLSL),"Graphics, SVG, shaders and renders",M7,9,10,10,8,9,9.22,True,moire in the distance
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M1,5,8,10,6,8,7.33,True,loaf-shaped shoe
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M2,4,8,10,6,7,7.0,True,blob-shaped shoe
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M3,4,8,10,6,7,7.0,True,balloon-like shoe; cropped
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M4,8,10,10,8,8,8.89,True,torn mesh edges
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M5,7,10,10,7,8,8.44,True,blob shoe
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M6,6,8,10,6,7,7.44,True,slab upper; cropped
+N12,3D sneaker configurator (Three.js),"Graphics, SVG, shaders and renders",M7,7,10,10,7,8,8.44,True,shoe cropped by panel
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M1,8,8,10,,8,8.57,True,compressed spacing
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M2,8,8,10,,8,8.57,True,compressed lower half
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M3,7,8,10,,8,8.29,True,small type; no hero grid
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M4,7,8,10,,8,8.29,True,small type; no hero grid
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M5,6,8,10,,8,8.0,True,cut-off hero; crude watermark
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M6,7,8,10,,8,8.29,True,small type
+N13,Vision: rebuild a page from a screenshot,"Web pages, apps and extensions",M7,7,8,10,,8,8.29,True,cut-off hero
+N14,Long context: Typer architecture + --version helper,Software engineering,M1,,10,10,,9,9.8,False,
+N14,Long context: Typer architecture + --version helper,Software engineering,M2,,9,9,,6,8.4,False,wrote files into the owner's home folder
+N14,Long context: Typer architecture + --version helper,Software engineering,M3,,10,10,,9,9.8,False,
+N14,Long context: Typer architecture + --version helper,Software engineering,M4,,9,10,,9,9.4,False,
+N14,Long context: Typer architecture + --version helper,Software engineering,M5,,9,10,,9,9.4,False,
+N14,Long context: Typer architecture + --version helper,Software engineering,M6,,9,10,,9,9.4,False,
+N14,Long context: Typer architecture + --version helper,Software engineering,M7,,9,10,,9,9.4,False,
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M1,,8,9,,7,8.2,False,RB delete is not a real RB delete
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M2,,3,2,,4,2.8,False,broken delete; pathfinders hang/wrong; no report
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M3,,10,10,,9,9.8,False,
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M4,,10,10,,9,9.8,False,
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M5,,9,10,,8,9.2,False,
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M6,,10,10,,9,9.8,False,
+N15,"Interval tree, persistent RB tree, Dijkstra/A*",Software engineering,M7,,10,10,,9,9.8,False,
+N16,Browser tower defense,Games and 3D worlds,M1,7,10,10,7,8,8.44,True,
+N16,Browser tower defense,Games and 3D worlds,M2,8,10,10,8,8,8.89,True,
+N16,Browser tower defense,Games and 3D worlds,M3,8,10,10,7,8,8.67,True,
+N16,Browser tower defense,Games and 3D worlds,M4,6,10,10,6,8,8.0,True,plain look
+N16,Browser tower defense,Games and 3D worlds,M5,8,10,9,8,8,8.67,True,negative lives readout
+N16,Browser tower defense,Games and 3D worlds,M6,7,10,10,8,8,8.67,True,
+N16,Browser tower defense,Games and 3D worlds,M7,8,10,10,8,8,8.89,True,
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M1,7,6,3,6,6,5.56,True,game breaks at the first capture
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M2,8,5,3,6,6,5.56,True,illegal starting position
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M3,8,5,2,6,7,5.44,True,no human input works
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M4,9,10,10,7,9,9.0,True,
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M5,9,10,10,7,9,9.0,True,
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M6,10,10,10,9,8,9.56,True,
+N18,Chess vs alpha-beta AI,Games and 3D worlds,M7,9,10,10,9,9,9.44,True,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M1,8,10,10,7,8,8.67,False,stray scrollbar
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M2,8,10,10,7,8,8.67,False,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M3,7,10,10,7,7,8.33,False,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M4,9,10,10,8,9,9.22,False,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M5,6,10,10,6,8,8.0,False,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M6,8,10,10,8,9,9.0,False,
+N19,Kanban app (Express + SQLite),"Web pages, apps and extensions",M7,8,10,10,7,9,8.78,False,
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M1,6,8,10,6,8,7.56,True,uneven accent use; small glyphs
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M2,8,7,10,7,8,8.0,True,broke the one-accent rule
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M3,8,10,10,7,8,8.67,True,
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M4,8,10,10,8,9,9.0,True,
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M5,6,9,10,5,8,7.56,True,cramped precipitation marks
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M6,6,7,10,5,8,7.11,True,"monochrome amber, no accent split"
+N2,SVG weather icon set,"Graphics, SVG, shaders and renders",M7,7,10,10,6,9,8.33,True,detached mini-cloud
+N20,Refactor legacy invoice.py,Software engineering,M1,,10,10,,9,9.8,False,
+N20,Refactor legacy invoice.py,Software engineering,M2,,9,10,,9,9.4,False,
+N20,Refactor legacy invoice.py,Software engineering,M3,,10,10,,9,9.8,False,
+N20,Refactor legacy invoice.py,Software engineering,M4,,10,10,,9,9.8,False,
+N20,Refactor legacy invoice.py,Software engineering,M5,,10,10,,9,9.8,False,
+N20,Refactor legacy invoice.py,Software engineering,M6,,10,10,,8,9.6,False,
+N20,Refactor legacy invoice.py,Software engineering,M7,,10,10,,9,9.8,False,
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M1,7,9,10,7,8,8.22,False,unused space
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M2,9,10,10,7,9,9.0,True,
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M3,7,8,10,6,8,7.78,True,thin demo; weakest sound
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M4,8,9,10,8,8,8.67,True,
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M5,9,9,10,10,8,9.33,True,shared delay instead of per track
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M6,9,9,10,8,8,8.89,True,
+N22,WebAudio step sequencer,"Web pages, apps and extensions",M7,9,9,10,10,8,9.33,True,shared delay
+N23,Bug hunt: race + deadlock (Go),Software engineering,M1,,10,10,,9,9.8,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M2,,10,10,,9,9.8,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M3,,10,10,,10,10.0,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M4,,10,10,,10,10.0,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M5,,10,10,,9,9.8,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M6,,10,10,,9,9.8,False,
+N23,Bug hunt: race + deadlock (Go),Software engineering,M7,,10,10,,10,10.0,False,
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M1,6,9,8,9,,8.0,False,broken required diagram; numeric slips
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M2,8,9,9,8,,8.5,False,arithmetic slips
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M3,7,8,6,7,,7.0,False,capacity numbers wrong by large factors
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M4,8,10,10,9,,9.25,False,
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M5,8,9,9,8,,8.5,False,
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M6,8,10,10,9,,9.25,False,
+N24,Design doc: URL shortener (Mermaid),"Research, writing and analysis",M7,8,9,9,8,,8.5,False,
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M1,9,9,10,,9,9.29,False,heading order left
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M2,9,10,10,,9,9.57,False,
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M3,8,9,7,,7,7.86,False,keyboard trap only half fixed; no carousel pause button
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M4,9,9,8,,8,8.57,False,trap kept; small target
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M5,9,10,10,,9,9.57,False,
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M6,9,10,10,,9,9.57,False,
+N26,WCAG 2.2 accessibility audit and fix,"Web pages, apps and extensions",M7,9,10,10,,9,9.57,False,
+N27,MCP server for SQLite (TypeScript),Software engineering,M1,,10,10,,9,9.8,False,
+N27,MCP server for SQLite (TypeScript),Software engineering,M2,,10,9,,8,9.2,False,rejects some valid queries
+N27,MCP server for SQLite (TypeScript),Software engineering,M3,,8,6,,8,7.2,False,runaway query hangs the server
+N27,MCP server for SQLite (TypeScript),Software engineering,M4,,10,10,,9,9.8,False,
+N27,MCP server for SQLite (TypeScript),Software engineering,M5,,10,10,,8,9.6,False,
+N27,MCP server for SQLite (TypeScript),Software engineering,M6,,8,5,,7,6.6,False,slow query hangs the server
+N27,MCP server for SQLite (TypeScript),Software engineering,M7,,10,10,,9,9.8,False,
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M1,,10,10,,8,9.6,False,
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M2,,7,9,,3,7.0,False,used the owner's API key on external calls; no install docs
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M3,,8,8,,8,8.0,False,TODO false positives
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M4,,10,9,,5,8.6,False,nested agents on the owner's outside accounts
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M5,,8,9,,5,7.8,False,nested runs swapped models on the shared server
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M6,,10,10,,9,9.8,False,
+N28,OpenCode plugin: project_todo + formatter hook,Software engineering,M7,,10,10,,9,9.8,False,
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M1,7,8,9,7,8,7.78,False,context menu likely hidden in Chrome
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M2,7,8,8,6,8,7.33,False,context menu; missing shortcut
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M3,8,10,10,7,9,8.78,False,
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M4,9,10,10,9,9,9.44,False,
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M5,6,6,4,6,6,5.56,False,closed-tab ledger never records; wrong badges
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M6,8,10,10,8,9,9.0,False,
+N29,Chrome MV3 extension: Tab Ledger,"Web pages, apps and extensions",M7,6,10,9,7,9,8.11,False,clipped cards
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M1,8,8,9,7,8,8.0,True,28 contrast failures
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M2,9,9,10,8,7,8.78,True,
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M3,8,9,10,7,8,8.44,True,headline underline overlap
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M4,10,9,10,9,8,9.33,True,
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M5,9,9,10,7,8,8.67,True,
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M6,9,10,10,8,9,9.22,True,
+N3,SaaS landing page: Northwind Ledger,"Web pages, apps and extensions",M7,10,8,8,9,8,8.67,True,"phone layout overflows, menu off-screen"
+N30,Rust TUI system monitor,Rust and performance,M1,5,7,6,6,7,6.11,False,empty throughput graphs; hidden cores
+N30,Rust TUI system monitor,Rust and performance,M2,5,8,6,7,7,6.56,False,CPU values x10
+N30,Rust TUI system monitor,Rust and performance,M3,6,9,10,6,8,7.78,False,thin I/O graphs
+N30,Rust TUI system monitor,Rust and performance,M4,8,10,10,8,9,9.0,False,
+N30,Rust TUI system monitor,Rust and performance,M5,5,7,6,6,7,6.11,False,empty gauges
+N30,Rust TUI system monitor,Rust and performance,M6,8,10,9,7,8,8.44,False,
+N30,Rust TUI system monitor,Rust and performance,M7,8,10,10,7,9,8.78,False,
+N31,Rust axum URL shortener,Rust and performance,M1,,9,9,,8,8.8,False,spoofable rate limit
+N31,Rust axum URL shortener,Rust and performance,M2,,9,9,,9,9.0,False,spoofable rate limit
+N31,Rust axum URL shortener,Rust and performance,M3,,10,10,,9,9.8,False,
+N31,Rust axum URL shortener,Rust and performance,M4,,10,10,,9,9.8,False,
+N31,Rust axum URL shortener,Rust and performance,M5,,10,10,,7,9.4,False,
+N31,Rust axum URL shortener,Rust and performance,M6,,9,9,,8,8.8,False,spoofable rate limit
+N31,Rust axum URL shortener,Rust and performance,M7,,9,9,,9,9.0,False,spoofable rate limit
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M1,,7,8,,7,7.4,False,no report
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M2,,10,10,,8,9.6,False,
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M3,,10,10,,8,9.6,False,
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M4,,10,10,,9,9.8,False,
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M5,,8,7,,8,7.6,False,VWAP off by 100x
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M6,,9,10,,9,9.4,False,bars not output
+N32,Rust 1 GB CSV VWAP performance,Rust and performance,M7,,10,10,,9,9.8,False,
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M1,9,10,10,9,,9.5,False,
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M2,9,8,8,8,,8.25,False,wrong venues in a third of the bibliography
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M3,8,7,5,7,,6.75,False,invented validation; invented reference
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M4,8,9,9,8,,8.5,False,one wrong reference
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M5,8,8,8,8,,8.0,False,three bad references
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M6,2,5,2,6,,3.75,False,does not compile
+N33,LaTeX paper: speculative decoding cost model,"Research, writing and analysis",M7,8,10,10,8,,9.0,False,
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M1,8,10,10,7,9,8.78,True,tiny legend text
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M2,7,9,10,6,8,8.0,True,stray connector; tiny labels
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M3,8,8,10,7,8,8.22,True,mismatched fig3 font; hidden label
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M4,7,7,9,7,7,7.44,True,fallback fonts in PDF; inaccurate claim
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M5,9,9,10,8,8,8.89,True,
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M6,7,8,10,7,7,7.89,True,crossing residual line
+N34,Publication SVG figures + LaTeX,"Graphics, SVG, shaders and renders",M7,9,10,10,7,9,9.0,True,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M1,,10,9,,,9.5,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M2,,10,10,,,10.0,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M3,,10,10,,,10.0,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M4,,10,9,,,9.5,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M5,,10,9,,,9.5,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M6,,10,9,,,9.5,False,
+N35,Peer review of an arXiv paper,"Research, writing and analysis",M7,,10,9,,,9.5,False,
+N36,LaTeX paper validation tool,"Research, writing and analysis",M1,,10,9,,8,9.2,False,
+N36,LaTeX paper validation tool,"Research, writing and analysis",M2,,8,9,,8,8.4,False,missed abstract-number defect
+N36,LaTeX paper validation tool,"Research, writing and analysis",M3,,8,9,,7,8.2,False,missed abstract-number defect
+N36,LaTeX paper validation tool,"Research, writing and analysis",M4,,10,10,,9,9.8,False,
+N36,LaTeX paper validation tool,"Research, writing and analysis",M5,,9,8,,7,8.2,False,crash on missing folder
+N36,LaTeX paper validation tool,"Research, writing and analysis",M6,,9,8,,8,8.4,False,crash on missing folder
+N36,LaTeX paper validation tool,"Research, writing and analysis",M7,,9,10,,8,9.2,False,
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M1,7,10,10,7,8,8.44,True,noisy daily line
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M2,9,10,10,8,9,9.22,True,
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M3,8,10,10,8,9,9.0,True,spiky daily line
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M4,9,10,10,8,9,9.22,True,axis label collision
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M5,9,10,8,7,7,8.33,True,date off-by-one; table/KPI mismatch
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M6,9,10,10,8,9,9.22,True,
+N4,Analytics dashboard (canvas/SVG),"Web pages, apps and extensions",M7,9,10,9,9,9,9.22,True,out-of-year date error
+N5,FastAPI task tracker with tests,Software engineering,M1,,10,10,,8,9.6,False,
+N5,FastAPI task tracker with tests,Software engineering,M2,,10,10,,8,9.6,False,
+N5,FastAPI task tracker with tests,Software engineering,M3,,10,10,,9,9.8,False,
+N5,FastAPI task tracker with tests,Software engineering,M4,,10,10,,9,9.8,False,
+N5,FastAPI task tracker with tests,Software engineering,M5,,10,10,,8,9.6,False,
+N5,FastAPI task tracker with tests,Software engineering,M6,,10,10,,8,9.6,False,
+N5,FastAPI task tracker with tests,Software engineering,M7,,10,10,,8,9.6,False,
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M1,,9,10,,9,9.4,False,
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M2,,8,10,,9,9.0,False,found by upstream diff
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M3,,8,10,,9,9.0,False,found by upstream diff
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M4,,8,10,,9,9.0,False,found by upstream diff
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M5,,8,10,,9,9.0,False,found by upstream diff
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M6,,8,10,,9,9.0,False,found by upstream diff
+N6,Fix a broken repository (Click 8.1.7),Software engineering,M7,,8,10,,9,9.0,False,found by upstream diff
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M1,,10,10,,9,9.8,False,
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M2,,10,10,,9,9.8,False,
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M3,,10,9,,8,9.2,False,re-reports linked files
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M4,,10,10,,9,9.8,False,
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M5,,10,10,,8,9.6,False,
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M6,,10,10,,8,9.6,False,
+N7,dupehunt duplicate-file CLI (Rust/Go),Software engineering,M7,,10,10,,9,9.8,False,
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M1,6,10,9,7,8,8.0,True,narrow viewport; overlapping title/game-over text
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M2,6,10,10,6,8,8.0,True,dim palette
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M3,6,10,9,7,7,7.89,True,sparse level
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M4,8,9,9,8,6,8.22,True,engine error every physics frame
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M5,3,8,7,3,8,5.56,True,single-screen level; default-font HUD; no sound; poor animation
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M6,6,9,8,5,9,7.22,True,flat terrain; no sound
+N8,Godot 2D pixel-art platformer,Games and 3D worlds,M7,7,10,10,8,9,8.78,True,off-centre title
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M1,3,6,8,4,6,5.33,True,mis-oriented furniture; no visible fire
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M2,9,10,10,8,8,9.11,True,blown lanterns
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M3,6,10,10,7,8,8.22,True,washed-out fireplace
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M4,6,10,10,7,8,8.22,True,stripe artefacts; dark
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M5,8,10,10,7,8,8.67,True,
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M6,9,10,10,8,8,9.11,True,
+N9,Blender scripted tavern render,"Graphics, SVG, shaders and renders",M7,7,10,10,8,8,8.67,True,sparse room
+P1,GTA-style city (Three.js),Games and 3D worlds,M1,7,9,7,6,8,7.33,True,controls reversed; no collision with cars/people; small glitches
+P1,GTA-style city (Three.js),Games and 3D worlds,M2,7,9,8,8,6,7.78,True,weak pedestrian models; weak car headlights; leftover debug files
+P1,GTA-style city (Three.js),Games and 3D worlds,M3,6,8,6,5,8,6.44,True,glitches; plainer than M1/M2
+P1,GTA-style city (Three.js),Games and 3D worlds,M4,9,9,9,8,8,8.67,True,street lamps on the road at junctions
+P1,GTA-style city (Three.js),Games and 3D worlds,M5,8,8,6,8,8,7.56,True,controls reversed; no car/person collision; few cars
+P1,GTA-style city (Three.js),Games and 3D worlds,M6,7,9,9,6,8,7.78,True,street lamps on the road; bland textures
+P1,GTA-style city (Three.js),Games and 3D worlds,M7,5,8,5,6,8,6.22,True,animations off; textures off
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M1,2,5,2,4,5,3.44,True,invisible ground (shader error); identical thumbnails on all three cards; stale crashing test; plane model backwards; poor controls
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M2,4,9,6,6,8,6.44,True,poor helicopter model; bare environment; not smooth
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M3,3,8,5,5,5,5.22,True,plane models backwards; text overflow on select cards; poor environment; not smooth; shader error + runtime errors
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M4,7,9,5,7,8,7.11,True,poor controls (plane barely moves); plane faces backwards
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M5,5,9,8,6,8,7.11,True,planes face backwards; poor environment / spiky terrain
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M6,8,8,4,7,5,6.56,True,plane can hardly be controlled; start button cut off at 1280x720
+P2,Flight combat simulator (Godot + Blender),Games and 3D worlds,M7,8,9,9,8,7,8.33,True,planes face backwards; stretched ground texture
+P3,C++ rally racing game,Games and 3D worlds,M1,6,9,8,7,7,7.44,True,HUD text overlap; washed-out scenery
+P3,C++ rally racing game,Games and 3D worlds,M2,4,8,6,4,6,5.56,True,lap counted at start; speedometer hidden by minimap; ghost menu text; floating trees; bland textures
+P3,C++ rally racing game,Games and 3D worlds,M3,3,7,5,5,5,5.0,True,oversized cockpit hides the scenery; no objective; glitchy trees and HUD
+P3,C++ rally racing game,Games and 3D worlds,M4,6,7,7,7,7,6.78,True,no road; drives through rocks
+P3,C++ rally racing game,Games and 3D worlds,M5,8,10,9,7,8,8.44,True,plainer HUD than M4/M7
+P3,C++ rally racing game,Games and 3D worlds,M6,4,7,6,5,6,5.56,False,banding artefacts; sparse scenery
+P3,C++ rally racing game,Games and 3D worlds,M7,9,8,8,9,8,8.44,True,no road; lap counter broken
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M1,6,7,7,6,7,6.56,True,enemies render as a box pile
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M2,5,8,7,6,7,6.56,True,weak station
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M3,4,5,2,5,4,4.0,True,game-breaking TypeError; bad station; bad sound
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M4,8,9,9,7,7,8.11,True,
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M5,5,7,4,4,6,5.11,True,controls reversed; bad sound; oversized flat gun
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M6,5,6,3,7,4,5.11,True,screen goes black / static after ~30 s
+P4,Subway station zombie FPS (Three.js),Games and 3D worlds,M7,2,8,4,4,8,4.89,True,bad platform; bad zombies
+P5,C++ skateboarding game,Games and 3D worlds,M1,6,8,8,6,7,7.0,True,unreadable score; not a NYC block
+P5,C++ skateboarding game,Games and 3D worlds,M2,4,7,5,5,7,5.44,True,camera/skater inside buildings; poor animation; no trick scored in testing
+P5,C++ skateboarding game,Games and 3D worlds,M3,4,8,6,6,6,6.0,True,camera inside buildings; weak animation/collision
+P5,C++ skateboarding game,Games and 3D worlds,M4,7,9,9,7,8,8.0,True,
+P5,C++ skateboarding game,Games and 3D worlds,M5,8,9,7,8,8,8.0,True,poor skater animation; HUD overlaps sign
+P5,C++ skateboarding game,Games and 3D worlds,M6,2,6,6,4,6,4.67,True,messy geometry; black frame
+P5,C++ skateboarding game,Games and 3D worlds,M7,9,9,8,7,8,8.22,True,stops dead at planters
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M1,6,8,9,7,8,7.56,True,poor hero watch model
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M2,4,8,7,6,7,6.33,True,poor watch model; weak exploded view; strap through the dial
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M3,5,7,7,7,6,6.44,True,bad watch models
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M4,10,10,10,9,8,9.56,True,
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M5,7,9,9,7,8,8.0,True,watch model issues; no table
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M6,8,10,9,9,8,8.89,True,off-axis spinning ring artefacts; less realistic watch
+P6,Slappis Watch Co. website (Three.js),"Web pages, apps and extensions",M7,9,10,10,10,8,9.56,True,thin strap
+P7,City block through the decades,Games and 3D worlds,M1,5,8,10,7,7,7.44,True,fog washes out the scene; box buildings
+P7,City block through the decades,Games and 3D worlds,M2,7,9,9,7,8,8.0,True,
+P7,City block through the decades,Games and 3D worlds,M3,4,6,10,6,6,6.44,True,eras look alike; fog
+P7,City block through the decades,Games and 3D worlds,M4,8,9,10,8,8,8.67,True,
+P7,City block through the decades,Games and 3D worlds,M5,7,9,10,7,8,8.22,True,floating skyline blocks
+P7,City block through the decades,Games and 3D worlds,M6,9,9,10,8,8,8.89,True,flat 1985 lighting
+P7,City block through the decades,Games and 3D worlds,M7,8,9,10,9,8,8.89,True,boxy future skyline
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M1,5,10,5,6,8,6.67,True,laggy; weak environment and sound; no world boundary
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M2,6,10,8,8,8,8.0,True,bad character/pedestrian models; camera against walls
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M3,3,9,6,5,6,5.78,True,camera inside walls; worst overall look
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M4,9,10,9,8,8,8.89,True,camera tips under the hero
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M5,7,9,6,6,6,6.89,True,no character animation; hard to land a hit
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M6,7,10,9,7,9,8.33,True,empty-looking framing
+P8,STREET YEET (Godot + Blender),Games and 3D worlds,M7,8,10,9,9,8,8.89,True,view blocked by a car; short reach
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M1,9,9,10,8,8,8.89,True,scarf not streaming behind
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M2,7,7,10,7,8,7.78,True,bird lies on the bike
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M3,8,9,10,8,8,8.67,True,off-centre small rider; abrupt hill edge
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M4,9,10,10,8,8,9.11,True,
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M5,9,10,10,9,8,9.33,True,hovering pose
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M6,9,10,10,9,8,9.33,True,hard hill edge glitch
+P9,Animated SVG: bird on a bicycle,"Graphics, SVG, shaders and renders",M7,7,9,10,7,8,8.22,True,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M1,8,10,10,7,9,8.78,False,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M2,7,10,10,6,8,8.22,False,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M3,8,10,10,6,9,8.56,False,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M4,9,10,10,8,9,9.22,False,FAB overlap
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M5,6,10,10,6,9,8.11,False,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M6,7,10,10,6,7,8.11,False,
+X1,Offline-first PWA: Pocket Pantry,"Web pages, apps and extensions",M7,7,10,10,6,9,8.33,False,
+X10,Four mathematical proofs,"Research, writing and analysis",M1,,8,8,,10,8.4,False,false statement in a lemma
+X10,Four mathematical proofs,"Research, writing and analysis",M2,,9,9,,9,9.0,False,
+X10,Four mathematical proofs,"Research, writing and analysis",M3,,10,10,,9,9.8,False,
+X10,Four mathematical proofs,"Research, writing and analysis",M4,,9,9,,10,9.2,False,
+X10,Four mathematical proofs,"Research, writing and analysis",M5,,8,8,,10,8.4,False,non-sequitur; unjustified steps
+X10,Four mathematical proofs,"Research, writing and analysis",M6,,9,8,,9,8.6,False,gap in proof 3
+X10,Four mathematical proofs,"Research, writing and analysis",M7,,9,9,,9,9.0,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M1,9,10,10,,9,9.57,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M2,9,10,10,,9,9.57,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M3,9,9,10,,8,9.14,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M4,9,9,10,,8,9.14,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M5,9,10,10,,9,9.57,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M6,9,10,10,,9,9.57,False,
+X11,Localise a web app (es/de/ja),"Web pages, apps and extensions",M7,9,9,9,,9,9.0,False,fil<local path> broken
+X12,Researched comparison with citations,"Research, writing and analysis",M1,,10,9,,,9.5,False,
+X12,Researched comparison with citations,"Research, writing and analysis",M2,,10,9,,,9.5,False,
+X12,Researched comparison with citations,"Research, writing and analysis",M3,,8,8,,,8.0,False,missing default condition
+X12,Researched comparison with citations,"Research, writing and analysis",M4,,10,9,,,9.5,False,
+X12,Researched comparison with citations,"Research, writing and analysis",M5,,10,9,,,9.5,False,
+X12,Researched comparison with citations,"Research, writing and analysis",M6,,10,10,,,10.0,False,
+X12,Researched comparison with citations,"Research, writing and analysis",M7,,9,9,,,9.0,False,quote under wrong URL
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M1,9,9,10,8,8,8.89,False,
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M2,5,8,9,6,8,7.11,False,cropped pagoda; stray voxels; very dark night
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M3,8,9,10,8,8,8.67,False,hidden pond; flat island edge
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M4,10,10,10,10,8,9.78,True,
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M5,8,9,9,6,8,8.0,False,hidden pond
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M6,7,9,9,6,8,7.78,False,tiny pond
+X16,Isometric voxel pagoda garden (Three.js),Games and 3D worlds,M7,9,10,10,9,8,9.33,False,glow blob at top edge
+X2,Desktop notes app (PySide6),Software engineering,M1,7,8,7,6,8,7.11,False,tag filter crashes
+X2,Desktop notes app (PySide6),Software engineering,M2,7,10,10,6,8,8.22,False,truncated column
+X2,Desktop notes app (PySide6),Software engineering,M3,5,9,10,6,8,7.56,False,half the window empty
+X2,Desktop notes app (PySide6),Software engineering,M4,5,10,10,6,9,7.89,False,empty band at top
+X2,Desktop notes app (PySide6),Software engineering,M5,8,10,10,7,9,8.78,False,
+X2,Desktop notes app (PySide6),Software engineering,M6,4,7,5,5,4,5.11,False,6 failing tests; broken links in preview
+X2,Desktop notes app (PySide6),Software engineering,M7,8,10,10,7,8,8.67,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M1,,10,10,,9,9.8,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M2,,10,10,,9,9.8,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M3,,10,10,,9,9.8,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M4,,9,10,,10,9.6,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M5,,10,10,,9,9.8,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M6,,10,10,,8,9.6,False,
+X3,Library database: migrations + tricky SQL,Software engineering,M7,,10,10,,9,9.8,False,
+X4,"DevOps: Docker, compose, CI",Software engineering,M1,,10,10,,8,9.6,False,left Docker Desktop running
+X4,"DevOps: Docker, compose, CI",Software engineering,M2,,9,9,,7,8.6,False,dev deps in runtime image
+X4,"DevOps: Docker, compose, CI",Software engineering,M3,,10,9,,9,9.4,False,
+X4,"DevOps: Docker, compose, CI",Software engineering,M4,,10,9,,10,9.6,False,
+X4,"DevOps: Docker, compose, CI",Software engineering,M5,,10,9,,8,9.2,False,
+X4,"DevOps: Docker, compose, CI",Software engineering,M6,,10,9,,9,9.4,False,
+X4,"DevOps: Docker, compose, CI",Software engineering,M7,,10,9,,9,9.4,False,
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M1,8,8,10,7,9,8.33,False,
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M2,8,6,9,5,8,7.11,False,anomalies missing
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M3,9,7,10,7,8,8.22,False,
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M4,8,8,10,8,9,8.56,False,
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M5,6,8,9,7,8,7.56,False,no charts in the notebook
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M6,8,9,10,8,9,8.78,False,
+X6,Data science: messy bike-share CSV,"Research, writing and analysis",M7,8,8,9,8,9,8.33,False,fares misdiagnosed in the docs
+X7,Tern language interpreter,Software engineering,M1,,9,8,,9,8.6,False,shallow recursion crash
+X7,Tern language interpreter,Software engineering,M2,,10,10,,9,9.8,False,
+X7,Tern language interpreter,Software engineering,M3,,9,8,,8,8.4,False,shallow recursion crash
+X7,Tern language interpreter,Software engineering,M4,,10,10,,9,9.8,False,
+X7,Tern language interpreter,Software engineering,M5,,9,8,,8,8.4,False,shallow recursion crash
+X7,Tern language interpreter,Software engineering,M6,,9,8,,8,8.4,False,shallow recursion crash
+X7,Tern language interpreter,Software engineering,M7,,9,8,,8,8.4,False,shallow recursion crash
+X8,Embedded C: ring buffer + frame parser,Software engineering,M1,,10,10,,9,9.8,False,
+X8,Embedded C: ring buffer + frame parser,Software engineering,M2,,9,7,,8,8.0,False,deadlock on index wrap
+X8,Embedded C: ring buffer + frame parser,Software engineering,M3,,10,10,,9,9.8,False,
+X8,Embedded C: ring buffer + frame parser,Software engineering,M4,,10,10,,10,10.0,False,
+X8,Embedded C: ring buffer + frame parser,Software engineering,M5,,7,6,,7,6.6,False,rejects 8-arg frames; capacity off by one
+X8,Embedded C: ring buffer + frame parser,Software engineering,M6,,10,10,,9,9.8,False,
+X8,Embedded C: ring buffer + frame parser,Software engineering,M7,,10,10,,9,9.8,False,
+X9,Constrained short story,"Research, writing and analysis",M1,,10,10,8,9,9.29,False,
+X9,Constrained short story,"Research, writing and analysis",M2,,9,10,5,6,7.71,False,muddled story
+X9,Constrained short story,"Research, writing and analysis",M3,,9,10,6,7,8.14,False,
+X9,Constrained short story,"Research, writing and analysis",M4,,10,10,8,9,9.29,False,
+X9,Constrained short story,"Research, writing and analysis",M5,,6,7,6,6,6.29,False,wrong point of view
+X9,Constrained short story,"Research, writing and analysis",M6,,10,10,7,8,8.86,False,
+X9,Constrained short story,"Research, writing and analysis",M7,,10,10,8,8,9.14,False,
