@@ -1,0 +1,17 @@
+# Instructions for the agent that publishes this repo: local only, never committed
+instruction.md
+
+# OS and editor clutter
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+*.bak
+*.swp
+.vscode/
+.idea/
+
+# Python / Node leftovers, if any tooling is ever run here
+__pycache__/
+*.pyc
+node_modules/
