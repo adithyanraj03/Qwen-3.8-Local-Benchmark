@@ -47,6 +47,7 @@ From the Strata launch files on the host and the inference monitor's request his
 - Live demos you can play in the browser: web pages, Three.js scenes, Godot games, PDFs
 - A hallucination study
 - Hardware and engine details
+- Raw data (scores, reasons, per-run stats, speed benchmark) as CSV/JSON in [data/](data/)
 
 ## Notes
 
