@@ -21,11 +21,19 @@
    "k": "pdf"
   },
   "M6": {
-   "u": "live/doc/N33-M6.html",
-   "k": "doc"
+   "u": "live/pdf/viewer.html?f=N33-M6",
+   "k": "pdf"
   },
   "M7": {
    "u": "live/pdf/viewer.html?f=N33-M7",
+   "k": "pdf"
+  },
+  "M9": {
+   "u": "live/pdf/viewer.html?f=N33-M9",
+   "k": "pdf"
+  },
+  "M10": {
+   "u": "live/pdf/viewer.html?f=N33-M10",
    "k": "pdf"
   }
  },
@@ -57,6 +65,14 @@
   "M7": {
    "u": "live/doc/N24-M7.html",
    "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/N24-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/N24-M10.html",
+   "k": "doc"
   }
  },
  "N35": {
@@ -86,6 +102,14 @@
   },
   "M7": {
    "u": "live/doc/N35-M7.html",
+   "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/N35-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/N35-M10.html",
    "k": "doc"
   }
  },
@@ -117,6 +141,14 @@
   "M7": {
    "u": "live/doc/X9-M7.html",
    "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/X9-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/X9-M10.html",
+   "k": "doc"
   }
  },
  "X10": {
@@ -146,6 +178,14 @@
   },
   "M7": {
    "u": "live/doc/X10-M7.html",
+   "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/X10-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/X10-M10.html",
    "k": "doc"
   }
  },
@@ -177,6 +217,14 @@
   "M7": {
    "u": "live/doc/X12-M7.html",
    "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/X12-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/X12-M10.html",
+   "k": "doc"
   }
  },
  "N14": {
@@ -206,6 +254,14 @@
   },
   "M7": {
    "u": "live/doc/N14-M7.html",
+   "k": "doc"
+  },
+  "M9": {
+   "u": "live/doc/N14-M9.html",
+   "k": "doc"
+  },
+  "M10": {
+   "u": "live/doc/N14-M10.html",
    "k": "doc"
   }
  },
@@ -237,6 +293,14 @@
   "M7": {
    "u": "live/nb/X6-M7.html",
    "k": "notebook"
+  },
+  "M9": {
+   "u": "live/nb/X6-M9.html",
+   "k": "notebook"
+  },
+  "M10": {
+   "u": "live/nb/X6-M10.html",
+   "k": "notebook"
   }
  },
  "N8": {
@@ -266,6 +330,14 @@
   },
   "M7": {
    "u": "live/godot/N8-M7.html",
+   "k": "godot"
+  },
+  "M9": {
+   "u": "live/godot/N8-M9.html",
+   "k": "godot"
+  },
+  "M10": {
+   "u": "live/godot/N8-M10.html",
    "k": "godot"
   }
  },
@@ -297,6 +369,14 @@
   "M7": {
    "u": "live/godot/P2-M7.html",
    "k": "godot"
+  },
+  "M9": {
+   "u": "live/godot/P2-M9.html",
+   "k": "godot"
+  },
+  "M10": {
+   "u": "live/godot/P2-M10.html",
+   "k": "godot"
   }
  },
  "P8": {
@@ -326,6 +406,14 @@
   },
   "M7": {
    "u": "live/godot/P8-M7.html",
+   "k": "godot"
+  },
+  "M9": {
+   "u": "live/godot/P8-M9.html",
+   "k": "godot"
+  },
+  "M10": {
+   "u": "live/godot/P8-M10.html",
    "k": "godot"
   }
  }

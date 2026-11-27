@@ -1,0 +1,131 @@
+<!doctype html><meta charset=utf-8><title>REVIEW.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M10 · N35 · REVIEW.md <span>M10-qwen3.8-flash-next-ista-iq3_s</span></div><main><h1 id="peer-review-fast-inference-from-transformers-via-speculative-decoding">Peer Review: "Fast Inference from Transformers via Speculative Decoding"</h1>
+<p><strong>Venue:</strong> ICML (source uses the ICML 2023 template, <code>main.tex:25</code>)
+<strong>Reviewer role:</strong> full technical + experimental review of LaTeX source (<code>main.tex</code>, <code>references.bib</code>, <code>main.bbl</code>, all figure files)</p>
+<hr />
+<h2 id="1-summary-of-contributions">1. Summary of contributions</h2>
+<p>The paper proposes <strong>speculative decoding</strong>: use a cheap approximation model $M_q$ to autoregressively draft $\gamma$ candidate tokens, then evaluate all $\gamma+1$ positions in one parallel pass of the expensive target model $M_p$. A novel <strong>speculative sampling</strong> rule (<code>main.tex:204</code>, Algorithm 1 at <code>main.tex:211-236</code>) accepts each draft token $x_i \sim q_i$ with probability $\min(1, p_i(x_i)/q_i(x_i))$ and, upon the first rejection, resamples from the residual distribution $norm(\max(0, p-q))$. The construction provably preserves the target distribution exactly (Appendix A, <code>main.tex:646-677</code>). The paper derives:</p>
+<ul>
+<li>expected tokens per target-model call under an i.i.d. acceptance assumption: $(1-\alpha^{\gamma+1})/(1-\alpha)$ (Eq. 1, <code>main.tex:251-254</code>);</li>
+<li>$\alpha = 1 - D_{LK}(p,q) = E[\min(p,q)]$ (Thm. 1, <code>main.tex:292-311</code>);</li>
+<li>expected walltime improvement $(1-\alpha^{\gamma+1})/((1-\alpha)(\gamma c + 1))$ (Thm. 2, <code>main.tex:330-339</code>) and an arithmetic-ops increase factor (Thm. 3, <code>main.tex:363-370</code>);</li>
+<li>guidance for choosing $\gamma$ (<code>main.tex:387-389</code>, Fig. 3);</li>
+<li>experiments: walltime speedups of 2.2X–3.4X for T5-XXL vs. T5X (Table 1, <code>main.tex:477-507</code>), and $\alpha$ measurements for GPT-like 97M, T5-XXL, and LaMDA 137B pairs (Table 3, <code>main.tex:526-585</code>);</li>
+<li>appendices on correctness, comparison to rejection sampling, theory-vs-experiment, beam search, and a "lenience" relaxation.</li>
+</ul>
+<p>Two claimed novel contributions (<code>main.tex:190</code>): (1) speculative execution generalized to the stochastic setting via speculative sampling; (2) a decoding mechanism that accelerates off-the-shelf autoregressive models with no retraining, no architecture change, and an unchanged output distribution.</p>
+<hr />
+<h2 id="2-strengths">2. Strengths</h2>
+<ol>
+<li><strong>The core algorithm is correct, simple, and genuinely useful.</strong> The speculative-sampling identity $\min(p,q) + (p-\min(p,q)) = p$ (<code>main.tex:655-677</code>) is a tight, exact coupling; the appendix proof is complete and the normalizing constant $1-\beta$ is correctly derived (<code>main.tex:651</code>). The guarantee holds for <em>any</em> $M_q$ (<code>main.tex:444</code>), which is a strong and practically valuable property that distinguishes it from Blockwise Parallel Decoding (Stern et al. 2018) and Shallow Aggressive Decoding.</li>
+<li><strong>The theory-experiment loop is closed, not decorative.</strong> Table 4 (<code>main.tex:701-731</code>) plugs measured $\alpha$ and profiler-estimated $c$ into Thm. 2 and compares against measured walltimes; most rows agree within ~15% (e.g., EnDe T5-small t=0: 3.2 predicted vs 3.4 measured). I verified Eq. 1 and Thm. 2/3 algebra independently and they are correct; the bigram example at <code>main.tex:450</code> ($\alpha=0.2, \gamma=3 \Rightarrow 1.248X$) checks out numerically, as do the Table 2 entries (<code>main.tex:395-418</code>) against Thm. 2/3 with $c=\hat c=0$.</li>
+<li><strong>The rejection-sampling comparison (Appendix B, <code>main.tex:679-689</code>) is a genuinely useful clarification</strong>: the acceptance rate of naive rejection sampling is $1/M = \min_x q(x)/p(x)$-based and provably $\le \alpha$. The inequality chain is correct.</li>
+<li><strong>Honest positioning of prior work.</strong> <code>main.tex:594-600</code> explicitly differentiates from Blockwise Parallel Decoding and SAD, and acknowledges the concurrent independent work of Chen et al. 2023 (<code>chen2023accelerating</code>).</li>
+<li><strong>Figure 1 is verifiable and consistent with the text.</strong> I checked <code>figure1.png</code>: 9 rows = 9 serial target-model runs; the first row generates 5 tokens (4 accepted drafts + 1 correction), matching the caption at <code>main.tex:155</code>. The trace diagram (<code>trace_diagram.pdf</code>) is consistent with the caption at <code>main.tex:430-436</code>.</li>
+<li><strong>The cost model cleanly separates the two currencies</strong> (latency vs. arithmetic ops, <code>main.tex:316-375</code>), and the memory-access argument (<code>main.tex:375</code>) correctly identifies why the method helps in the memory-bandwidth-bound regime.</li>
+</ol>
+<hr />
+<h2 id="3-weaknesses">3. Weaknesses</h2>
+<h3 id="major">Major</h3>
+<p><strong>W1. The central walltime assumption — that $\gamma+1$ parallel $M_p$ evaluations cost the same as one — is never measured.</strong> <code>main.tex:320</code> simply assumes it ("we'll assume that we can run $\gamma+1$ concurrent evaluations of $M_p$ in parallel without increasing the walltime"). This is the load-bearing assumption of the entire method, yet there is no plot of marginal walltime vs. $\gamma$ for fixed $\alpha$ (i.e., forced rejections), no measurement of where the "free parallelism" breaks down, and the trace diagram (<code>trace_diagram.pdf</code>) is explicitly "simplified." The paper's own data hints at the problem: for T5-large, predicted 2.5X vs. measured 1.7X (EnDe, t=0) and 2.0X vs. 1.4X (EnDe, t=1) in Table 4 — a 30–40% gap blamed vaguely on "optimization differences" and the i.i.d. assumption (<code>main.tex:699</code>). A direct measurement of parallel-evaluation cost vs. $\gamma$ would resolve this and is essential.</p>
+<p><strong>W2. Missing control experiment: the authors' own implementation without speculation.</strong> The speedups in Table 1 are measured against T5X, but the speculative implementation is custom. Since measured speedups <em>exceed</em> theoretical predictions in several rows (3.4 vs 3.2; 3.1 vs 2.4 for CNNDM T5-small t=0), part of the reported 2X–3X could be implementation advantage unrelated to speculation. A $\gamma=0$ run of their own stack vs. T5X is the obvious control and is absent.</p>
+<p><strong>W3. The i.i.d. assumption behind Eq. 1 is known to be false and its impact is never quantified.</strong> <code>main.tex:249</code> flags it as "simplifying," and <code>main.tex:438</code> notes "the $\beta$s aren't constant," but the paper never reports the empirical distribution of tokens-per-iteration, autocorrelation of acceptance, or a corrected prediction (e.g., a Markov model of $\beta$). Since this assumption drives every theorem and the theory-vs-empirics comparison, its error budget should be measured, not acknowledged.</p>
+<p><strong>W4. Internal contradiction about $c$.</strong> <code>main.tex:328</code> states "$c$ was always less than $0.05$ and often negligibly close to 0," but Table 4 (<code>main.tex:714,717,721,724</code>) lists $c = 0.11$ for T5-large (250M vs 11B — "a couple of orders of magnitude smaller" by the paper's own phrasing). One of these is wrong.</p>
+<p><strong>W5. Reproducibility is weak.</strong> No code is released. The setup (<code>main.tex:470</code>) says "a single TPU-v4" — chip count, mesh topology, and sharding are unspecified; the T5X baseline version/configuration is unspecified; input lengths, number of examples, warmup, and timing methodology are unspecified; the $\alpha$ protocol (<code>main.tex:513</code>, "10K tokens generated by $M_p$") does not state which split of WMT EnDe / CNNDM. The GPT-like 97M model is trained by the authors but no training details (steps, LR, perplexity) are given (<code>main.tex:515</code>), and LaMDA (<code>main.tex:517</code>) is internal and cannot be checked at all. Only the T5 rows are even partially replicable by a reader.</p>
+<p><strong>W6. LaMDA and GPT-like "experiments" measure only $\alpha$; no walltime is reported.</strong> The intro (<code>main.tex:185</code>) says "We analyze our method in a variety of tasks ... and a dialog task with a 137B parameter LaMDA model," which reads as if the method was run at LaMDA scale. In fact Tables 3's LaMDA/GPT rows are $\alpha$ estimates only; the method was implemented and timed only for T5. The claim is defensible but the framing oversells coverage.</p>
+<p><strong>W7. No empirical comparison against the closest prior methods.</strong> Blockwise Parallel Decoding and SAD are compared only qualitatively (<code>main.tex:594-598</code>). A head-to-head (even re-implemented) on T5 translation would substantiate the novelty claim and quantify what exactness costs in speed.</p>
+<p><strong>W8. Scope of evaluation is narrow.</strong> Batch size 1 only (<code>main.tex:470</code>); no throughput/batched-serving analysis, which is where production decoding actually lives and where speculative decoding interacts awkwardly with batching (per-sequence variable acceptance). No discussion of black-box settings where full $p(x)$ distributions are unavailable (the method needs full logits).</p>
+<h3 id="minor">Minor</h3>
+<ul>
+<li><strong>Notation bug in Algorithm 1</strong> (<code>main.tex:226</code>): the acceptance test $r_i &gt; \frac{p_i(x)}{q_i(x)}$ never specifies that the ratio is evaluated at the <em>sampled</em> token $x_i$; as written, $p_i(x)/q_i(x)$ is a free variable. Should be $p_i(x_i)/q_i(x_i)$.</li>
+<li><strong>Citation error</strong> (<code>main.tex:589</code>): "Wisdom of Committees \citep{Matching_Model_and_Instance_Complexities}" attributes Wang et al.'s <em>Wisdom of Committees</em> to Schwartz et al. The correct bib entry <code>Wisdom_of_Committees</code> exists at <code>references.bib:139-144</code> but is never cited.</li>
+<li><strong>Corollary proof is not rigorous</strong> (<code>main.tex:347-349</code>): "If we get an improvement for $\gamma$, we'd also get an improvement for any $0 &lt; \gamma^* &lt; \gamma$" is asserted, not proved; $g(\gamma)=\frac{1-\alpha^{\gamma+1}}{(1-\alpha)(\gamma c+1)}$ is not obviously unimodal. The result itself follows directly from evaluating $\gamma=1$ (which the proof then does), so the fix is to delete the unproven sentence.</li>
+<li><strong>Unproven claims:</strong> (a) <code>main.tex:373</code>: decoder ops "can be bounded from above by a single run of the same-size Transformer encoder" — no proof, no definition of the comparison basis; (b) <code>main.tex:439</code>: oracle improvement "up to ~60% higher" — no derivation.</li>
+<li><strong>$D_{LK}$ is the total variation distance</strong> ($\sum_x |p - \tfrac{p+q}{2}| = \tfrac12|p-q|_1$). <code>main.tex:267-272</code> presents it as a new "natural divergence" without noting it is TV distance; this matters for the novelty framing of the analysis section.</li>
+<li><strong>Lenience (Appendix E) is under-evaluated.</strong> The 2.5X–5X factors (<code>main.tex:753</code>) are computed from the theory with an assumed $c=0.015$, never measured; and no output-quality metric (BLEU/ROUGE, diversity, KL to $p$) is reported for any $l&lt;1$. The one-sided guarantee ($\le p(x)/l$, <code>main.tex:745</code>) says nothing about how much quality degrades. As written this section is a promise, not a result.</li>
+<li><strong>Beam search (Appendix D, <code>main.tex:737-739</code>) is a sketch.</strong> The condition $top_w(M_p) \subseteq top_u(M_q)$ per step is not obviously sufficient for identical beam search (beams are pruned across steps; the union of candidates must contain the true beam at every step). The authors themselves defer analysis — fine, but then it should not be listed as an "application."</li>
+<li><strong>Figure 1 caption says 38 tokens</strong> (<code>main.tex:155</code>); the attached <code>figure1.png</code> shows 32 visible tokens in the final row (including [START]/[END]). If subword tokens are collapsed in rendering, the count should match the rendering.</li>
+<li><strong>Typesetting/source hygiene:</strong> placeholder short caption <code>\caption[test]</code> (<code>main.tex:155</code>); <code>\appendix</code> issued twice (<code>main.tex:638,641</code>); footnote hack <code>\stepcounter{footnote}</code> (<code>main.tex:524</code>) with the corresponding <code>\footnotetext</code> placed in Related Work (<code>main.tex:602</code>), so the LaMDA $Top_{40}$ footnote can land on an unrelated page; labels with spaces (<code>tbl:empirical alphas</code>, <code>main.tex:528</code>); <code>\vspace{1.04cm}</code> hack (<code>main.tex:460</code>); camera-ready <code>\usepackage[accepted]{icml2023}</code> with named authors (<code>main.tex:25,115-117</code>) — if this is the reviewed version, it is not anonymized.</li>
+<li><strong>Typos:</strong> "anaylsis" (<code>main.tex:320</code>), "autogreressive" (<code>main.tex:456</code>), "sparcification" (<code>main.tex:588</code>), "CCN/DM" for CNNDM (<code>main.tex:470</code>), "speedup inference" (<code>main.tex:608</code>).</li>
+<li><strong>Unused/duplicate bib entries:</strong> <code>gad</code> (<code>references.bib:41</code>), <code>iad_maybe</code> (duplicate of <code>sad</code>, <code>references.bib:49-55</code>), <code>Wisdom_of_Committees</code> (<code>references.bib:139</code>), <code>graves-adaptive-computation-for-rnn</code> (<code>references.bib:242</code>) — none appear in <code>main.bbl</code>.</li>
+<li><strong>$\gamma$ selection procedure unstated:</strong> Table 1 rows use different $\gamma$ (7,5,3); were these grid-searched per row, or taken from Fig. 3? Affects whether Table 1 is a fair comparison across $M_q$ sizes.</li>
+</ul>
+<hr />
+<h2 id="4-questions-for-the-authors">4. Questions for the authors</h2>
+<ol>
+<li>What is the measured walltime of one parallel $M_p$ evaluation over $\gamma+1$ positions as a function of $\gamma$ on your TPU-v4 setup? Where does the "no walltime increase" assumption (<code>main.tex:320</code>) break?</li>
+<li>What is the walltime of <em>your</em> implementation with speculation disabled ($\gamma=0$) vs. T5X? How much of Table 1 is implementation delta?</li>
+<li>Please report the empirical distribution (and autocorrelation) of tokens-per-iteration vs. the capped-geometric prediction of Eq. 1. How much of the T5-large theory gap (2.5 vs 1.7) is i.i.d.-error vs. parallel-cost error?</li>
+<li><code>main.tex:328</code> says $c&lt;0.05$ always; Table 4 says $c=0.11$ for T5-large. Which is correct?</li>
+<li>Were the $\gamma$ values in Table 1 tuned per row? What is the sensitivity of the reported speedups to $\gamma$ (one row re-run at $\gamma\pm2$ would suffice)?</li>
+<li>Exact hardware/software configuration: TPU-v4 topology, sharding, T5X version, batch-1 timing protocol (examples, warmup, percentiles)? Which test split and how many sequences for the 10K-token $\alpha$ estimates?</li>
+<li>For lenience: measured walltimes and BLEU/ROUGE (or KL to $p$) at $l \in {0.5, 0.3, 0.1}$?</li>
+<li>How does speculative decoding behave at batch size &gt; 1 (throughput serving)? Have you measured it?</li>
+<li>Algorithm 1, line 226: please confirm the acceptance ratio is evaluated at the sampled token $x_i$.</li>
+<li>Figure 1: is the 38-token count over subwords? The rendered figure shows 32 tokens.</li>
+<li>Can the GPT-like 97M model (architecture given at <code>main.tex:515</code>) and its $\alpha$ results be released or reproduced?</li>
+</ol>
+<hr />
+<h2 id="5-assessment">5. Assessment</h2>
+<p><strong>Novelty: 7/10.</strong> The exactness-preserving stochastic speculative-sampling step is a genuinely new and elegant ingredient relative to Blockwise Parallel Decoding and SAD, and the formalization of "stochastic speculative execution" is a nice framing. However, the pieces are individually well known: parallel draft-and-verify is Stern et al. 2018; the residual-coupling trick $\min(p,q)$ is standard probability machinery; $D_{LK}$ is total variation distance; and Chen et al. 2023 arrived at the same algorithm independently and concurrently. The contribution is the combination, the exactness guarantee, and the analysis — solid but not deep.</p>
+<p><strong>Soundness: 6/10.</strong> The correctness proof (Appendix A) is fully rigorous and the theorems' algebra checks out (I verified Thms. 1–3, Eq. 1, the bigram example, and Table 2 numerically). But the <em>empirical</em> soundness is weaker: the free-parallelism assumption is unmeasured (W1), the baseline control is missing (W2), the i.i.d. error budget is unquantified (W3), and there is an internal contradiction about $c$ (W4). The headline 2X–3X claim survives these concerns (theory and experiment agree for the best configurations), but the mechanism attribution is not airtight.</p>
+<p><strong>Clarity: 8/10.</strong> The paper is exceptionally readable; the overview→algorithm→analysis→experiments flow is clean, figures match the text, and the theory is elementary and self-contained. Deductions: the Algorithm 1 notation bug, the misplaced LaMDA footnote, the oversold LaMDA coverage in the intro, and assorted typos.</p>
+<p><strong>Reproducibility: 4/10.</strong> No code, no hardware/sharding/baseline configuration, no timing protocol, no training details for the 97M model, LaMDA results uncheckable. A determined reader can approximately replicate the T5 $\alpha$ numbers from public checkpoints, but not the walltimes.</p>
+<hr />
+<h2 id="6-abstract-claim-audit">6. Abstract-claim audit</h2>
+<table>
+<thead>
+<tr>
+<th>Abstract claim (<code>main.tex:143-151</code>)</th>
+<th>Evidence</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>"sample ... faster <strong>without any changes to the outputs</strong>"</td>
+<td>Appendix A proof gives <em>distributional</em> identity. For temp=0 outputs are identical; for temp=1 a run produces a <em>different sample from the same distribution</em>, not the same tokens as a seeded baseline run.</td>
+<td><strong>Supported, with imprecise wording.</strong> "Without changing the output distribution" would be exact; "identical outputs" (also <code>main.tex:150</code>) is loose for temp&gt;0.</td>
+</tr>
+<tr>
+<td>"computing several tokens in parallel"</td>
+<td>Algorithm 1; Table 1; trace diagram.</td>
+<td><strong>Supported.</strong></td>
+</tr>
+<tr>
+<td>"hard tasks include easier subtasks approximated by efficient models"</td>
+<td>Table 3: $\alpha \in [0.5, 0.9]$ for two-orders-of-magnitude-smaller $M_q$; bigram $\alpha=0.2$.</td>
+<td><strong>Supported.</strong></td>
+</tr>
+<tr>
+<td>"running them in parallel on the outputs of the approximation models ... without changing the distribution"</td>
+<td>Correctness proof; but the <em>walltime</em> benefit depends on the unmeasured free-parallelism assumption (<code>main.tex:320</code>).</td>
+<td><strong>Supported for the distribution claim; the speed side is supported empirically but not mechanistically isolated.</strong></td>
+</tr>
+<tr>
+<td>"accelerate existing off-the-shelf models without retraining or architecture changes"</td>
+<td>Existing T5 checkpoints used (<code>main.tex:470</code>).</td>
+<td><strong>Supported.</strong></td>
+</tr>
+<tr>
+<td>"on T5-XXL ... <strong>2X-3X</strong> acceleration compared to the standard T5X implementation, with identical outputs"</td>
+<td>Table 1: best-$M_q$ rows give 2.3X–3.4X (temp 0/1). The 3.4X row exceeds the stated range; T5-large rows (1.4X–1.7X) fall below it, but the abstract implicitly refers to the chosen best configuration. "Identical outputs" as above.</td>
+<td><strong>Supported for the headline configuration</strong>, though the range is slightly misstated (should be ~2X–3.4X) and the baseline-control confound (W2) is unaddressed.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="7-recommendation">7. Recommendation</h2>
+<p><strong>Accept.</strong> The paper presents a correct, simple, provably exact algorithm with a clean analysis and a real, measured 2X–3X end-to-end speedup on a production-grade stack — a contribution of unusual practical immediacy. The weaknesses (unmeasured parallel-cost assumption, missing $\gamma=0$ control, unquantified i.i.d. error, weak reproducibility, the $c&lt;0.05$ contradiction, and the citation/notation errors above) are fixable in a revision and do not undermine the central claim, which is corroborated by two independent lines of evidence (theory and walltime) agreeing on the best configurations.</p>
+<p><strong>Confidence: 4 / 5.</strong> I verified all proofs and the theory–table numerics myself and inspected all figures; I cannot verify the T5X baseline setup or LaMDA numbers from the artifact, which is the main reason this is not a 5.</p>
+<p><strong>Scores:</strong> Novelty 7/10 · Soundness 6/10 · Clarity 8/10 · Reproducibility 4/10 · Overall: Accept (strong-accept borderline, contingent on W1/W2/W4 being addressed in the author response).</p></main>

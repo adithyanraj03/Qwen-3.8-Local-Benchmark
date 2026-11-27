@@ -6,7 +6,7 @@ Model outputs, transcripts and media are not included here (the recordings and l
 
 | File | What it is |
 |---|---|
-| `scores.csv` | Final scores, one row per run: 54 tasks × 7 builds = 378 rows |
+| `scores.csv` | Final scores, one row per run: 54 tasks × 9 builds = 486 rows |
 | `scores_detailed.json` | The same scores plus the written reason for every axis and every deduction, grouped by task |
 | `runs.csv` | Per-run statistics: wall time, turns, tool calls, generated tokens, generation speed, and whether the run was continued, crashed or hit the time cap |
 | `reliability.csv` | One row per build, summed over the 54 scored tasks: median turns and tool calls, tool-call success rate (failed calls counted from the session logs), runs that hit the time cap / crashed / needed a continue, runs below 6, score spread (SD) and the worst run. The `M7` row is the combined M7/M8 column, as in the scores |
@@ -34,6 +34,8 @@ Model outputs, transcripts and media are not included here (the recordings and l
 | M5 | Qwen3.8-Flash-Next 125B MoE · Orca uncensored, plain 4-bit |
 | M6 | Qwen3.8-Flash-Next 125B MoE · SC117 abliterated, 3-bit IQ3_XXS (ran with a speed-projection control vector) |
 | M7 | Same weights as M4 with YaRN long context |
+| M9 | Qwen3.8-Flash-Next 125B MoE · official, 4-bit NVFP4 (262K, vision on) · served by Basalt |
+| M10 | Qwen3.8-Flash-Next 125B MoE · ISTA, 3-bit IQ3_S (262K, vision on) · served by Strata |
 
 **M7 vs M8 in `runs.csv` and `speed.csv`:** these files use the server's model names. M7 and M8 are the same weights
 at different context sizes (`M7` 512K, `M8` 384K). In the scores they are combined as one column, `M7`: the M7 run

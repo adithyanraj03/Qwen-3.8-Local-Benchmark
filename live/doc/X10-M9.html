@@ -1,0 +1,237 @@
+<!doctype html><meta charset=utf-8><title>PROOFS.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><script>window.MathJax={tex:{inlineMath:[["$","$"]]}};</script><script src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-chtml.js"></script><div class=bar>M9 · X10 · PROOFS.md <span>M9-Qwen3.8-FN-NVFP4</span></div><main><h1 id="four-proofs">Four Proofs</h1>
+<p>This document contains complete, step-by-step proofs of four statements. A short list of
+standard facts used repeatedly is given first; every nontrivial step in the proofs cites
+either one of these facts, an earlier lemma in the same proof, or an explicit algebraic
+manipulation.</p>
+<h2 id="conventions-and-standard-facts">Conventions and standard facts</h2>
+<p>Throughout, <strong>Z</strong> denotes the integers and <strong>N</strong> the positive integers. We use the following
+standard facts, each of which is provable in an introductory number theory or discrete
+mathematics course.</p>
+<ul>
+<li><strong>(F1) Modular arithmetic.</strong> If a ≡ a' (mod m) and b ≡ b' (mod m), then
+  a + b ≡ a' + b' (mod m) and ab ≡ a'b' (mod m). This follows by writing a = a' + mr,
+  b = b' + ms: then a + b = (a' + b') + m(r + s) and ab = a'b' + m(rb' + sa' + mrs),
+  both congruent to a' + b' and a'b' modulo m.</li>
+<li><strong>(F2) Divisibility.</strong> If d | x and d | y then d | (x − y), since x = dr, y = ds give
+  x − y = d(r − s). No integer d with |d| &gt; 1 divides 1.</li>
+<li><strong>(F3) Existence and uniqueness of prime factorization (Fundamental Theorem of
+  Arithmetic).</strong> Every integer N &gt; 1 can be written as a product of primes, and this
+  product is unique up to reordering. We use uniqueness only in Lemma 2.1.</li>
+<li><strong>(F4) Well-ordering / maximum principle.</strong> Every nonempty finite set of integers has a
+  largest element.</li>
+<li><strong>(F5) Principle of mathematical induction.</strong> If S(1) holds, and S(n) ⇒ S(n+1) for all
+  n ≥ 1, then S(n) holds for all n ≥ 1.</li>
+<li><strong>(F6) The square root.</strong> For each real t &gt; 0 there is a unique real s &gt; 0 with s² = t,
+  written √t. Uniqueness: if s² = u² = t with s, u &gt; 0 then (s − u)(s + u) = 0 and s + u &gt; 0,
+  so s = u. Existence is a standard fact about the real numbers (completeness); we take it
+  as known. Also, for s, u &gt; 0, su is the unique positive number whose square is s²u², so
+  √(s²u²) = su; in particular √2 · √3 is the positive number whose square is 2·3 = 6, so
+  √2 · √3 = √6. Likewise, s &gt; u &gt; 0 implies √s &gt; √u, because (√s − √u)(√s + √u) = s − u &gt; 0
+  and √s + √u &gt; 0 force √s − √u &gt; 0.</li>
+</ul>
+<hr />
+<h2 id="theorem-1-there-are-infinitely-many-primes-congruent-to-3-modulo-4">Theorem 1. There are infinitely many primes congruent to 3 modulo 4.</h2>
+<p>We first record two lemmas.</p>
+<p><strong>Lemma 1.1.</strong> <em>The product of any finite collection of integers each congruent to 1 modulo 4
+is itself congruent to 1 modulo 4.</em></p>
+<p><em>Proof.</em> We argue by induction on the number k of factors. For k = 1 the claim is the
+assumption. For the induction step, let a ≡ 1 (mod 4) and, by the induction hypothesis,
+let the product of the first k factors satisfy P ≡ 1 (mod 4). By (F1),
+P·a ≡ 1·1 = 1 (mod 4). To see the underlying arithmetic concretely: P = 4r + 1 and
+a = 4s + 1 give P·a = (4r+1)(4s+1) = 16rs + 4r + 4s + 1 = 4(4rs + r + s) + 1 ≡ 1 (mod 4).
+By (F5), the claim holds for all k. ∎</p>
+<p><strong>Lemma 1.2.</strong> <em>Let N be an integer with N ≡ 3 (mod 4). Then at least one prime divisor
+of N is congruent to 3 modulo 4.</em></p>
+<p><em>Proof.</em> First, N is odd: if N were even, N = 2m would give N ≡ 0 or 2 (mod 4) according as
+m is even or odd, contradicting N ≡ 3 (mod 4). By (F3), N has at least one prime
+factorization N = p₁p₂⋯p_k (with k ≥ 1, since N ≡ 3 (mod 4) forces N ≥ 3 &gt; 1). Every prime
+dividing N is odd, because N is odd; every odd prime p satisfies p ≡ 1 (mod 4) or
+p ≡ 3 (mod 4), by the division algorithm applied to p and 4 (an odd prime is not divisible
+by 2, so its remainder mod 4 is not 0 or 2).</p>
+<p>Suppose for contradiction that every pᵢ ≡ 1 (mod 4). Then Lemma 1.1 gives
+N = p₁⋯p_k ≡ 1 (mod 4), contradicting the hypothesis N ≡ 3 (mod 4). Hence some pᵢ ≡ 3
+(mod 4), and that pᵢ is a prime divisor of N. ∎</p>
+<p><strong>Proof of Theorem 1.</strong> Suppose, for contradiction, that only finitely many primes are
+congruent to 3 modulo 4. Then we can list them all: q₁, q₂, …, q_k with each
+qᵢ ≡ 3 (mod 4), and every prime ≡ 3 (mod 4) appearing in the list. (The list is nonempty,
+since 3 itself is such a prime; the argument below also handles the empty-list case by
+taking the empty product to equal 1.)</p>
+<p>Consider the integer</p>
+<pre><code>M = 4·q₁q₂⋯q_k − 1.
+</code></pre>
+<p>We check three properties.</p>
+<ol>
+<li><strong>M ≡ 3 (mod 4).</strong> Indeed M = 4·(q₁⋯q_k) − 1 and 4·(q₁⋯q_k) ≡ 0 (mod 4), so
+   M ≡ −1 ≡ 3 (mod 4), using (F1).</li>
+<li><strong>M &gt; 1.</strong> If k ≥ 1, then q₁⋯q_k ≥ 3, so M ≥ 4·3 − 1 = 11 &gt; 1. If k = 0, then M = 3 &gt; 1.</li>
+<li><strong>M shares no prime factor with q₁⋯q_k.</strong> If some qᵢ divided M, then since qᵢ clearly
+   divides 4·q₁⋯q_k, property (F2) of divisibility would give qᵢ | (4·q₁⋯q_k − M) = 1,
+   impossible by (F2) since qᵢ ≥ 3.</li>
+</ol>
+<p>By properties 1 and 2 and Lemma 1.2, M has a prime divisor p with p ≡ 3 (mod 4).
+By properties 1–2, M ≥ 3, so Lemma 1.2 applies. But every prime congruent to 3 mod 4 is
+one of the qᵢ, by our completeness assumption; so p = qᵢ for some i, contradicting
+property 3.</p>
+<p>The contradiction shows that the assumption "finitely many" is false. Hence there are
+infinitely many primes congruent to 3 modulo 4. ∎</p>
+<p><em>Remark.</em> The specific form M = 4·q₁⋯q_k − 1 was needed to force M ≡ 3 (mod 4) while
+remaining coprime to all the qᵢ. The number 4·q₁⋯q_k + 1 is ≡ 1 (mod 4), and Lemma 1.2
+gives no information about such numbers, which is why the naive variant fails.</p>
+<hr />
+<h2 id="theorem-2-the-number-2-3-is-irrational">Theorem 2. The number √2 + √3 is irrational.</h2>
+<p>The strategy: show that x = √2 + √3 is a root of the monic polynomial
+f(T) = T⁴ − 10T² + 1 with integer coefficients, and then show f has no rational root.
+A rational x would be a rational root of f, which is impossible.</p>
+<p><strong>Lemma 2.1.</strong> <em>If a, b are integers with gcd(a, b) = 1 and k ≥ 1, then gcd(aᵏ, b) = 1.</em>*</p>
+<p><em>Proof.</em> Suppose a prime p divides aᵏ. By uniqueness of prime factorization (F3), the
+only primes dividing aᵏ are the primes dividing a (the factorization of aᵏ is that of a
+written k times). Hence p | a, so p divides both a and b, contradicting gcd(a,b) = 1.
+Therefore no prime divides both aᵏ and b, i.e. gcd(aᵏ, b) = 1. ∎</p>
+<p><strong>Lemma 2.2 (Rational Root Test, monic case).</strong> <em>Let f(T) = Tᵈ + c_{d−1}T^{d−1} + ⋯ + c₁T +
+c₀ be a polynomial with integer coefficients, c₀ ≠ 0. If the rational number a/b, written
+in lowest terms with b &gt; 0 (so gcd(a,b) = 1), is a root of f, then b = 1 and a divides
+c₀.</em></p>
+<p><em>Proof.</em> Assume f(a/b) = 0. Multiply the equation
+(a/b)ᵈ + c_{d−1}(a/b)^{d−1} + ⋯ + c₁(a/b) + c₀ = 0 by bᵈ:</p>
+<pre><code>aᵈ + c_{d−1}a^{d−1}b + c_{d−2}a^{d−2}b² + ⋯ + c₁ab^{d−1} + c₀bᵈ = 0.   (∗)
+</code></pre>
+<p>(This is legitimate: each term cⱼ(a/b)ʲ · bᵈ = cⱼ aʲ b^{d−j} is an integer.)</p>
+<p>Isolate aᵈ in (∗): every term except c₀bᵈ contains a factor b, so</p>
+<pre><code>aᵈ = −b·(c_{d−1}a^{d−1} + c_{d−2}a^{d−2}b + ⋯ + c₁ab^{d−2} + c₀b^{d−1}),
+</code></pre>
+<p>and the parenthesis is an integer. Hence b | aᵈ. By Lemma 2.1, gcd(aᵈ, b) = 1. A divisor
+of aᵈ that is coprime to aᵈ must divide 1 in absolute value; formally, any prime dividing
+b would divide aᵈ, and Lemma 2.1 shows there is none, so b has no prime divisors, whence
+b = 1 (b &gt; 0 by convention, and b ≠ 0 as b is a denominator).</p>
+<p>With b = 1, (∗) becomes aᵈ + c_{d−1}a^{d−1} + ⋯ + c₁a + c₀ = 0, so</p>
+<pre><code>c₀ = −a·(a^{d−1} + c_{d−1}a^{d−2} + ⋯ + c₁),
+</code></pre>
+<p>and the parenthesis is an integer; hence a | c₀. ∎</p>
+<p><strong>Lemma 2.3.</strong> <em>The number x = √2 + √3 satisfies x⁴ − 10x² + 1 = 0.</em></p>
+<p><em>Proof.</em> We compute in several justified steps.</p>
+<ol>
+<li>x² = (√2 + √3)² = (√2)² + 2·√2·√3 + (√3)², by expanding (a+b)² = a² + 2ab + b², which
+   itself follows from distributivity: (a+b)² = (a+b)(a+b) = a·a + a·b + b·a + b·b.</li>
+<li>(√2)² = 2 and (√3)² = 3 by the defining property (F6) of square roots, and
+   √2·√3 = √6 by (F6). Hence x² = 2 + 2√6 + 3 = 5 + 2√6.</li>
+<li>Therefore x² − 5 = 2√6 (subtract 5 from both sides).</li>
+<li>Squaring both sides of a true equality gives a true equality, so
+   (x² − 5)² = (2√6)² = 4·6 = 24.</li>
+<li>Expanding the left side, (x² − 5)² = x⁴ − 10x² + 25. Hence x⁴ − 10x² + 25 = 24, and
+   subtracting 24 from both sides gives x⁴ − 10x² + 1 = 0. ∎</li>
+</ol>
+<p><strong>Proof of Theorem 2.</strong> By Lemma 2.3, x = √2 + √3 is a root of f(T) = T⁴ − 10T² + 1, a
+monic polynomial in Z[T] with constant term c₀ = 1 ≠ 0.</p>
+<p>Suppose for contradiction that x is rational; write x = a/b in lowest terms with b &gt; 0.
+By Lemma 2.2, b = 1 and a | 1, so a ∈ {1, −1} and x ∈ {1, −1}.</p>
+<p>However, x is positive and in fact x &gt; 2: since 2 &gt; 1 and 3 &gt; 1, (F6) gives √2 &gt; √1 = 1 and
+√3 &gt; 1, hence x = √2 + √3 &gt; 1 + 1 = 2. (Concretely, f(1) = 1 − 10 + 1 = −8 ≠ 0 and
+f(−1) = 1 − 10 + 1 = −8 ≠ 0, confirming directly that neither candidate is a root.)
+But no number x &gt; 2 lies in {1, −1}. This contradiction shows x is not rational. ∎</p>
+<hr />
+<h2 id="theorem-3-every-finite-tournament-has-a-hamiltonian-path">Theorem 3. Every finite tournament has a Hamiltonian path.</h2>
+<p><strong>Definitions.</strong> A <em>tournament</em> on a finite nonempty vertex set V is an orientation of the
+complete graph on V: for every pair of distinct vertices {u, v}, exactly one of the directed
+edges u → v or v → u is present (and not both, and not neither). A <em>Hamiltonian path</em> is a
+listing of all vertices, each exactly once, say v₁, v₂, …, vₙ (so (v₁, …, vₙ) is a
+permutation of V), such that vᵢ → vᵢ₊₁ is a directed edge for every i = 1, …, n−1.</p>
+<p>We prove, by induction on n = |V| (using (F5)), the statement S(n): "every tournament on
+n vertices has a Hamiltonian path."</p>
+<p><strong>Base case, n = 1.</strong> A single vertex v₁ forms, by itself, a path containing every vertex
+exactly once: the required condition "vᵢ → vᵢ₊₁ for all i = 1, …, n−1" ranges over the empty
+index set and is therefore satisfied vacuously.</p>
+<p><strong>Induction step.</strong> Assume S(n−1) for some n ≥ 2. Let T be a tournament on n vertices.
+Choose any vertex v of T and let V' = V ∖ {v}. The directed edges of T between vertices of
+V' make V' into a tournament: for every pair {u, w} ⊆ V', the edge between u and w in T has
+exactly one direction, and it is retained in the restriction. This restricted tournament
+has n − 1 vertices, so by the induction hypothesis S(n−1), it has a Hamiltonian path;
+write it as</p>
+<pre><code>v₁ → v₂ → ⋯ → v_{n−1},
+</code></pre>
+<p>meaning each vᵢ → vᵢ₊₁ is an edge of T (the edges between V' vertices in T and in the
+restriction coincide), and (v₁, …, v_{n−1}) lists every vertex of V' exactly once.</p>
+<p>We insert the removed vertex v into this list. Exactly one of the edges between v and v₁
+is present in T, so either v → v₁ or v₁ → v; likewise, either v_{n−1} → v or v → v_{n−1}.
+Three cases exhaust all possibilities:</p>
+<ul>
+<li><strong>Case 1: v → v₁.</strong> Then v → v₁ → v₂ → ⋯ → v_{n−1} is a Hamiltonian path of T: the new
+  first edge v → v₁ holds by assumption, all other consecutive edges are edges of the old
+  path, and the list contains v once and every vertex of V' once, hence all n vertices once.</li>
+<li><strong>Case 2: v_{n−1} → v.</strong> Then v₁ → ⋯ → v_{n−1} → v is a Hamiltonian path, by the symmetric
+  verification.</li>
+<li>
+<p><strong>Case 3: neither of the above.</strong> Then v₁ → v (since exactly one of v → v₁, v₁ → v holds
+  and Case 1 failed) and v → v_{n−1} (likewise, Case 2 failed). Note this case requires
+  n ≥ 3, since for n = 2 the conditions "v₁ → v" and "v → v₁" are the two complementary
+  Cases 1 and 2. Define the index set</p>
+<p>S = { i ∈ {1, …, n−1} : vᵢ → v }.</p>
+</li>
+</ul>
+<p>We have 1 ∈ S (shown above), so S is nonempty, and n−1 ∉ S because v → v_{n−1} means the
+  edge v_{n−1} → v is not present. By (F4), S has a largest element; call it i. Since
+  n−1 ∉ S, we have i ≤ n−2, so the index i+1 ≤ n−1 is valid, and the edge between v and
+  vᵢ₊₁ exists in exactly one direction. By maximality of i in S, we have i+1 ∉ S, which
+  says vᵢ₊₁ → v is <em>not</em> an edge; therefore the other direction, v → vᵢ₊₁, <em>is</em> an edge.
+  Now form the list</p>
+<pre><code>  v₁ → ⋯ → vᵢ → v → vᵢ₊₁ → ⋯ → v_{n−1}.
+</code></pre>
+<p>Check the consecutive edges: for j &lt; i the pairs (vⱼ, vⱼ₊₁) are consecutive pairs of the
+  old path, hence edges; the pair (vᵢ, v) is an edge because i ∈ S; the pair (v, vᵢ₊₁) is
+  an edge because v → vᵢ₊₁ as just shown; and for j ≥ i+1 the pairs (vⱼ, vⱼ₊₁) are again
+  consecutive pairs of the old path. The list is a permutation of V: it contains
+  v₁, …, vᵢ, then v (which is distinct from all vⱼ since v ∉ V'), then vᵢ₊₁, …, v_{n−1},
+  each exactly once. Hence it is a Hamiltonian path.</p>
+<p>In every case T has a Hamiltonian path, so S(n) holds. By (F5), S(n) holds for every
+n ≥ 1, i.e. every finite tournament has a Hamiltonian path. ∎</p>
+<hr />
+<h2 id="theorem-4-for-every-integer-n-1-13-33-2n13-n22n2-1">Theorem 4. For every integer n ≥ 1, 1³ + 3³ + ⋯ + (2n−1)³ = n²(2n² − 1).</h2>
+<p>Write S(n) for the statement: Σ_{k=1}^{n} (2k−1)³ = n²(2n² − 1). We prove ∀n ≥ 1, S(n) by
+induction, using (F5).</p>
+<p><strong>Base case, n = 1.</strong> The left side is the single term (2·1−1)³ = 1³ = 1. The right side is
+1²·(2·1² − 1) = 1·(2 − 1) = 1·1 = 1. The two sides agree, so S(1) holds.</p>
+<p><strong>Induction step.</strong> Fix n ≥ 1 and assume S(n):</p>
+<pre><code>Σ_{k=1}^{n} (2k−1)³ = n²(2n² − 1).   (induction hypothesis)
+</code></pre>
+<p>Consider the left side for n+1. Separating off the last term (valid because the sum over
+k = 1, …, n+1 is the sum over k = 1, …, n plus the k = n+1 term):</p>
+<pre><code>Σ_{k=1}^{n+1} (2k−1)³ = n²(2n² − 1) + (2n+1)³,
+</code></pre>
+<p>where we applied the induction hypothesis to the first n terms and noted that
+2(n+1) − 1 = 2n + 1. Now expand both pieces into a polynomial in n.</p>
+<ul>
+<li>n²(2n² − 1) = 2n⁴ − n² (distributivity).</li>
+<li>(2n+1)³ = (2n)³ + 3(2n)²·1 + 3·(2n)·1² + 1³ = 8n³ + 12n² + 6n + 1, using the binomial
+  expansion (a+b)³ = a³ + 3a²b + 3ab² + b³ (itself obtained by repeated distributivity)
+  with a = 2n, b = 1.</li>
+</ul>
+<p>Adding and collecting like powers of n:</p>
+<pre><code>2n⁴ − n² + 8n³ + 12n² + 6n + 1 = 2n⁴ + 8n³ + 11n² + 6n + 1,
+</code></pre>
+<p>where the n²-coefficients combine as −1 + 12 = 11.</p>
+<p>Next, expand the right side of S(n+1), namely (n+1)²·(2(n+1)² − 1):</p>
+<ul>
+<li>(n+1)² = n² + 2n + 1.</li>
+<li>2(n+1)² − 1 = 2(n² + 2n + 1) − 1 = 2n² + 4n + 1.</li>
+</ul>
+<p>Multiplying, distributing the second factor across the terms of the first:</p>
+<pre><code>(n² + 2n + 1)(2n² + 4n + 1)
+  = n²(2n² + 4n + 1) + 2n(2n² + 4n + 1) + 1·(2n² + 4n + 1)
+  = (2n⁴ + 4n³ + n²) + (4n³ + 8n² + 2n) + (2n² + 4n + 1)
+  = 2n⁴ + 8n³ + 11n² + 6n + 1,
+</code></pre>
+<p>collecting: n³-coefficients 4 + 4 = 8; n²-coefficients 1 + 8 + 2 = 11; n-coefficients
+2 + 4 = 6; constant 1.</p>
+<p>The right side of S(n+1) and the left side of S(n+1) both equal 2n⁴ + 8n³ + 11n² + 6n + 1,
+so they are equal to each other; hence S(n+1) holds.</p>
+<p>By (F5), S(n) holds for all integers n ≥ 1. ∎</p></main>

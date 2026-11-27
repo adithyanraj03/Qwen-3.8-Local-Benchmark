@@ -1,0 +1,368 @@
+<!doctype html><meta charset=utf-8><title>COMPARE.md</title><style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f7f9;font:16px/1.65 "Segoe UI",system-ui,sans-serif;color:#1d232b}
+.bar{position:sticky;top:0;background:#14324a;color:#fff;padding:10px 28px;font:600 14px/1.3 Consolas,monospace;display:flex;gap:14px;z-index:5}
+.bar span{opacity:.75;font-weight:400}
+main{max-width:880px;margin:24px auto 80px;background:#fff;padding:34px 46px;border-radius:10px;box-shadow:0 2px 12px rgba(20,40,60,.08)}
+h1,h2,h3{line-height:1.25;color:#0f2233} h1{font-size:30px} h2{font-size:22px;border-bottom:1px solid #e3e7ec;padding-bottom:6px;margin-top:34px}
+code{font:13.5px Consolas,monospace;background:#eef1f4;padding:1px 5px;border-radius:4px}
+pre{background:#0f1720;color:#dde3ea;padding:14px 16px;border-radius:8px;overflow:auto} pre code{background:none;color:inherit;padding:0}
+table{border-collapse:collapse;margin:14px 0;font-size:14px} th,td{border:1px solid #dfe4ea;padding:6px 10px;text-align:left} th{background:#f1f4f7}
+blockquote{border-left:4px solid #c9d4df;margin:0;padding:2px 16px;color:#46525e}
+</style><div class=bar>M9 · X12 · COMPARE.md <span>M9-Qwen3.8-FN-NVFP4</span></div><main><h1 id="gunicorn-vs-uvicorn-vs-hypercorn-defaults-comparison">Gunicorn vs Uvicorn vs Hypercorn — defaults comparison</h1>
+<p>All values were taken <strong>only</strong> from official documentation pages fetched in this session (2026-11-26):</p>
+<ul>
+<li>Gunicorn (current official docs on gunicorn.org; the settings reference documents the ~26.x codebase, e.g. "Changed in 26.3.0"):</li>
+<li>https://gunicorn.org/reference/settings/</li>
+<li>https://gunicorn.org/signals/</li>
+<li>https://gunicorn.org/guides/http2/</li>
+<li>Uvicorn (https://uvicorn.dev):</li>
+<li>https://uvicorn.dev/settings/</li>
+<li>https://uvicorn.dev/server-behavior/</li>
+<li>https://uvicorn.dev/concepts/http2/</li>
+<li>https://uvicorn.dev/concepts/http-protocols/</li>
+<li>Hypercorn (https://hypercorn.readthedocs.io/en/latest/):</li>
+<li>https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html</li>
+<li>https://hypercorn.readthedocs.io/en/latest/how_to_guides/binds.html</li>
+<li>https://hypercorn.readthedocs.io/en/latest/discussion/http2.html</li>
+<li>https://hypercorn.readthedocs.io/en/latest/</li>
+</ul>
+<h2 id="comparison-table">Comparison table</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Gunicorn</th>
+<th>Uvicorn</th>
+<th>Hypercorn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default bind address/port <strong>[1]</strong></td>
+<td><code>127.0.0.1:8000</code> (but <code>0.0.0.0:$PORT</code> if <code>PORT</code> env var is set)</td>
+<td>host <code>127.0.0.1</code>, port <code>8000</code></td>
+<td><code>127.0.0.1:8000</code> (blank in the config-options table default column)</td>
+</tr>
+<tr>
+<td>Bind CLI flag <strong>[2]</strong></td>
+<td><code>-b</code>, <code>--bind</code></td>
+<td><code>--host</code> and <code>--port</code> (separate flags)</td>
+<td><code>-b</code>, <code>--bind</code></td>
+</tr>
+<tr>
+<td>Default number of workers <strong>[3]</strong></td>
+<td>1, or <code>$WEB_CONCURRENCY</code> if set</td>
+<td>1, or <code>$WEB_CONCURRENCY</code> if set</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Workers CLI flag <strong>[4]</strong></td>
+<td><code>-w</code>, <code>--workers</code></td>
+<td><code>--workers</code></td>
+<td><code>-w</code>, <code>--workers</code></td>
+</tr>
+<tr>
+<td>Default worker timeout (closest equivalent) <strong>[5]</strong></td>
+<td>30 s (heartbeat-based: silent workers killed and restarted; since 26.3.0 also bounds a stalled HTTP/2 stream)</td>
+<td>5 s (<code>--timeout-worker-healthcheck</code>: max seconds to wait for a worker to respond to a healthcheck)</td>
+<td>not documented (no worker-timeout entry in the configuration options table)</td>
+</tr>
+<tr>
+<td>Worker-timeout CLI flag <strong>[6]</strong></td>
+<td><code>-t</code>, <code>--timeout</code></td>
+<td><code>--timeout-worker-healthcheck</code></td>
+<td>not documented</td>
+</tr>
+<tr>
+<td>Default keep-alive timeout <strong>[7]</strong></td>
+<td>2 s (the <code>sync</code> worker — the default worker class — ignores keep-alive entirely)</td>
+<td>5 s</td>
+<td>5 s</td>
+</tr>
+<tr>
+<td>Keep-alive CLI flag <strong>[8]</strong></td>
+<td><code>--keep-alive</code></td>
+<td><code>--timeout-keep-alive</code></td>
+<td><code>--keep-alive</code></td>
+</tr>
+<tr>
+<td>HTTP/2 support <strong>[9]</strong></td>
+<td>Yes, opt-in: <code>pip install gunicorn[http2]</code>, then <code>--http-protocols h2,h1</code> (TLS/ALPN; also cleartext h2c via <code>--http2-cleartext</code>); works on gthread/gevent/asgi workers; default protocol is <code>h1</code> only</td>
+<td>Experimental, off by default: <code>--http2</code> (default False) with the experimental <code>--http zttp</code> implementation; h2 over TLS via ALPN or prior-knowledge h2c</td>
+<td>Yes, built in (h2 library): over TLS it negotiates <code>h2</code> via ALPN by default; also supports the h2c HTTP/1.1→HTTP/2 upgrade</td>
+</tr>
+<tr>
+<td>HTTP/3 support <strong>[10]</strong></td>
+<td>not documented (docs pages fetched mention no HTTP/3 support)</td>
+<td>not documented (no HTTP/3 on any page fetched)</td>
+<td>not documented (front page lists HTTP/1 and HTTP/2 only; a <code>--quic-bind</code> option exists but no HTTP/3 support is stated)</td>
+</tr>
+<tr>
+<td>Graceful shutdown: how it works <strong>[11]</strong></td>
+<td><code>TERM</code> to the master = graceful shutdown; workers keep serving in-flight requests, and are force-killed after the graceful timeout. Controlled by <code>graceful_timeout</code>, default 30 s</td>
+<td>On shutdown the server stops listening, closes connections not awaiting a response, and waits for in-flight responses/tasks to finish; responses/tasks must complete within the configured timeout periods. Controlled by <code>timeout-graceful-shutdown</code>; default not documented</td>
+<td>After <code>SIGTERM</code> or Ctrl-C, Hypercorn waits for remaining requests (tasks) to finish, bounded by <code>graceful_timeout</code> (default blank in the docs table); separately, <code>shutdown_timeout</code> (60 s, no CLI flag) bounds ASGI Lifespan shutdown</td>
+</tr>
+<tr>
+<td>Graceful-shutdown timeout CLI flag <strong>[12]</strong></td>
+<td><code>--graceful-timeout</code></td>
+<td><code>--timeout-graceful-shutdown</code></td>
+<td><code>--graceful-timeout</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="citations">Citations</h2>
+<p>Every table value, one by one. Quotes are verbatim from the cited page (markdown/inline-code markup of the page retained where it appears there).</p>
+<h3 id="1-default-bind-addressport">1. Default bind address/port</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Default: ['127.0.0.1:8000']</p>
+</blockquote>
+</li>
+</ul>
+<p>and:</p>
+<blockquote>
+<p>If the PORT environment variable is defined, the default is ['0.0.0.0:$PORT']. If it is not defined, the default is ['127.0.0.1:8000'].
+- <strong>Uvicorn (host)</strong> — https://uvicorn.dev/settings/
+<code>--host &lt;str&gt;</code> - Bind socket to this host. … <strong>Default:</strong> <em>'127.0.0.1'</em>.
+- <strong>Uvicorn (port)</strong> — https://uvicorn.dev/settings/
+<code>--port &lt;int&gt;</code> - Bind to a socket with this port. … <strong>Default:</strong> <em>8000</em>.
+- <strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/binds.html
+By default Hypercorn will bind to “127.0.0.1:8000”.</p>
+</blockquote>
+<p>The <code>bind</code> row of the options table on https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html has an empty Default column:</p>
+<blockquote>
+<p>| bind | <code>-b</code>, <code>--bind</code> | The TCP host/address to bind to. … | |</p>
+</blockquote>
+<h3 id="2-bind-cli-flag">2. Bind CLI flag</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>bind¶
+Command line: -b ADDRESS, --bind ADDRESS</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--host &lt;str&gt;</code> - Bind socket to this host.</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn (port flag)</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--port &lt;int&gt;</code> - Bind to a socket with this port.</p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html<blockquote>
+<p>| bind | <code>-b</code>, <code>--bind</code> | The TCP host/address to bind to.</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="3-default-number-of-workers">3. Default number of workers</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Default: 1 … By default, the value of the WEB_CONCURRENCY environment variable, which is set by some Platform-as-a-Service providers such as Heroku. If it is not defined, the default is 1.</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--workers &lt;int&gt;</code> - Number of worker processes. Defaults to the <code>$WEB_CONCURRENCY</code> environment variable if available, or 1.</p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html<blockquote>
+<p>| workers | <code>-w</code>, <code>--workers</code> | The number of workers to spawn and use. | 1 |</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="4-workers-cli-flag">4. Workers CLI flag</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Command line: -w INT, --workers INT</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--workers &lt;int&gt;</code> - Number of worker processes.</p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html<blockquote>
+<p>| workers | <code>-w</code>, <code>--workers</code> |</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="5-default-worker-timeout-closest-equivalent">5. Default worker timeout (closest equivalent)</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Default: 30
+Workers silent for more than this many seconds are killed and restarted.</p>
+</blockquote>
+</li>
+</ul>
+<p>and (HTTP/2 side-effect, same page):</p>
+<blockquote>
+<p>On HTTP/2 connections it also bounds a single stream: a request body that makes no progress for this long, or a response the peer stops reading for this long, is cancelled with RST_STREAM.
+- <strong>Uvicorn</strong> — https://uvicorn.dev/settings/
+<code>--timeout-worker-healthcheck &lt;int&gt;</code> - Maximum number of seconds to wait for a worker to respond to a healthcheck. <strong>Default:</strong> <em>5</em>.
+- <strong>Hypercorn</strong> — not documented. The full configuration options table at https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html contains no worker-timeout attribute (closest documented timeouts are <code>read_timeout</code> — "Seconds to wait before timing out reads on TCP sockets." / default "No timeout." — and <code>shutdown_timeout</code> / <code>startup_timeout</code> / <code>ssl_handshake_timeout</code>, each 60 s, none of which is a worker timeout).</p>
+</blockquote>
+<h3 id="6-worker-timeout-cli-flag">6. Worker-timeout CLI flag</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Command line: -t INT, --timeout INT</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--timeout-worker-healthcheck &lt;int&gt;</code> - Maximum number of seconds to wait for a worker to respond to a healthcheck.</p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — not documented (no such setting in the table; the table's "Command line" column lists no worker-timeout option).</li>
+</ul>
+<h3 id="7-default-keep-alive-timeout">7. Default keep-alive timeout</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Default: 2
+The number of seconds to wait for requests on a Keep-Alive connection.</p>
+</blockquote>
+</li>
+</ul>
+<p>and:</p>
+<blockquote>
+<p>sync worker does not support persistent connections and will ignore this option.
+- <strong>Uvicorn</strong> — https://uvicorn.dev/settings/
+<code>--timeout-keep-alive &lt;int&gt;</code> - Close Keep-Alive connections if no new data is received within this timeout (in seconds). <strong>Default:</strong> <em>5</em>.</p>
+</blockquote>
+<p>(corroborated at https://uvicorn.dev/server-behavior/: "Keep-Alive. Defaults to 5 seconds.")
+- <strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html</p>
+<blockquote>
+<p>| keep_alive_timeout | <code>--keep-alive</code> | Seconds to keep inactive connections alive before closing. | 5s |</p>
+</blockquote>
+<h3 id="8-keep-alive-cli-flag">8. Keep-alive CLI flag</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Command line: --keep-alive INT</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--timeout-keep-alive &lt;int&gt;</code></p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html<blockquote>
+<p>| keep_alive_timeout | <code>--keep-alive</code> |</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="9-http2-support">9. HTTP/2 support</h3>
+<ul>
+<li><strong>Gunicorn (default protocol is HTTP/1.1)</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>http_protocols¶
+Command line: --http-protocols STRING
+Default: 'h1'</p>
+</blockquote>
+</li>
+<li><strong>Gunicorn (how to enable)</strong> — https://gunicorn.org/guides/http2/<blockquote>
+<p>Enable HTTP/2 by setting the --http-protocols option:
+gunicorn myapp:app --http-protocols h2,h1</p>
+</blockquote>
+</li>
+</ul>
+<p>and:</p>
+<blockquote>
+<p>h2 library: Install with pip install gunicorn[http2] or pip install h2
+Compatible worker: gthread, gevent, or ASGI workers</p>
+</blockquote>
+<p>and (cleartext):</p>
+<blockquote>
+<p>Enable it with --http2-cleartext, on the gthread, gevent or asgi worker:
+- <strong>Uvicorn (flag + default)</strong> — https://uvicorn.dev/settings/
+<code>--http2</code> - Enable <a href="../concepts/http2/">HTTP/2</a>. This requires <code>--http zttp</code>. <strong>Default:</strong> <em>False</em>.
+- <strong>Uvicorn (experimental; how it works)</strong> — https://uvicorn.dev/concepts/http2/
+<strong>Uvicorn</strong> has experimental support for HTTP/2, built on the <a href="https://zttp.marcelotryle.com/"><code>zttp</code></a> parser.</p>
+</blockquote>
+<p>and:</p>
+<blockquote>
+<p>HTTP/2 support is currently <strong>experimental</strong> and is <strong>not enabled by default</strong>.</p>
+</blockquote>
+<p>and:</p>
+<blockquote>
+<p>When using HTTPS, HTTP/2 is negotiated via <strong>ALPN</strong> (Application-Layer Protocol Negotiation) during the TLS handshake.
+- <strong>Uvicorn (zttp experimental)</strong> — https://uvicorn.dev/concepts/http-protocols/
+zttp support is currently <strong>experimental</strong> and <strong>not suited for production usage</strong>.
+- <strong>Hypercorn (ALPN h2 by default)</strong> — https://hypercorn.readthedocs.io/en/latest/discussion/http2.html
+By default Hypercorn will set h2 and http/1.1 as the ALPN protocols.
+- <strong>Hypercorn (h2c upgrade)</strong> — https://hypercorn.readthedocs.io/en/latest/discussion/http2.html
+Hypercorn, however, supports the h2c HTTP/1.1 to HTTP/2 upgrade process.
+- <strong>Hypercorn (corroborating, config table)</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html
+| alpn_protocols | N/A | The HTTP protocols to advertise over ALPN. | <code>h2</code> and <code>http/1.1</code> |</p>
+</blockquote>
+<h3 id="10-http3-support">10. HTTP/3 support</h3>
+<ul>
+<li><strong>Gunicorn</strong> — not documented. Neither https://gunicorn.org/reference/settings/ nor https://gunicorn.org/guides/http2/ nor https://gunicorn.org/signals/ states any HTTP/3 support (HTTP/3 appears only in passing: "being deprecated in HTTP/3 and is rarely used in practice.").</li>
+<li><strong>Uvicorn</strong> — not documented. No page fetched (uvicorn.dev/settings/, /server-behavior/, /concepts/http2/, /concepts/http-protocols/) mentions HTTP/3.</li>
+<li><strong>Hypercorn</strong> — not documented. https://hypercorn.readthedocs.io/en/latest/ states support only up to HTTP/2:<blockquote>
+<p>Hypercorn supports HTTP/1, HTTP/2, WebSockets (over HTTP/1 and HTTP/2), ASGI/2, and ASGI/3 specifications.</p>
+</blockquote>
+</li>
+</ul>
+<p>while the config table lists a QUIC bind option without documenting any HTTP/3 behavior:</p>
+<blockquote>
+<p>| quic_bind | <code>--quic-bind</code> | The UDP/QUIC host/address to bind to. See <em>bind</em> for formatting options. | |</p>
+</blockquote>
+<h3 id="11-graceful-shutdown-how-it-works-controlling-timeout">11. Graceful shutdown: how it works / controlling timeout</h3>
+<ul>
+<li><strong>Gunicorn (signal behavior)</strong> — https://gunicorn.org/signals/<blockquote>
+<p>TERM — graceful shutdown; waits for workers to finish requests up to graceful_timeout.</p>
+</blockquote>
+</li>
+<li><strong>Gunicorn (timeout semantics)</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Timeout for graceful workers restart in seconds.
+After receiving a restart signal, workers have this much time to finish serving requests. Workers still alive after the timeout (starting from the receipt of the restart signal) are force killed.</p>
+</blockquote>
+</li>
+<li><strong>Gunicorn (default)</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>graceful_timeout¶
+Command line: --graceful-timeout INT
+Default: 30</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn (mechanics)</strong> — https://uvicorn.dev/server-behavior/<blockquote>
+<p>Uvicorn handles process shutdown gracefully, ensuring that connections are properly finalized, and all tasks have run to completion. During a shutdown period Uvicorn will ensure that responses and tasks must still complete within the configured timeout periods.</p>
+</blockquote>
+</li>
+</ul>
+<p>(same page, the intended sequence:)</p>
+<blockquote>
+<p>Start a number of new server processes to handle incoming requests, listening on the existing socket.
+Stop the previous server processes from listening on the existing socket.
+Close any connections that are not currently waiting on an HTTP response, and wait for any other connections to finalize their HTTP responses.
+- <strong>Uvicorn (setting; no default stated)</strong> — https://uvicorn.dev/settings/
+<code>--timeout-graceful-shutdown &lt;int&gt;</code> - Maximum number of seconds to wait for graceful shutdown. After this timeout, the server will start terminating requests.</p>
+</blockquote>
+<p>(No <strong>Default:</strong> value is given for this option on the page — hence "default not documented".)
+- <strong>Hypercorn (mechanics + setting; default column blank)</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html</p>
+<blockquote>
+<p>| graceful_timeout | <code>--graceful-timeout</code> | Time to wait after SIGTERM or Ctrl-C for any remaining requests (tasks) to | |
+- <strong>Hypercorn (lifespan shutdown timeout)</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html
+| shutdown_timeout | N/A | Timeout when waiting for Lifespan shutdowns to complete. | 60s |</p>
+</blockquote>
+<h3 id="12-graceful-shutdown-timeout-cli-flag">12. Graceful-shutdown timeout CLI flag</h3>
+<ul>
+<li><strong>Gunicorn</strong> — https://gunicorn.org/reference/settings/<blockquote>
+<p>Command line: --graceful-timeout INT</p>
+</blockquote>
+</li>
+<li><strong>Uvicorn</strong> — https://uvicorn.dev/settings/<blockquote>
+<p><code>--timeout-graceful-shutdown &lt;int&gt;</code></p>
+</blockquote>
+</li>
+<li><strong>Hypercorn</strong> — https://hypercorn.readthedocs.io/en/latest/how_to_guides/configuring.html<blockquote>
+<p>| graceful_timeout | <code>--graceful-timeout</code> |</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="ambiguities-and-contradictions">Ambiguities and contradictions</h2>
+<ol>
+<li><strong>Gunicorn docs have moved.</strong> <code>https://docs.gunicorn.org/en/stable/settings.html</code> (and <code>/en/latest/…</code>, <code>/signals</code>) now 404 (docs.gunicorn.org redirects to gunicorn.org, which 404s the old paths). The current gunicorn.org docs describe a much newer Gunicorn than most third-party material: they document native HTTP/2 (<code>--http-protocols</code>, <code>gunicorn[http2]</code>, h2c), which contradicts the widely repeated claim that "Gunicorn doesn't support HTTP/2". They also give keep-alive default <strong>2 s</strong>, whereas older Gunicorn docs stated 5 s.</li>
+<li><strong>Gunicorn's default bind is conditional.</strong> <code>127.0.0.1:8000</code> applies only when the <code>PORT</code> environment variable is unset; then it is <code>0.0.0.0:$PORT</code>. The settings page states both in one entry.</li>
+<li><strong>Gunicorn keep-alive is worker-class-dependent.</strong> The default <code>sync</code> worker "does not support persistent connections and will ignore this option", so the 2 s default applies only to gthread/gevent/asyncio-style workers.</li>
+<li><strong>Hypercorn's config table leaves defaults blank</strong> for <code>bind</code> and <code>graceful_timeout</code> (and others), while the prose Binds guide states the bind default (<code>127.0.0.1:8000</code>). For <code>graceful_timeout</code> the table's own "Purpose" cell is truncated mid-sentence ("…for any remaining requests (tasks) to") in both the rendered HTML and the upstream <code>configuring.rst.txt</code>, and no default is given anywhere — so Hypercorn's graceful timeout default is reported as "not documented".</li>
+<li><strong>Hypercorn's <code>--quic-bind</code> vs. "supports HTTP/1, HTTP/2".</strong> The options table exposes a UDP/QUIC bind, implying QUIC plumbing, but no fetched page documents HTTP/3 request serving; the front page's support list stops at HTTP/2. Treated as "not documented".</li>
+<li><strong>Uvicorn's <code>--timeout-graceful-shutdown</code> has no documented default</strong>, even though the settings page documents defaults for most other options. The Server Behavior page describes shutdown ("responses and tasks must still complete within the configured timeout periods") but never names a default or which OS signals trigger shutdown.</li>
+<li><strong>"Worker timeout" is not a like-for-like concept.</strong> Gunicorn's <code>timeout</code> kills/restarts silent workers (heartbeat-based, since 26.3.0 also cancelling stalled HTTP/2 streams); Uvicorn's <code>--timeout-worker-healthcheck</code> bounds healthcheck responses only; Hypercorn documents no worker timeout at all. Any comparison here is approximate.</li>
+<li><strong>Uvicorn worker defaults differ in wording</strong> from Gunicorn's ("Defaults to the <code>$WEB_CONCURRENCY</code> environment variable if available, or 1" vs Gunicorn's "Default: 1 … By default, the value of the WEB_CONCURRENCY environment variable…"), but the effective semantics as documented are the same.</li>
+<li><strong>HTTP/2 in Uvicorn is doubly experimental</strong> (<code>zttp</code> parser "not suited for production usage" plus HTTP/2 "not enabled by default"), whereas Hypercorn negotiates h2 over TLS by default with no CLI flag and Gunicorn requires an explicit opt-in flag — three different "on-by-default" philosophies that make a single "HTTP/2: yes/no" cell misleading.</li>
+</ol></main>

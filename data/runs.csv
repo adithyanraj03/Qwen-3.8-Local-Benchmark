@@ -402,3 +402,111 @@ M5-qwen3.8-flash-next-orca-uncensored-nvfp4,X16,Isometric voxel pagoda garden (T
 M6-qwen3.8-flash-next-sc117-abliterated-iq3_xxs,X16,Isometric voxel pagoda garden (Three.js),1267.5,64,107,107935,85.6,false,false,false,"opencode 1.18.35 (224K cap, preview tool, bash timeout, Git Bash shell pinned; hung-tool watchdog with escalation; quiet mode); lite pass"
 M7-qwen3.8-flash-next-orca-uncensored-nvfp4-gptq-512k,X16,Isometric voxel pagoda garden (Three.js),987.1,32,35,52509,53.5,false,false,false,"opencode 1.18.35 (224K cap, preview tool, bash timeout, Git Bash shell pinned with Git usr/bin on PATH; hung-tool watchdog with escalation; quiet mode); lite pass"
 M8-qwen3.8-flash-next-orca-uncensored-nvfp4-gptq-384k,X16,Isometric voxel pagoda garden (Three.js),1704.4,47,47,48061,28.3,false,false,false,"opencode 1.18.35 (224K cap, preview tool, bash timeout, Git Bash shell pinned; hung-tool watchdog with escalation; quiet mode); single re-test requested by the owner 2026-10-29"
+M9-Qwen3.8-FN-NVFP4,N1,Animated SVG: lighthouse storm,345.8,27,26,21701,63.7,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N10,2D physics sandbox (canvas),889.3,34,33,63800,72.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N11,Raymarched alien landscape (GLSL),931.1,41,57,39714,42.9,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N12,3D sneaker configurator (Three.js),951.0,55,73,65896,69.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N13,Vision: rebuild a page from a screenshot,302.7,12,11,23933,80.5,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N14,Long context: Typer architecture + --version helper,925.1,56,66,32737,35.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N15,"Interval tree, persistent RB tree, Dijkstra/A*",725.1,62,61,49196,68.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N16,Browser tower defense,1487.2,59,65,71424,48.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N18,Chess vs alpha-beta AI,1677.7,58,57,101938,60.9,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N19,Kanban app (Express + SQLite),598.5,56,67,43118,72.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N2,SVG weather icon set,240.7,17,17,21221,90.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N20,Refactor legacy invoice.py,566.6,30,64,56814,101.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N22,WebAudio step sequencer,417.8,16,19,35128,84.8,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N23,Bug hunt: race + deadlock (Go),279.7,11,13,7701,27.9,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N24,Design doc: URL shortener (Mermaid),245.0,8,7,21112,87.3,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N26,WCAG 2.2 accessibility audit and fix,382.1,27,29,30188,80.1,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N27,MCP server for SQLite (TypeScript),818.1,53,61,57277,70.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N28,OpenCode plugin: project_todo + formatter hook,666.8,77,88,45501,68.7,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N29,Chrome MV3 extension: Tab Ledger,1234.6,71,70,56934,46.3,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N3,SaaS landing page: Northwind Ledger,726.9,33,39,44142,61.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N30,Rust TUI system monitor,1101.1,66,65,55900,50.9,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N31,Rust axum URL shortener,754.2,38,61,50421,67.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N32,Rust 1 GB CSV VWAP performance,486.6,25,28,23721,49.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N33,LaTeX paper: speculative decoding cost model,389.2,24,28,40909,106.1,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N34,Publication SVG figures + LaTeX,451.0,23,29,51072,114.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N35,Peer review of an arXiv paper,339.8,14,17,30016,89.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N36,LaTeX paper validation tool,656.9,47,60,56969,87.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N4,Analytics dashboard (canvas/SVG),404.7,24,23,30623,76.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N5,FastAPI task tracker with tests,322.2,38,37,24270,76.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N6,Fix a broken repository (Click 8.1.7),122.0,17,19,3922,33.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N7,dupehunt duplicate-file CLI (Rust/Go),350.8,28,28,34052,98.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N8,Godot 2D pixel-art platformer,2709.3,93,117,111466,41.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,N9,Blender scripted tavern render,1022.1,34,56,71224,70.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P1,GTA-style city (Three.js),1091.2,21,20,97422,89.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P2,Flight combat simulator (Godot + Blender),4232.1,149,175,122244,28.9,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P3,C++ rally racing game,1182.5,57,58,83621,71.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P4,Subway station zombie FPS (Three.js),1891.1,53,93,81771,43.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P5,C++ skateboarding game,1297.6,42,47,111263,86.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P6,Slappis Watch Co. website (Three.js),1513.1,68,99,66078,43.8,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P7,City block through the decades,1982.3,75,82,132426,67.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P8,STREET YEET (Godot + Blender),2546.5,111,138,148065,58.3,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,P9,Animated SVG: bird on a bicycle,269.3,10,9,22524,85.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X1,Offline-first PWA: Pocket Pantry,1809.5,64,74,65737,36.4,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X10,Four mathematical proofs,235.6,8,7,31926,138.2,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X11,Localise a web app (es/de/ja),406.7,31,43,46702,116.3,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X12,Researched comparison with citations,332.3,27,47,27532,84.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X16,Isometric voxel pagoda garden (Three.js),1239.6,82,81,83562,67.6,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X2,Desktop notes app (PySide6),522.9,56,64,47343,91.5,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X3,Library database: migrations + tricky SQL,415.6,19,18,51335,124.8,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X4,"DevOps: Docker, compose, CI",1537.4,37,52,30189,19.7,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X6,Data science: messy bike-share CSV,897.3,45,45,31321,35.1,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X7,Tern language interpreter,329.0,27,47,44354,136.3,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X8,Embedded C: ring buffer + frame parser,320.1,16,21,41090,130.0,false,false,false,opencode 1.18.35
+M9-Qwen3.8-FN-NVFP4,X9,Constrained short story,312.1,18,42,43699,141.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N1,Animated SVG: lighthouse storm,274.7,19,18,20319,75.1,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N10,2D physics sandbox (canvas),890.3,64,76,67656,76.5,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N11,Raymarched alien landscape (GLSL),515.2,32,35,28242,55.4,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N12,3D sneaker configurator (Three.js),521.3,31,42,44289,85.7,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N13,Vision: rebuild a page from a screenshot,173.9,9,8,19167,114.2,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N14,Long context: Typer architecture + --version helper,597.0,41,52,23953,40.5,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N15,"Interval tree, persistent RB tree, Dijkstra/A*",325.5,32,32,34370,107.2,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N16,Browser tower defense,350.5,22,21,29588,85.6,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N18,Chess vs alpha-beta AI,1251.1,171,170,127854,102.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N19,Kanban app (Express + SQLite),521.4,74,73,44828,86.6,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N2,SVG weather icon set,193.9,14,30,24051,126.6,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N20,Refactor legacy invoice.py,187.8,24,40,24748,134.1,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N22,WebAudio step sequencer,206.5,13,19,20780,102.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N23,Bug hunt: race + deadlock (Go),989.2,12,14,6480,6.6,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N24,Design doc: URL shortener (Mermaid),212.4,9,8,15742,75.5,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N26,WCAG 2.2 accessibility audit and fix,132.3,12,13,12879,100.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N27,MCP server for SQLite (TypeScript),811.4,113,113,42524,52.7,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N28,OpenCode plugin: project_todo + formatter hook,399.4,47,58,27902,70.7,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N29,Chrome MV3 extension: Tab Ledger,303.1,40,53,30187,101.0,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N3,SaaS landing page: Northwind Ledger,693.2,36,41,35958,52.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N30,Rust TUI system monitor,670.6,44,57,48006,72.1,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N31,Rust axum URL shortener,328.6,27,35,23804,73.5,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N32,Rust 1 GB CSV VWAP performance,392.1,40,39,31508,81.2,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N33,LaTeX paper: speculative decoding cost model,334.0,29,31,36500,110.9,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N34,Publication SVG figures + LaTeX,235.6,14,20,26433,114.0,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N35,Peer review of an arXiv paper,157.4,9,16,17181,112.1,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N36,LaTeX paper validation tool,244.2,29,41,27664,115.7,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N4,Analytics dashboard (canvas/SVG),384.8,43,43,33347,87.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N5,FastAPI task tracker with tests,202.5,20,32,20680,104.4,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N6,Fix a broken repository (Click 8.1.7),76.7,14,16,3386,46.9,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N7,dupehunt duplicate-file CLI (Rust/Go),233.3,28,28,24099,105.4,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N8,Godot 2D pixel-art platformer,2335.4,72,102,272392,116.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,N9,Blender scripted tavern render,362.3,21,20,15436,43.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P1,GTA-style city (Three.js),388.0,14,20,29893,77.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P2,Flight combat simulator (Godot + Blender),1665.3,104,133,86071,51.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P3,C++ rally racing game,1161.8,61,80,67929,58.7,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P4,Subway station zombie FPS (Three.js),1142.6,51,84,59023,51.9,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P5,C++ skateboarding game,1460.5,32,42,218191,150.2,true,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P6,Slappis Watch Co. website (Three.js),1394.3,57,87,76989,55.4,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P7,City block through the decades,1199.4,50,66,72063,60.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P8,STREET YEET (Godot + Blender),1589.0,95,111,70689,44.6,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,P9,Animated SVG: bird on a bicycle,320.9,20,25,39072,123.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X1,Offline-first PWA: Pocket Pantry,1190.6,57,69,32974,27.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X10,Four mathematical proofs,74.7,3,3,10046,142.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X11,Localise a web app (es/de/ja),404.0,40,43,51428,128.9,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X12,Researched comparison with citations,253.5,46,49,21947,88.3,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X16,Isometric voxel pagoda garden (Three.js),605.9,36,52,45215,75.2,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X2,Desktop notes app (PySide6),222.7,27,41,24895,114.0,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X3,Library database: migrations + tricky SQL,195.8,14,18,28436,147.8,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X4,"DevOps: Docker, compose, CI",281.2,27,45,16987,61.5,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X6,Data science: messy bike-share CSV,321.0,27,30,19429,61.2,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X7,Tern language interpreter,196.0,36,35,28229,147.1,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X8,Embedded C: ring buffer + frame parser,243.4,21,31,34786,145.4,false,false,false,opencode 1.18.35
+M10-qwen3.8-flash-next-ista-iq3_s,X9,Constrained short story,202.7,10,17,30040,152.2,false,false,false,opencode 1.18.35
