@@ -8,16 +8,11 @@
   <a href="https://creativecommons.org/licenses/by/4.0/"><img alt="License: CC BY 4.0" src="https://img.shields.io/badge/license-CC_BY_4.0-lightgrey?style=flat&logo=creativecommons&logoColor=white&labelColor=202124"></a>
 </p>
 
-<table width="100%">
-  <tr>
-    <td width="120">English | <a href="README.zh-CN.md">中文</a></td>
-    <td align="center">
-      <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/"><img alt="Live report" src="https://img.shields.io/badge/Live_report-open_in_browser-2bb5a0?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=202124"></a>
-      <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/#leaderboard"><img alt="Top score: M4 8.98" src="https://img.shields.io/badge/Top_score-M4_%C2%B7_8.98-22a882?style=for-the-badge&labelColor=202124"></a>
-    </td>
-    <td width="120"></td>
-  </tr>
-</table>
+<p align="center">
+  English | <a href="README.zh-CN.md">中文</a> &nbsp;&nbsp;
+  <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/"><img alt="Live report" src="https://img.shields.io/badge/Live_report-open_in_browser-2bb5a0?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=202124"></a>
+  <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/#leaderboard"><img alt="Top score: M4 8.98" src="https://img.shields.io/badge/Top_score-M4_%C2%B7_8.98-22a882?style=for-the-badge&labelColor=202124"></a>
+</p>
 
 Ten Qwen3.8 builds, each run alone through the same 54 hands-on tasks: games and 3D worlds, SVG and shaders, web apps and extensions, C++, Rust and Go, refactors and bug hunts, LaTeX papers and research write-ups. Everything ran on one RTX 5090 with 64 GB of RAM. Every result was rebuilt, run, recorded and scored by hand, and the owner personally played and rated every game, 3D, sound and design task.
 

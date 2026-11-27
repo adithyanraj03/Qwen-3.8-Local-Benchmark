@@ -8,16 +8,11 @@
   <a href="https://creativecommons.org/licenses/by/4.0/"><img alt="许可证：CC BY 4.0" src="https://img.shields.io/badge/license-CC_BY_4.0-lightgrey?style=flat&logo=creativecommons&logoColor=white&labelColor=202124"></a>
 </p>
 
-<table width="100%">
-  <tr>
-    <td width="120"><a href="README.md">English</a> | 中文</td>
-    <td align="center">
-      <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/"><img alt="在线报告" src="https://img.shields.io/badge/Live_report-open_in_browser-2bb5a0?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=202124"></a>
-      <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/#leaderboard"><img alt="最高分：M4 8.98" src="https://img.shields.io/badge/Top_score-M4_%C2%B7_8.98-22a882?style=for-the-badge&labelColor=202124"></a>
-    </td>
-    <td width="120"></td>
-  </tr>
-</table>
+<p align="center">
+  <a href="README.md">English</a> | 中文 &nbsp;&nbsp;
+  <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/"><img alt="在线报告" src="https://img.shields.io/badge/Live_report-open_in_browser-2bb5a0?style=for-the-badge&logo=googlechrome&logoColor=white&labelColor=202124"></a>
+  <a href="https://adithyanraj03.github.io/Qwen-3.8-Local-Benchmark/#leaderboard"><img alt="最高分：M4 8.98" src="https://img.shields.io/badge/Top_score-M4_%C2%B7_8.98-22a882?style=for-the-badge&labelColor=202124"></a>
+</p>
 
 十个 Qwen3.8 构建，各自独立运行相同的 54 个动手任务：游戏与 3D 世界、SVG 与着色器、网页应用与扩展、C++/Rust/Go、重构与查错、LaTeX 论文与研究写作。全部在一块 RTX 5090（64 GB 内存）上运行。每个结果都经过手工重建、运行、录制与评分，所有者亲自试玩并评定了每一个游戏、3D、声音与设计任务。
 
